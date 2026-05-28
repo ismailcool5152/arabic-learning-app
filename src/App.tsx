@@ -10,6 +10,8 @@ import HurufLibrary from './components/HurufLibrary';
 import QuranicLexicon from './components/QuranicLexicon';
 import RootToWords from './components/RootToWords';
 import ArabicBasics from './components/ArabicBasics';
+import AsmaAlHusna from './components/AsmaAlHusna';
+import HurufulHija from './components/HurufulHija';
 import { findOfflineFallback, generateDynamicOfflineFallback } from './offlineData';
 import { 
   BookOpen, 
@@ -33,7 +35,8 @@ import {
   Wifi,
   WifiOff,
   GitBranch,
-  Compass
+  Compass,
+  Award
 } from 'lucide-react';
 import { QURANIC_SUGGESTIONS } from './components/SavedMapsSidebar';
 
@@ -42,7 +45,8 @@ export default function App() {
   const [showArabicKeyboard, setShowArabicKeyboard] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeMainTab, setActiveMainTab] = useState<'basics' | 'huruf' | 'database' | 'root' | 'map' | 'lexicon'>('basics');
+  const [activeMainTab, setActiveMainTab] = useState<'hija' | 'basics' | 'huruf' | 'database' | 'root' | 'map' | 'names' | 'lexicon'>('hija');
+  const [selectedRoot, setSelectedRoot] = useState<string>('');
   
   // Layout Arrangement Mode selection
   const [layoutMode, setLayoutMode] = useState<LayoutMode>(() => {
@@ -397,7 +401,31 @@ export default function App() {
       <div className="w-full overflow-x-auto pb-1 scrollbar-none">
         <div className="flex bg-current/5 border border-current/10 p-1.5 rounded-2xl w-max min-w-full gap-1 items-center">
           
-          {/* STEP 1: Arabic Basics */}
+          {/* STEP 1: Hurūf-ul-Hijā */}
+          <button
+            onClick={() => setActiveMainTab('hija')}
+            type="button"
+            className={`shrink-0 flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+              activeMainTab === 'hija'
+                ? (isParchment
+                    ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
+                    : isCosmic
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
+                      : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
+                : (isParchment
+                    ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5')
+            }`}
+          >
+            <Sparkles className="w-4 h-4 text-yellow-500 animate-pulse" />
+            <span className="flex items-center gap-1">
+              <span className="opacity-50 font-mono text-[10px]">1.</span> Hurūf-ul-Hijā (Makhārij)
+            </span>
+          </button>
+
+          <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
+
+          {/* STEP 2: Arabic Basics */}
           <button
             onClick={() => setActiveMainTab('basics')}
             type="button"
@@ -415,13 +443,13 @@ export default function App() {
           >
             <Compass className="w-4 h-4 text-amber-500 animate-pulse" />
             <span className="flex items-center gap-1">
-              <span className="opacity-50 font-mono text-[10px]">1.</span> Arabic Basics
+              <span className="opacity-50 font-mono text-[10px]">2.</span> Arabic Basics
             </span>
           </button>
 
           <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
 
-          {/* STEP 2: Hurūf Library */}
+          {/* STEP 3: Hurūf Library */}
           <button
             onClick={() => setActiveMainTab('huruf')}
             type="button"
@@ -439,13 +467,13 @@ export default function App() {
           >
             <BookOpen className="w-4 h-4" />
             <span className="flex items-center gap-1">
-              <span className="opacity-50 font-mono text-[10px]">2.</span> Hurūf & Particles
+              <span className="opacity-50 font-mono text-[10px]">3.</span> Hurūf & Particles
             </span>
           </button>
 
           <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
 
-          {/* STEP 3: Pattern DB */}
+          {/* STEP 4: Pattern DB */}
           <button
             onClick={() => setActiveMainTab('database')}
             type="button"
@@ -463,13 +491,13 @@ export default function App() {
           >
             <Database className="w-4 h-4" />
             <span className="flex items-center gap-1">
-              <span className="opacity-50 font-mono text-[10px]">3.</span> Patterns Codex & DB
+              <span className="opacity-50 font-mono text-[10px]">4.</span> Patterns Codex & DB
             </span>
           </button>
 
           <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
 
-          {/* STEP 4: Root Synthesizer */}
+          {/* STEP 5: Root Synthesizer */}
           <button
             onClick={() => setActiveMainTab('root')}
             type="button"
@@ -487,13 +515,13 @@ export default function App() {
           >
             <GitBranch className="w-4 h-4" />
             <span className="flex items-center gap-1">
-              <span className="opacity-50 font-mono text-[10px]">4.</span> Root-to-Words Gen
+              <span className="opacity-50 font-mono text-[10px]">5.</span> Root-to-Words Gen
             </span>
           </button>
 
           <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
 
-          {/* STEP 5: Interactive Sarf Map */}
+          {/* STEP 6: Interactive Sarf Map */}
           <button
             onClick={() => setActiveMainTab('map')}
             type="button"
@@ -511,13 +539,37 @@ export default function App() {
           >
             <Milestone className="w-4 h-4" />
             <span className="flex items-center gap-1">
-              <span className="opacity-50 font-mono text-[10px]">5.</span> Interactive Sarf Map
+              <span className="opacity-50 font-mono text-[10px]">6.</span> Interactive Sarf Map
             </span>
           </button>
 
           <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
 
-          {/* STEP 6: Offline Lexicon */}
+          {/* STEP 7: Names of Allah */}
+          <button
+            onClick={() => setActiveMainTab('names')}
+            type="button"
+            className={`shrink-0 flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+              activeMainTab === 'names'
+                ? (isParchment
+                    ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
+                    : isCosmic
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
+                      : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
+                : (isParchment
+                    ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5')
+            }`}
+          >
+            <Award className="w-4 h-4 text-yellow-500 animate-pulse" />
+            <span className="flex items-center gap-1">
+              <span className="opacity-50 font-mono text-[10px]">7.</span> 100 Names of Allah
+            </span>
+          </button>
+
+          <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
+
+          {/* STEP 8: Offline Lexicon */}
           <button
             onClick={() => setActiveMainTab('lexicon')}
             type="button"
@@ -535,14 +587,18 @@ export default function App() {
           >
             <BookOpen className="w-4 h-4" />
             <span className="flex items-center gap-1">
-              <span className="opacity-50 font-mono text-[10px]">6.</span> Lexicon Dictionary
+              <span className="opacity-50 font-mono text-[10px]">8.</span> Lexicon Dictionary
             </span>
           </button>
         </div>
       </div>
 
       {/* Render activeMainTab panel */}
-      {activeMainTab === 'basics' ? (
+      {activeMainTab === 'hija' ? (
+        <div className="animate-fadeIn">
+          <HurufulHija theme={theme} />
+        </div>
+      ) : activeMainTab === 'basics' ? (
         <div className="animate-fadeIn">
           <ArabicBasics theme={theme} />
         </div>
@@ -563,6 +619,22 @@ export default function App() {
         <div className="animate-fadeIn">
           <RootToWords
             theme={theme}
+            initialRoot={selectedRoot}
+            onSelectWord={(word) => {
+              setSearchTerm(word);
+              setActiveMainTab('map');
+              handleSearch(word);
+            }}
+          />
+        </div>
+      ) : activeMainTab === 'names' ? (
+        <div className="animate-fadeIn">
+          <AsmaAlHusna
+            theme={theme}
+            onSelectRoot={(root) => {
+              setSelectedRoot(root);
+              setActiveMainTab('root');
+            }}
             onSelectWord={(word) => {
               setSearchTerm(word);
               setActiveMainTab('map');

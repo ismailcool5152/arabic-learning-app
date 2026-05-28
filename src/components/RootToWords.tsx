@@ -20,6 +20,7 @@ import {
 interface RootToWordsProps {
   theme: LayoutTheme;
   onSelectWord: (word: string) => void;
+  initialRoot?: string;
 }
 
 // Map English characters to Arabic equivalent for phonetic type support
@@ -46,11 +47,23 @@ const COGNATE_PRESETS = [
   { letters: ['ض', 'ر', 'ب'], transliteration: 'D-R-B', meaning: 'Strike, Travel & Projecting Examples', english: 'Strike' }
 ];
 
-export default function RootToWords({ theme, onSelectWord }: RootToWordsProps) {
+export default function RootToWords({ theme, onSelectWord, initialRoot }: RootToWordsProps) {
   const [inputWord, setInputWord] = useState('');
   const [r1, setR1] = useState('ك');
   const [r2, setR2] = useState('ت');
   const [r3, setR3] = useState('ب');
+
+  useEffect(() => {
+    if (initialRoot) {
+      const cleanLetters = initialRoot.replace(/[\s\-_]/g, '').split('');
+      if (cleanLetters.length >= 3) {
+        setR1(cleanLetters[0]);
+        setR2(cleanLetters[1]);
+        setR3(cleanLetters[2]);
+        setInputWord(cleanLetters.join(' '));
+      }
+    }
+  }, [initialRoot]);
   
   const isParchment = theme === 'parchment';
   const isCosmic = theme === 'cosmic';
