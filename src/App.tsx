@@ -40,16 +40,18 @@ import {
   User,
   Edit2,
   Check,
-  X
+  X,
+  FileText
 } from 'lucide-react';
 import { QURANIC_SUGGESTIONS } from './components/SavedMapsSidebar';
+import ProductDoc from './components/ProductDoc';
 
 export default function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showArabicKeyboard, setShowArabicKeyboard] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeMainTab, setActiveMainTab] = useState<'hija' | 'basics' | 'huruf' | 'database' | 'root' | 'map' | 'names' | 'lexicon'>('hija');
+  const [activeMainTab, setActiveMainTab] = useState<'hija' | 'basics' | 'huruf' | 'database' | 'root' | 'map' | 'names' | 'lexicon' | 'doc'>('hija');
   const [selectedRoot, setSelectedRoot] = useState<string>('');
   
   // Layout Arrangement Mode selection
@@ -742,6 +744,10 @@ export default function App() {
             }} 
           />
         </div>
+      ) : activeMainTab === 'doc' ? (
+        <div className="animate-fadeIn">
+          <ProductDoc theme={theme} />
+        </div>
       ) : (
         <div className="space-y-6">
           {/* Main Search Bar (Moved from Header) */}
@@ -1107,6 +1113,18 @@ export default function App() {
             {/* Top-Right Corner Utilities */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto shrink-0 select-none">
               
+              <button
+                onClick={() => setActiveMainTab('doc')}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all text-xs font-semibold cursor-pointer ${
+                  activeMainTab === 'doc'
+                    ? (isParchment ? 'bg-[#8c6239] text-white border-[#8c6239]' : isCosmic ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-emerald-600 border-emerald-500 text-white')
+                    : (isParchment ? 'bg-[#ebd8c3]/35 border-[#dfd2be]/80 text-[#2c241e] hover:bg-[#ebd8c3]/60' : isCosmic ? 'bg-indigo-950/35 border-indigo-950/80 text-indigo-100 hover:bg-indigo-900/50' : 'bg-slate-900/60 border-slate-800/80 text-slate-100 hover:bg-slate-800/60')
+                }`}
+              >
+                <FileText className="w-3.5 h-3.5" />
+                <span>Architecture Doc</span>
+              </button>
+
               {/* Personal Study Circle widget */}
               <div className={`flex items-center rounded-xl border p-1 transition-all duration-300 ${
                 isParchment 
