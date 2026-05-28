@@ -1,0 +1,6 @@
+{
+  "name": "Quranic Arabic Root Learner",
+  "description": "An interactive full-stack learning app to master Quranic Arabic vocabulary through root-word extraction, morphology derivation, related word families, and visual mind maps.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
