@@ -36,7 +36,11 @@ import {
   WifiOff,
   GitBranch,
   Compass,
-  Award
+  Award,
+  User,
+  Edit2,
+  Check,
+  X
 } from 'lucide-react';
 import { QURANIC_SUGGESTIONS } from './components/SavedMapsSidebar';
 
@@ -60,7 +64,54 @@ export default function App() {
     }
     return 'horizontal';
   });
-  
+
+  // UI Scale
+  const [uiScale, setUiScale] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('quranic_arabic_ui_scale');
+      if (saved) return parseFloat(saved);
+      return 1;
+    } catch {
+      return 1;
+    }
+  });
+
+  const handleUiScaleChange = (scale: number) => {
+    setUiScale(scale);
+    try {
+      localStorage.setItem('quranic_arabic_ui_scale', scale.toString());
+    } catch (e) {
+      // Ignored
+    }
+  };
+
+  useEffect(() => {
+    // Reset to default just in case. We apply uiScale via CSS zoom on the specific sections.
+    document.documentElement.style.fontSize = '16px';
+  }, []);
+
+  // Container Width
+  const [containerWidth, setContainerWidth] = useState<'standard' | 'wide' | 'full'>(() => {
+    try {
+      const saved = localStorage.getItem('quranic_arabic_container_width');
+      if (saved === 'standard' || saved === 'wide' || saved === 'full') return saved;
+      return 'standard';
+    } catch {
+      return 'standard';
+    }
+  });
+
+  const handleContainerWidthChange = (width: 'standard' | 'wide' | 'full') => {
+    setContainerWidth(width);
+    try {
+      localStorage.setItem('quranic_arabic_container_width', width);
+    } catch (e) {
+      // Ignored
+    }
+  };
+
+  const maxWidthClass = containerWidth === 'full' ? 'max-w-full px-2 md:px-8' : containerWidth === 'wide' ? 'max-w-[1600px] px-4 md:px-6' : 'max-w-7xl px-4 md:px-6';
+
   // Naming & Search History local persistence states
   const [userName, setUserName] = useState<string>(() => {
     try {
@@ -119,6 +170,24 @@ export default function App() {
     }
   };
 
+  // Custom User API Key (Optional)
+  const [customApiKey, setCustomApiKey] = useState<string>(() => {
+    try {
+      return localStorage.getItem('quranic_arabic_custom_api_key') || '';
+    } catch {
+      return '';
+    }
+  });
+
+  const handleCustomApiKeyChange = (key: string) => {
+    setCustomApiKey(key);
+    try {
+      localStorage.setItem('quranic_arabic_custom_api_key', key);
+    } catch (e) {
+      console.error("Failed to persist custom API key:", e);
+    }
+  };
+
   const handleSaveUserName = (name: string) => {
     setUserName(name);
     try {
@@ -126,6 +195,19 @@ export default function App() {
     } catch (e) {
       console.error("Failed to save username:", e);
     }
+  };
+
+  const [isHeaderEditingName, setIsHeaderEditingName] = useState<boolean>(false);
+  const [headerNameInput, setHeaderNameInput] = useState<string>(userName);
+
+  useEffect(() => {
+    setHeaderNameInput(userName);
+  }, [userName]);
+
+  const handleHeaderNameSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSaveUserName(headerNameInput.trim());
+    setIsHeaderEditingName(false);
   };
 
   const handleAddRecentSearch = (word: string) => {
@@ -248,7 +330,7 @@ export default function App() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ word: wordToSearch }),
+        body: JSON.stringify({ word: wordToSearch, customApiKey }),
       });
 
       if (!response.ok) {
@@ -387,8 +469,6 @@ export default function App() {
       isSearching={isSearching}
       theme={theme}
       layoutMode={layoutMode}
-      userName={userName}
-      onSaveUserName={handleSaveUserName}
       recentSearches={recentSearches}
       onDeleteRecentSearch={handleDeleteRecentSearch}
       onClearRecentSearches={handleClearRecentSearches}
@@ -396,7 +476,7 @@ export default function App() {
   );
 
   const renderWorkspace = () => (
-    <div className="space-y-6">
+    <div className="space-y-6 flex-1 w-full">
       {/* Main Visualizer vs Pattern Codex Tab Switcher */}
       <div className="w-full overflow-x-auto pb-1 scrollbar-none">
         <div className="flex bg-current/5 border border-current/10 p-1.5 rounded-2xl w-max min-w-full gap-1 items-center">
@@ -521,31 +601,7 @@ export default function App() {
 
           <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
 
-          {/* STEP 6: Interactive Sarf Map */}
-          <button
-            onClick={() => setActiveMainTab('map')}
-            type="button"
-            className={`shrink-0 flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-              activeMainTab === 'map'
-                ? (isParchment
-                    ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
-                    : isCosmic
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
-                      : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
-                : (isParchment
-                    ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5')
-            }`}
-          >
-            <Milestone className="w-4 h-4" />
-            <span className="flex items-center gap-1">
-              <span className="opacity-50 font-mono text-[10px]">6.</span> Interactive Sarf Map
-            </span>
-          </button>
-
-          <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
-
-          {/* STEP 7: Names of Allah */}
+          {/* STEP 6: Names of Allah */}
           <button
             onClick={() => setActiveMainTab('names')}
             type="button"
@@ -563,13 +619,13 @@ export default function App() {
           >
             <Award className="w-4 h-4 text-yellow-500 animate-pulse" />
             <span className="flex items-center gap-1">
-              <span className="opacity-50 font-mono text-[10px]">7.</span> 100 Names of Allah
+              <span className="opacity-50 font-mono text-[10px]">6.</span> 100 Names of Allah
             </span>
           </button>
 
           <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
 
-          {/* STEP 8: Offline Lexicon */}
+          {/* STEP 7: Offline Lexicon */}
           <button
             onClick={() => setActiveMainTab('lexicon')}
             type="button"
@@ -587,13 +643,42 @@ export default function App() {
           >
             <BookOpen className="w-4 h-4" />
             <span className="flex items-center gap-1">
-              <span className="opacity-50 font-mono text-[10px]">8.</span> Lexicon Dictionary
+              <span className="opacity-50 font-mono text-[10px]">7.</span> Lexicon Dictionary
             </span>
           </button>
+
+          {!isOfflineMode && (
+            <>
+              <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
+
+              {/* STEP 8: Word Search & Analysis */}
+              <button
+                onClick={() => setActiveMainTab('map')}
+                type="button"
+                className={`shrink-0 flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                  activeMainTab === 'map'
+                    ? (isParchment
+                        ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
+                        : isCosmic
+                          ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
+                          : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
+                    : (isParchment
+                        ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
+                        : 'text-slate-400 hover:text-white hover:bg-white/5')
+                }`}
+              >
+                <Search className="w-4 h-4" />
+                <span className="flex items-center gap-1">
+                  <span className="opacity-50 font-mono text-[10px]">8.</span> Word Search & Analysis
+                </span>
+              </button>
+            </>
+          )}
         </div>
       </div>
 
       {/* Render activeMainTab panel */}
+      <div style={{ zoom: uiScale }}>
       {activeMainTab === 'hija' ? (
         <div className="animate-fadeIn">
           <HurufulHija theme={theme} />
@@ -658,7 +743,60 @@ export default function App() {
           />
         </div>
       ) : (
-        <>
+        <div className="space-y-6">
+          {/* Main Search Bar (Moved from Header) */}
+          <form onSubmit={handleSearchSubmit} className="flex-1 w-full max-w-3xl mx-auto flex items-center relative">
+            <div className="relative flex-1 min-w-[240px]">
+              <Search className={`absolute left-4 top-3.5 h-5 w-5 ${isParchment ? 'text-[#8c6239]/80' : 'text-slate-500'}`} />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search (e.g. سَجَدَ, كَتَابَ, عَلِمَ) to generate Sarf Map..."
+                className={`w-full font-medium rounded-2xl py-3.5 pl-12 pr-24 text-base focus:outline-none transition-all border shadow-sm ${
+                  isParchment
+                    ? 'bg-[#fdfbf7] border-[#ebdcc3] text-[#2c241e] placeholder-[#a68c6d] focus:border-[#8c6239] focus:ring-2 focus:ring-[#8c6239]/20'
+                    : isCosmic
+                      ? 'bg-black border-indigo-950 text-indigo-50 placeholder-indigo-200/40 focus:border-pink-500 focus:ring-2 focus:ring-pink-500/30'
+                      : 'bg-slate-900 border border-slate-800 text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30'
+                }`}
+                disabled={isSearching}
+              />
+              <div className="absolute right-2 top-2 flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setShowArabicKeyboard(!showArabicKeyboard)}
+                  className={`p-2 rounded-xl transition-all duration-200 cursor-pointer ${
+                    showArabicKeyboard
+                      ? (isParchment ? 'bg-[#ebd8c3]/80 text-[#8c6239]' : isCosmic ? 'bg-[#1b1e36] text-pink-400' : 'bg-[#0f2d1e] text-emerald-400')
+                      : (isParchment ? 'hover:bg-[#ebd8c3]/40 text-[#a68c6d]' : 'hover:bg-slate-800 text-slate-400 hover:text-slate-200')
+                  }`}
+                  title="Arabic Keyboard Toggle"
+                >
+                  <Keyboard className="w-4 h-4" />
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSearching || !searchTerm.trim()}
+                  className={`p-2 rounded-xl transition-all duration-200 cursor-pointer disabled:opacity-40 disabled:pointer-events-none ${
+                    isParchment
+                      ? 'bg-[#8c6239] text-[#faf6ed] hover:bg-[#a67c52]'
+                      : isCosmic
+                        ? 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-950/50'
+                        : 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-emerald-950/40'
+                  }`}
+                  title="Search & Analyze"
+                >
+                  {isSearching ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Search className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+          </form>
+
           {/* Top Banner Status Bar */}
           <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-2xl border transition-all duration-300 ${
             isParchment 
@@ -698,6 +836,21 @@ export default function App() {
                       {analysis.root}
                     </span>
                   </span>
+                  {analysis.isOfflineFallback ? (
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded border ml-2 bg-[#1e1305] border-amber-900/40 text-amber-500 font-semibold" title="Local system backups active">
+                      Offline Mode
+                    </span>
+                  ) : (
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ml-2 font-semibold ${
+                      isParchment 
+                        ? 'bg-[#ebd8c3]/40 text-[#8c6239] border-[#dfd2be]' 
+                        : isCosmic 
+                          ? 'bg-indigo-950/60 text-indigo-400 border-indigo-900/60' 
+                          : 'bg-emerald-950/60 text-emerald-400 border-emerald-900/60'
+                    }`} title="Active API model">
+                      AI Active
+                    </span>
+                  )}
                 </div>
               ) : (
                 <p className={`text-sm mt-1.5 ${isParchment ? 'text-[#705e52]' : 'text-slate-400'}`}>Search or choose a Quranic word suggestion to begin map generation.</p>
@@ -901,8 +1054,9 @@ export default function App() {
               </p>
             </div>
           )}
-        </>
+        </div>
       )}
+      </div>
     </div>
   );
 
@@ -935,32 +1089,111 @@ export default function App() {
       
       {/* Premium Quranic Header Navigation */}
       <header className={`border-b backdrop-blur-md sticky top-0 z-50 px-6 py-4 transition-all duration-300 ${headerBorderBgClass}`}>
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className={`${maxWidthClass} mx-auto flex flex-col gap-4`}>
           
-          {/* Logo Brand Details & Theme Switcher combo */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="flex items-center space-x-3">
+          {/* Row 1: Logo (Left) and Top-Right Utilities (Study Circle & Search Form on Right) */}
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 w-full">
+            
+            {/* Logo Brand Details */}
+            <div className="flex items-center space-x-3 self-start md:self-auto">
               <div className={`p-2.5 rounded-xl border transition-all duration-300 ${logoIconBgClass}`}>
                 <BookOpen className="w-6 h-6" />
               </div>
-              <div>
-                <div className="flex items-center space-x-2">
-                  <h1 className={`text-base font-bold tracking-tight ${isParchment ? 'text-[#2c241e]' : 'text-white'}`}>
-                    Baseer <span className={isParchment ? 'text-[#8c6239] font-semibold' : isCosmic ? 'text-indigo-400' : 'text-emerald-400'}>Bayan</span>
-                  </h1>
-                  <span className={`text-[10px] font-mono tracking-wider px-2 py-0.5 rounded border font-bold uppercase transition-all duration-300 ${badgeClass}`}>
-                    Root Learner
-                  </span>
-                </div>
-                <p className={`text-xs font-sans mt-0.5 ${isParchment ? 'text-[#705e52]' : 'text-slate-400'}`}>
-                  Memorize Quranic vocabulary through elegant Triliteral Root maps
-                </p>
-              </div>
+              <h1 className={`text-base font-bold tracking-tight ${isParchment ? 'text-[#2c241e]' : 'text-white'}`}>
+                Baseer <span className={isParchment ? 'text-[#8c6239] font-semibold' : isCosmic ? 'text-indigo-400' : 'text-emerald-400'}>Bayan</span>
+              </h1>
             </div>
 
-            {/* Premium Theme Selector widget */}
+            {/* Top-Right Corner Utilities */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto shrink-0 select-none">
+              
+              {/* Personal Study Circle widget */}
+              <div className={`flex items-center rounded-xl border p-1 transition-all duration-300 ${
+                isParchment 
+                  ? 'bg-[#ebd8c3]/35 border-[#dfd2be]/80 text-[#2c241e]' 
+                  : isCosmic 
+                    ? 'bg-indigo-950/35 border-indigo-950/80 text-indigo-100' 
+                    : 'bg-slate-900/60 border-slate-800/80 text-slate-100'
+              }`}>
+                {isHeaderEditingName ? (
+                  <form 
+                    onSubmit={handleHeaderNameSave} 
+                    className="flex items-center gap-1.5 px-1.5"
+                  >
+                    <input
+                      type="text"
+                      value={headerNameInput}
+                      onChange={(e) => setHeaderNameInput(e.target.value)}
+                      placeholder="Enter name..."
+                      required
+                      maxLength={15}
+                      className={`font-semibold rounded-lg py-0.5 px-2 text-[11px] w-24 focus:outline-none transition-all border ${
+                        isParchment
+                          ? 'bg-[#fdfbf7] border-[#ebdcc3] text-[#2c241e] focus:border-[#8c6239]'
+                          : isCosmic
+                            ? 'bg-black border-indigo-950 text-indigo-50 focus:border-indigo-500'
+                            : 'bg-slate-950 border border-slate-800 text-slate-100 focus:border-emerald-500'
+                      }`}
+                    />
+                    <button
+                      type="submit"
+                      className="p-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white transition-all cursor-pointer"
+                      title="Save name"
+                    >
+                      <Check className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHeaderNameInput(userName);
+                        setIsHeaderEditingName(false);
+                      }}
+                      className="p-1 rounded border border-current/10 hover:bg-current/5 transition-all cursor-pointer opacity-75 hover:opacity-100"
+                      title="Cancel"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </form>
+                ) : (
+                  <div className="flex items-center gap-2 pl-2.5 pr-1.5 py-0.5">
+                    <div className={`p-1 rounded-lg bg-current/5 border border-current/10 ${isParchment ? 'text-[#8c6239]' : isCosmic ? 'text-pink-400' : 'text-emerald-400'}`}>
+                      <User className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="min-w-0 pr-1">
+                      <p className={`text-[8px] font-mono uppercase tracking-wider leading-none text-current/50`}>
+                        Study Circle
+                      </p>
+                      <h3 className="text-[11px] font-bold truncate leading-snug mt-0.5">
+                        {userName ? (
+                          <span>{userName}</span>
+                        ) : (
+                          <span className="opacity-50 font-normal">Guest Scholar</span>
+                        )}
+                      </h3>
+                    </div>
+                    <button
+                      onClick={() => setIsHeaderEditingName(true)}
+                      type="button"
+                      className={`p-1 rounded hover:bg-current/10 text-current/60 hover:text-current transition-all cursor-pointer`}
+                      title="Edit Name"
+                    >
+                      <Edit2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Row 2: Allign these things into one horizontal line Theme, Layout, engine and AI Model */}
+          <div className={`flex flex-col md:flex-row md:items-center justify-between gap-3 w-full border-t pt-3 rounded-xl ${
+            isParchment ? 'border-[#dfd2be]/40' : (isCosmic ? 'border-indigo-950/80' : 'border-slate-800/40')
+          }`}>
+            
+            {/* Left aligned widgets: Theme & Layout */}
             <div className="flex flex-wrap items-center gap-3">
-              <div className={`flex items-center space-x-1.5 p-1 rounded-xl border ml-0 sm:ml-2 transition-all duration-300 ${
+              {/* Theme Selector Widget */}
+              <div className={`flex items-center space-x-1.5 p-1 rounded-xl border transition-all duration-300 ${
                 isParchment 
                   ? 'bg-[#ebd8c3]/30 border-[#dfd2be]/80' 
                   : isCosmic 
@@ -979,7 +1212,7 @@ export default function App() {
                         ? 'bg-emerald-600/35 border border-emerald-500/50 text-emerald-300 shadow-sm'
                         : 'bg-transparent border border-transparent text-slate-500 hover:text-slate-300'
                     }`}
-                    title="Emerald Sanctuary: Deep Green Accent, Majestic Scholar View"
+                    title="Emerald Sanctuary"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                     <span>Emerald</span>
@@ -992,7 +1225,7 @@ export default function App() {
                         ? 'bg-indigo-600/30 border border-indigo-500/50 text-indigo-300 shadow-sm'
                         : 'bg-transparent border border-transparent text-slate-500 hover:text-slate-300'
                     }`}
-                    title="Cosmic Midnight: Deep Royal Academic Cyber-Teal Mode"
+                    title="Cosmic Midnight"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
                     <span>Cosmic</span>
@@ -1005,7 +1238,7 @@ export default function App() {
                         ? 'bg-[#dfdcce] border border-[#a68c6d]/50 text-[#5c3d2e] shadow-xs'
                         : 'bg-transparent border border-transparent text-[#705e52] hover:text-[#2c241e]'
                     }`}
-                    title="Sandalwood Parchment: Eye-friendly Classical Paper Cream Theme"
+                    title="Sandalwood Parchment"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-[#8c6239]" />
                     <span>Parchment</span>
@@ -1013,7 +1246,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Premium Layout Selector widget */}
+              {/* Layout Selector Widget */}
               <div className={`flex items-center space-x-1.5 p-1 rounded-xl border transition-all duration-300 ${
                 isParchment 
                   ? 'bg-[#ebd8c3]/30 border-[#dfd2be]/80' 
@@ -1033,7 +1266,7 @@ export default function App() {
                         ? (isParchment ? 'bg-[#dfdcce] border border-[#a68c6d]/50 text-[#5c3d2e] shadow-xs' : isCosmic ? 'bg-[#1a1c36] border border-indigo-500/50 text-indigo-300' : 'bg-emerald-600/35 border border-emerald-500/50 text-emerald-300')
                         : 'bg-transparent border border-transparent text-slate-500 hover:text-slate-300 hover:bg-current/5'
                     }`}
-                    title="Vertical Split: Classic desktop format (Sidebar on Left, Workspace on Right)"
+                    title="Vertical Split"
                   >
                     <Columns className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline">Vertical</span>
@@ -1046,7 +1279,7 @@ export default function App() {
                         ? (isParchment ? 'bg-[#dfdcce] border border-[#a68c6d]/50 text-[#5c3d2e] shadow-xs' : isCosmic ? 'bg-[#1a1c36] border border-indigo-500/50 text-indigo-300' : 'bg-emerald-600/35 border border-emerald-500/50 text-emerald-300')
                         : 'bg-transparent border border-transparent text-slate-500 hover:text-slate-300 hover:bg-current/5'
                     }`}
-                    title="Horizontal Layout: Responsive stacked elements for smooth single column reading flow"
+                    title="Horizontal Layout"
                   >
                     <Rows className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline">Horizontal</span>
@@ -1059,15 +1292,18 @@ export default function App() {
                         ? (isParchment ? 'bg-[#dfdcce] border border-[#a68c6d]/50 text-[#5c3d2e] shadow-xs' : isCosmic ? 'bg-[#1a1c36] border border-indigo-500/50 text-indigo-300' : 'bg-emerald-600/35 border border-emerald-500/50 text-emerald-300')
                         : 'bg-transparent border border-transparent text-slate-500 hover:text-slate-300 hover:bg-current/5'
                     }`}
-                    title="Mix Grid: Scholar Workstation grid combining split side-by-side details with wide structures"
+                    title="Mix Grid"
                   >
                     <Layout className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline">Mix Grid</span>
                   </button>
                 </div>
               </div>
+            </div>
 
-              {/* Premium Connectivity/Study Mode Toggle widget */}
+            {/* Right aligned widgets: Engine & AI Model */}
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Engine Selector Widget */}
               <div className={`flex items-center space-x-1.5 p-1 rounded-xl border transition-all duration-300 ${
                 isParchment 
                   ? 'bg-[#ebd8c3]/30 border-[#dfd2be]/80' 
@@ -1091,7 +1327,7 @@ export default function App() {
                               : 'bg-emerald-600/35 border border-emerald-500/50 text-emerald-300 font-semibold')
                         : 'bg-transparent border border-transparent text-slate-500 hover:text-slate-300 hover:bg-current/5'
                     }`}
-                    title="Online Mode: Dynamic AI academic derivations via Live Gemini AI API calls"
+                    title="Online Mode: Live Gemini AI API calls"
                   >
                     <Wifi className="w-3.5 h-3.5 text-current" />
                     <span>Online</span>
@@ -1108,7 +1344,7 @@ export default function App() {
                               : 'bg-amber-600/25 border border-amber-500/40 text-amber-300 font-semibold')
                         : 'bg-transparent border border-transparent text-slate-500 hover:text-slate-300 hover:bg-current/5'
                     }`}
-                    title="Offline Mode: Zero-latency classical Arabic dictionary & morphology engine using precompiled local data"
+                    title="Offline Mode: Precompiled classical data"
                   >
                     <WifiOff className="w-3.5 h-3.5 text-current" />
                     <span>Offline</span>
@@ -1116,58 +1352,72 @@ export default function App() {
                 </div>
               </div>
 
-            </div>
-          </div>
+              {/* Custom API Key Widget */}
+              <div className={`flex items-center space-x-1.5 p-1 rounded-xl border transition-all duration-300 ${
+                isParchment 
+                  ? 'bg-[#ebd8c3]/30 border-[#dfd2be]/80' 
+                  : isCosmic 
+                    ? 'bg-indigo-950/30 border-indigo-950/80' 
+                    : 'bg-slate-900/60 border-slate-800/80'
+              }`}>
+                <span className={`text-[9px] font-mono font-bold uppercase px-1.5 select-none ${isParchment ? 'text-[#8c6239]' : 'text-slate-500'}`}>
+                  API Key:
+                </span>
+                <input
+                  type="password"
+                  value={customApiKey}
+                  onChange={(e) => handleCustomApiKeyChange(e.target.value)}
+                  placeholder="Optional Gemini Key"
+                  className={`text-[11px] font-semibold bg-transparent border-0 focus:ring-0 outline-none w-30 placeholder-current/30 px-1 py-0.5 ${
+                    isParchment ? 'text-[#2c241e]' : isCosmic ? 'text-indigo-200' : 'text-emerald-300'
+                  }`}
+                />
+              </div>
 
-          {/* Quick Search Hub Form */}
-          <form onSubmit={handleSearchSubmit} className="w-full md:w-auto flex items-center gap-2 max-w-sm relative">
-            <div className="relative flex-1 min-w-[240px]">
-              <Search className={`absolute left-3 top-3 h-4 w-4 ${isParchment ? 'text-[#8c6239]/80' : 'text-slate-500'}`} />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search (e.g. سَجَدَ, كَتَابَ, عَلِمَ)"
-                className={`w-full font-medium rounded-xl py-2 pl-9 pr-10 text-sm focus:outline-none transition-all border ${
-                  isParchment
-                    ? 'bg-[#fdfbf7] border-[#ebdcc3] text-[#2c241e] placeholder-[#a68c6d] focus:border-[#8c6239] focus:ring-1 focus:ring-[#8c6239]'
-                    : isCosmic
-                      ? 'bg-black border-indigo-950 text-indigo-50 placeholder-indigo-200/40 focus:border-pink-500 focus:ring-1 focus:ring-pink-500'
-                      : 'bg-slate-900 border border-slate-800 text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
-                }`}
-                disabled={isSearching}
-              />
-              <button
-                type="button"
-                onClick={() => setShowArabicKeyboard(!showArabicKeyboard)}
-                className={`absolute right-2.5 top-1.5 p-1 rounded-lg transition-all duration-200 cursor-pointer ${
-                  showArabicKeyboard
-                    ? (isParchment ? 'bg-[#ebd8c3]/80 text-[#8c6239]' : isCosmic ? 'bg-[#1b1e36] text-pink-400' : 'bg-[#0f2d1e] text-emerald-400')
-                    : (isParchment ? 'hover:bg-[#ebdcc3]/40 text-[#a68c6d]' : 'hover:bg-slate-800 text-slate-400 hover:text-slate-200')
-                }`}
-                title="Arabic Keyboard Toggle"
-              >
-                <Keyboard className="w-4 h-4" />
-              </button>
+              {/* View Settings Widget: Width & Zoom */}
+              <div className={`flex items-center space-x-1.5 p-1 rounded-xl border transition-all duration-300 ${
+                isParchment 
+                  ? 'bg-[#ebd8c3]/30 border-[#dfd2be]/80' 
+                  : isCosmic 
+                    ? 'bg-indigo-950/30 border-indigo-950/80' 
+                    : 'bg-slate-900/60 border-slate-800/80'
+              }`}>
+                <span className={`text-[9px] font-mono font-bold uppercase px-1.5 select-none ${isParchment ? 'text-[#8c6239]' : 'text-slate-500'}`}>
+                  View:
+                </span>
+                <div className="flex items-center gap-1">
+                  <select
+                    value={containerWidth}
+                    onChange={(e) => handleContainerWidthChange(e.target.value as any)}
+                    className={`text-[11px] font-semibold bg-transparent border-0 focus:ring-0 cursor-pointer outline-none transition-all pr-1 py-0.5 ${
+                      isParchment ? 'text-[#2c241e]' : isCosmic ? 'text-indigo-200' : 'text-emerald-300'
+                    }`}
+                    style={{ colorScheme: isParchment ? 'light' : 'dark' }}
+                  >
+                    <option value="standard" className={isParchment ? 'bg-[#faf6ed] text-[#2c241e]' : 'bg-slate-950 text-slate-100'}>Standard</option>
+                    <option value="wide" className={isParchment ? 'bg-[#faf6ed] text-[#2c241e]' : 'bg-slate-950 text-slate-100'}>Wide</option>
+                    <option value="full" className={isParchment ? 'bg-[#faf6ed] text-[#2c241e]' : 'bg-slate-950 text-slate-100'}>Full</option>
+                  </select>
+                  <span className="opacity-30">|</span>
+                  <select
+                    value={uiScale.toString()}
+                    onChange={(e) => handleUiScaleChange(parseFloat(e.target.value))}
+                    className={`text-[11px] font-semibold bg-transparent border-0 focus:ring-0 cursor-pointer outline-none transition-all pr-1 py-0.5 ${
+                      isParchment ? 'text-[#2c241e]' : isCosmic ? 'text-indigo-200' : 'text-emerald-300'
+                    }`}
+                    style={{ colorScheme: isParchment ? 'light' : 'dark' }}
+                  >
+                    <option value="0.9" className={isParchment ? 'bg-[#faf6ed] text-[#2c241e]' : 'bg-slate-950 text-slate-100'}>Small</option>
+                    <option value="1" className={isParchment ? 'bg-[#faf6ed] text-[#2c241e]' : 'bg-slate-950 text-slate-100'}>100%</option>
+                    <option value="1.15" className={isParchment ? 'bg-[#faf6ed] text-[#2c241e]' : 'bg-slate-950 text-slate-100'}>115%</option>
+                    <option value="1.3" className={isParchment ? 'bg-[#faf6ed] text-[#2c241e]' : 'bg-slate-950 text-slate-100'}>130%</option>
+                    <option value="1.5" className={isParchment ? 'bg-[#faf6ed] text-[#2c241e]' : 'bg-slate-950 text-slate-100'}>150%</option>
+                  </select>
+                </div>
+              </div>
             </div>
-            <button
-              type="submit"
-              disabled={isSearching || !searchTerm.trim()}
-              className={`py-2 px-4 font-semibold text-xs rounded-xl transition-all shadow-md disabled:opacity-50 disabled:pointer-events-none flex items-center space-x-1 shrink-0 h-9 cursor-pointer ${
-                isParchment
-                  ? 'bg-[#8c6239] hover:bg-[#a67c52] text-[#faf6ed]'
-                  : isCosmic
-                    ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-950/50'
-                    : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-950/40'
-              }`}
-            >
-              {isSearching ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <span>Analyze</span>
-              )}
-            </button>
-          </form>
+
+          </div>
 
         </div>
 
@@ -1187,7 +1437,7 @@ export default function App() {
 
       {/* Main Container Layout - Customizable Arranged Layout Flows */}
       {layoutMode === 'vertical' ? (
-        <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start animate-fadeIn">
+        <main className={`flex-1 ${maxWidthClass} w-full mx-auto py-4 md:py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start animate-fadeIn`}>
           {/* Left Hand Column: Personalized Sidebar (Size 3/12 on large screens) */}
           <aside className="lg:col-span-3 space-y-6 w-full h-full">
             {renderSidebar()}
@@ -1198,7 +1448,7 @@ export default function App() {
           </section>
         </main>
       ) : layoutMode === 'horizontal' ? (
-        <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 space-y-12 animate-fadeIn">
+        <main className={`flex-1 ${maxWidthClass} w-full mx-auto py-4 md:py-6 space-y-12 animate-fadeIn`}>
           {/* Active Workspace Centered focus at top fold */}
           <section className="w-full">
             {renderWorkspace()}
@@ -1210,7 +1460,7 @@ export default function App() {
         </main>
       ) : (
         /* Mix Workstation layout */
-        <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 space-y-10 animate-fadeIn">
+        <main className={`flex-1 ${maxWidthClass} w-full mx-auto py-4 md:py-6 space-y-10 animate-fadeIn`}>
           {/* Top shelf of parameters */}
           <section className="w-full">
             {renderSidebar()}

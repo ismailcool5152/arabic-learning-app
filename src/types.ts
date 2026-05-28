@@ -37,6 +37,7 @@ export interface WordAnalysis {
   quranicOccurrences: QuranicVerse[];
   relatedWords: RelatedWord[];
   isOfflineFallback?: boolean; // Indicates if the server loaded precompiled/dynamic fallback because of key or quota issues
+  aiModel?: string; // Tracks which Google Gemini model was used to run the live analysis
 }
 
 export interface MindMapNode {

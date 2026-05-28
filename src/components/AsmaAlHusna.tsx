@@ -11,8 +11,10 @@ import {
   Filter,
   CheckCircle2,
   Bookmark,
-  RotateCcw
+  RotateCcw,
+  Keyboard
 } from 'lucide-react';
+import ArabicVirtualKeyboard from './ArabicVirtualKeyboard';
 
 interface AsmaAlHusnaProps {
   theme: LayoutTheme;
@@ -1140,6 +1142,7 @@ export default function AsmaAlHusna({ theme, onSelectRoot, onSelectWord }: AsmaA
   const isCosmic = theme === 'cosmic';
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [showArabicKeyboard, setShowArabicKeyboard] = useState(false);
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<'all' | 'perpetual' | 'intensive' | 'active' | 'form-ii' | 'form-iv' | 'other'>('all');
   const [selectedName, setSelectedName] = useState<DivineName | null>(ALLAH_NAMES[1]); // Default to Ar-Rahman
 
@@ -1243,18 +1246,44 @@ export default function AsmaAlHusna({ theme, onSelectRoot, onSelectWord }: AsmaA
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by Divine Name, root (e.g. r-h-m), pattern, or English meaning..."
-              className={`w-full text-xs rounded-xl py-3 pl-10 pr-4 focus:outline-none transition-all border ${inputStyleClass}`}
+              className={`w-full text-xs rounded-xl py-3 pl-10 pr-20 focus:outline-none transition-all border ${inputStyleClass}`}
               id="asma-search-input"
             />
-            {searchQuery && (
-              <button 
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3.5 top-3.5 text-[10px] uppercase font-bold opacity-60 hover:opacity-100"
+            <div className="absolute right-3.5 top-2.5 flex items-center gap-1.5 align-middle select-none">
+              {searchQuery && (
+                <button 
+                  onClick={() => setSearchQuery('')}
+                  className="text-[10px] uppercase font-bold opacity-60 hover:opacity-100 cursor-pointer"
+                >
+                  Clear
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setShowArabicKeyboard(!showArabicKeyboard)}
+                className={`p-1 rounded-lg transition-all duration-200 cursor-pointer ${
+                  showArabicKeyboard
+                    ? (isParchment ? 'bg-[#ebd8c3]/80 text-[#8c6239]' : isCosmic ? 'bg-[#1b1e36] text-pink-400' : 'bg-[#0f2d1e] text-emerald-400')
+                    : (isParchment ? 'hover:bg-[#ebd8c3]/40 text-[#a68c6d]' : 'hover:bg-slate-800 text-slate-400 hover:text-slate-200')
+                }`}
+                title="Arabic Keyboard Toggle"
               >
-                Clear
+                <Keyboard className="w-4 h-4" />
               </button>
-            )}
+            </div>
           </div>
+
+          {showArabicKeyboard && (
+            <div className="p-4 border rounded-xl border-current/10 w-full flex justify-center animate-fadeIn">
+              <ArabicVirtualKeyboard
+                onKeyPress={(char) => setSearchQuery(prev => prev + char)}
+                onClear={() => setSearchQuery('')}
+                onBackspace={() => setSearchQuery(prev => prev.slice(0, -1))}
+                onClose={() => setShowArabicKeyboard(false)}
+                theme={theme}
+              />
+            </div>
+          )}
 
           {/* PATTERN CATEGORY PILLS */}
           <div className="flex flex-wrap gap-1.5 items-center">

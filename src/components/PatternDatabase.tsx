@@ -18,8 +18,10 @@ import {
   TableProperties,
   Clock,
   Users,
-  Hash
+  Hash,
+  Keyboard
 } from 'lucide-react';
+import ArabicVirtualKeyboard from './ArabicVirtualKeyboard';
 
 interface PatternInfo {
   id: string;
@@ -431,6 +433,7 @@ export default function PatternDatabase({
 }: PatternDatabaseProps) {
   const [filter, setFilter] = useState<'all' | 'verb' | 'noun'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showArabicKeyboard, setShowArabicKeyboard] = useState(false);
   const [selectedPatternId, setSelectedPatternId] = useState<string>("active_participle");
   const [labRootIndex, setLabRootIndex] = useState(0);
   const [activeMatrixTab, setActiveMatrixTab] = useState<'tenses' | 'pronouns' | 'numbers'>('tenses');
@@ -633,7 +636,7 @@ export default function PatternDatabase({
                 placeholder="Find design shape..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className={`w-full font-medium rounded-lg py-1 pl-7 pr-2.5 text-[11px] focus:outline-none transition-all border ${
+                className={`w-full font-medium rounded-lg py-1 pl-7 pr-7 text-[11px] focus:outline-none transition-all border ${
                   isParchment
                     ? 'bg-[#fdfbf7] border-[#ebdcc3] text-[#2c241e] focus:border-[#8c6239]'
                     : isCosmic
@@ -641,6 +644,18 @@ export default function PatternDatabase({
                       : 'bg-slate-950 border border-slate-800 text-slate-100 focus:border-emerald-500'
                 }`}
               />
+              <button
+                type="button"
+                onClick={() => setShowArabicKeyboard(!showArabicKeyboard)}
+                className={`absolute right-1 top-1 py-0.5 px-1 rounded transition-all duration-200 cursor-pointer ${
+                  showArabicKeyboard
+                    ? (isParchment ? 'text-[#8c6239]' : isCosmic ? 'text-pink-400' : 'text-emerald-400')
+                    : (isParchment ? 'text-[#a68c6d]' : 'text-slate-400 hover:text-slate-200')
+                }`}
+                title="Arabic Keyboard Toggle"
+              >
+                <Keyboard className="w-3 h-3" />
+              </button>
             </div>
 
             {/* Sub-Filters */}
@@ -658,6 +673,18 @@ export default function PatternDatabase({
             </div>
           </div>
         </div>
+
+        {showArabicKeyboard && (
+          <div className="p-4 border rounded-xl border-current/10 w-full flex justify-center animate-fadeIn">
+            <ArabicVirtualKeyboard
+              onKeyPress={(char) => setSearchQuery(prev => prev + char)}
+              onClear={() => setSearchQuery('')}
+              onBackspace={() => setSearchQuery(prev => prev.slice(0, -1))}
+              onClose={() => setShowArabicKeyboard(false)}
+              theme={theme}
+            />
+          </div>
+        )}
 
         {/* Directory cards row */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">

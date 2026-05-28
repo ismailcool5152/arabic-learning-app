@@ -31,23 +31,33 @@ const ai = new GoogleGenAI({
 // API endpoint to analyze an Arabic word
 app.post("/api/analyze-word", async (req: express.Request, res: express.Response): Promise<any> => {
   try {
-    const { word } = req.body;
+    const { word, customApiKey } = req.body;
     if (!word || typeof word !== "string" || word.trim() === "") {
       return res.status(400).json({ error: "Word parameter is required and must be a non-empty string." });
     }
 
     const trimmedWord = word.trim();
+    
+    let activeAi = ai;
+    if (customApiKey && typeof customApiKey === "string" && customApiKey.trim() !== "") {
+      activeAi = new GoogleGenAI({
+        apiKey: customApiKey.trim(),
+        httpOptions: { headers: { 'User-Agent': 'aistudio-build' } }
+      });
+    }
 
-    if (!apiKey) {
+    if (!customApiKey && !apiKey) {
       const offlineMatch = findOfflineFallback(trimmedWord);
       if (offlineMatch) {
         console.log(`[Offline Initial] Serving profile for "${trimmedWord}" without API key.`);
         return res.json({ ...offlineMatch, isOfflineFallback: true });
       }
       return res.status(500).json({ 
-        error: "GEMINI_API_KEY is not configured on the server. Please add it to your settings or secrets panel." 
+        error: "GEMINI_API_KEY is not configured on the server and no custom key was provided. Please configure a custom key in the settings." 
       });
     }
+
+    const selectedModel = "gemini-3.1-flash-lite"; // Locked model for cost-effectiveness
 
     // Prepare system instructions for root analysis
     const queryPrompt = `
@@ -69,8 +79,8 @@ Perform a thorough lexicographical and Quranic morphology (Sarf / Wave morpholog
 Provide the output in a strict JSON format matching the schema instructions.
 `;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+    const response = await activeAi.models.generateContent({
+      model: selectedModel,
       contents: queryPrompt,
       config: {
         systemInstruction: "You are an expert scholar of Quranic Arabic, Semitic linguistics, and classical Arabic morphology (Sarf). You help users understand roots, conjugations, morpho-derivations, and semantic word connections in the Holy Quran.",
@@ -187,6 +197,7 @@ Provide the output in a strict JSON format matching the schema instructions.
 
     const textContent = response.text || "{}";
     const analysisResult = JSON.parse(textContent);
+    analysisResult.aiModel = selectedModel;
 
     res.json(analysisResult);
   } catch (error: any) {
@@ -218,6 +229,71 @@ Provide the output in a strict JSON format matching the schema instructions.
         details: error.message || error 
       });
     }
+  }
+});
+
+// API endpoint to batch translate Arabic words based on a given root
+app.post("/api/translate-root-words", async (req: express.Request, res: express.Response): Promise<any> => {
+  try {
+    const { root, words, model, customApiKey } = req.body;
+    if (!root || !words || !Array.isArray(words)) {
+      return res.status(400).json({ error: "Root and an array of words are required." });
+    }
+
+    let activeAi = ai;
+    if (customApiKey && typeof customApiKey === "string" && customApiKey.trim() !== "") {
+      activeAi = new GoogleGenAI({
+        apiKey: customApiKey.trim(),
+        httpOptions: { headers: { 'User-Agent': 'aistudio-build' } }
+      });
+    }
+
+    if (!customApiKey && !apiKey) {
+      return res.status(500).json({ error: "GEMINI_API_KEY is not configured and no custom key was provided." });
+    }
+
+    let selectedModel = "gemini-3.5-flash";
+
+    const wordsList = words.join(", ");
+    
+    // System instruction to ask Gemini to return translations as JSON map
+    const queryPrompt = `
+Given the Arabic root "${root}", provide the root's main meaning, and translate the following derived words based on this root:
+Words: ${wordsList}
+
+Provide the output in strict JSON format.
+    `;
+
+    const response = await activeAi.models.generateContent({
+      model: selectedModel,
+      contents: queryPrompt,
+      config: {
+        systemInstruction: "You translate Arabic roots and derived Quranic vocabulary accurately into English.",
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            rootMeaning: {
+              type: Type.STRING,
+              description: "The core semantic meaning of the Root."
+            },
+            translations: {
+              type: Type.OBJECT,
+              description: "A mapping of the Arabic words to their specific short English translations. Key is the Arabic word, Value is the English translation string.",
+            }
+          },
+          required: ["rootMeaning", "translations"]
+        }
+      }
+    });
+
+    const textContent = response.text || "{}";
+    const result = JSON.parse(textContent);
+
+    res.json(result);
+  } catch (error: any) {
+    console.error("Batch translation error:", error.message || error);
+    res.status(500).json({ error: "Failed to translate words.", details: error.message || error });
   }
 });
 

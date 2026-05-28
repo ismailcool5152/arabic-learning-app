@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { LayoutTheme } from '../types';
-import { BookOpen, Search, Info, HelpCircle, Link2, Sparkles, ChevronRight } from 'lucide-react';
+import { BookOpen, Search, Info, HelpCircle, Link2, Sparkles, ChevronRight, Keyboard } from 'lucide-react';
+import ArabicVirtualKeyboard from './ArabicVirtualKeyboard';
 
 interface HarfItem {
   id: string;
@@ -8,16 +9,17 @@ interface HarfItem {
   transliteration: string; // (e.g., Bi-)
   englishMeaning: string; // (e.g., "In, with, by")
   attachmentType: 'prefixed' | 'suffixed' | 'standalone';
-  category: 'preposition' | 'conjunction' | 'interrogative' | 'negation' | 'emphasis' | 'vocative';
+  category: 'preposition' | 'conjunction' | 'interrogative' | 'negation' | 'emphasis' | 'vocative' | 'conditional' | 'exception';
   grammaticalEffect: string; // e.g. "Causes the following Ism (noun) to go into the Genitive state (Majroor)."
   syntacticRule: string; // Tells the user where and how it binds (e.g., "Attached directly to the beginning of the noun word - no spaces.")
   quranicExampleArabic: string; // بِسْمِ اللَّهِ
   quranicExampleTranslation: string; // "In the Name of Allah"
+  mnemonic?: string; // Memory aid or grouping rule
 }
 
 // Classical collection of highly famous Quranic Huruf (Particles) & particles
 const CLASSICAL_HURUF: HarfItem[] = [
-  // 1. Prefixed Prepositions
+  // 1. Haroof al-Jarr (Prepositions of Genitive)
   {
     id: "bi",
     arabic: "بِـ",
@@ -25,22 +27,37 @@ const CLASSICAL_HURUF: HarfItem[] = [
     englishMeaning: "In / By / With / At",
     attachmentType: "prefixed",
     category: "preposition",
-    grammaticalEffect: "Forces the following noun into the Genitive (Majrūr) case, ending in a Kasrah.",
-    syntacticRule: "Fused immediately as a prefix to the start of the following Ism (Noun). No spaces are allowed.",
+    grammaticalEffect: "Forces noun into Genitive (Majrūr) case.",
+    syntacticRule: "Fused immediately as a prefix.",
     quranicExampleArabic: "بِسْمِ اللَّهِ",
-    quranicExampleTranslation: "In the name of Allah"
+    quranicExampleTranslation: "In the name of Allah",
+    mnemonic: "Bi connects with Kasrah"
   },
   {
-    id: "li",
-    arabic: "لِـ",
-    transliteration: "Li-",
-    englishMeaning: "For / To / Belonging to",
+    id: "ta",
+    arabic: "تَـ",
+    transliteration: "Ta-",
+    englishMeaning: "By... (Oath to Allah)",
     attachmentType: "prefixed",
     category: "preposition",
-    grammaticalEffect: "Forces the noun into Genitive (Majrūr). If attached to 'Al-' (definite article), the Alif drop-merges into 'Lil-'.",
-    syntacticRule: "Prefixed directly to the noun. Fuses with the following word.",
-    quranicExampleArabic: "الْحَمْدُ لِلَّهِ",
-    quranicExampleTranslation: "All praise belongs to Allah (belonging to)"
+    grammaticalEffect: "Forces the word 'Allah' into Genitive oath state (Majrūr).",
+    syntacticRule: "Direct prefix, exclusively attached to string 'الله'.",
+    quranicExampleArabic: "تَاللَّهِ لَقَدْ آثَرَكَ اللَّهُ",
+    quranicExampleTranslation: "By Allah, indeed Allah has preferred you",
+    mnemonic: "Only used with Allah for Oaths"
+  },
+  {
+    id: "wa_oath",
+    arabic: "وَ",
+    transliteration: "Wa (Oath)",
+    englishMeaning: "By... (Oath)",
+    attachmentType: "prefixed",
+    category: "preposition",
+    grammaticalEffect: "Preposition for an oath causing Genitive (Majrūr).",
+    syntacticRule: "Written adjacent to the subsequent word like a prefix.",
+    quranicExampleArabic: "وَالْعَصْرِ",
+    quranicExampleTranslation: "By the passage of time",
+    mnemonic: "Cosmic Oaths (Sun, Moon, Time)"
   },
   {
     id: "ka",
@@ -49,49 +66,25 @@ const CLASSICAL_HURUF: HarfItem[] = [
     englishMeaning: "Like / As (comparison)",
     attachmentType: "prefixed",
     category: "preposition",
-    grammaticalEffect: "Forces the noun into Genitive (Majrūr). Used for direct morphological comparisons.",
-    syntacticRule: "Attached as a direct prefix on nouns. Cannot be used with freestanding particles.",
+    grammaticalEffect: "Forces noun into Genitive (Majrūr). Used for direct comparison.",
+    syntacticRule: "Attached as a direct prefix.",
     quranicExampleArabic: "كَعَصْفٍ مَأْكُولٍ",
-    quranicExampleTranslation: "Like chewed straw/husks"
+    quranicExampleTranslation: "Like chewed straw/husks",
+    mnemonic: "'Ka' is for morphing/comparison"
   },
   {
-    id: "ta",
-    arabic: "تَـ",
-    transliteration: "Ta-",
-    englishMeaning: "By... (Solely for swearing oaths to Allah)",
+    id: "li",
+    arabic: "لِـ",
+    transliteration: "Li-",
+    englishMeaning: "For / To / Belonging to",
     attachmentType: "prefixed",
-    category: "emphasis",
-    grammaticalEffect: "Forces the word 'Allah' (and only Allah) into Genitive oath state (Majrūr suffix).",
-    syntacticRule: "Direct prefix. Exclusively attached to string 'الله' to execute an oath designation.",
-    quranicExampleArabic: "تَاللَّهِ لَقَدْ آثَرَكَ اللَّهُ",
-    quranicExampleTranslation: "By Allah, indeed Allah has preferred you"
+    category: "preposition",
+    grammaticalEffect: "Forces noun into Genitive (Majrūr).",
+    syntacticRule: "Prefixed directly to the noun.",
+    quranicExampleArabic: "الْحَمْدُ لِلَّهِ",
+    quranicExampleTranslation: "All praise belongs to Allah",
+    mnemonic: "Li means 'Leans to'"
   },
-  {
-    id: "wa_conjunction",
-    arabic: "وَ",
-    transliteration: "Wa",
-    englishMeaning: "And (Conjunction) / Or 'By...' (Oath particle)",
-    attachmentType: "prefixed",
-    category: "conjunction",
-    grammaticalEffect: "As conjunction: does not affect noun cases directly. As Oath: acts as a preposition causing Genitive casing.",
-    syntacticRule: "Always written adjacent to the subsequent word. Looks like a prefix but is grammatically independent.",
-    quranicExampleArabic: "وَالْعَصْرِ",
-    quranicExampleTranslation: "By the passage of time (Oath usage)"
-  },
-  {
-    id: "fa",
-    arabic: "فَـ",
-    transliteration: "Fa-",
-    englishMeaning: "So / Then / And thus",
-    attachmentType: "prefixed",
-    category: "conjunction",
-    grammaticalEffect: "Connects two events, phrases, or verbs sequentially. Does not alter grammatical cases.",
-    syntacticRule: "Fused immediately as a prefix to the next word (whether verb, noun, or particle) to express quick sequence.",
-    quranicExampleArabic: "فَإِذَا جَاءَ وَعْدُ رَبِّي",
-    quranicExampleTranslation: "So when the promise of my Lord comes..."
-  },
-
-  // 2. Standalone particles (Prepositions, Negations, Vocative)
   {
     id: "min",
     arabic: "مِنْ",
@@ -99,154 +92,251 @@ const CLASSICAL_HURUF: HarfItem[] = [
     englishMeaning: "From / Out of / Among",
     attachmentType: "standalone",
     category: "preposition",
-    grammaticalEffect: "Forces the following noun into Genitive case. Vowel changes to (مِنَ) if preceding a word with sukun/definitive 'Al'.",
-    syntacticRule: "Stands alone as a separate word preceding the governed noun. Not attached directly.",
+    grammaticalEffect: "Forces noun into Genitive case. Vowel changes to (مِنَ) if preceding sukun.",
+    syntacticRule: "Stands alone.",
     quranicExampleArabic: "مِنَ الْجِنَّةِ وَالنَّاسِ",
-    quranicExampleTranslation: "From among the Jinn and mankind"
-  },
-  {
-    id: "ila",
-    arabic: "إِلَىٰ",
-    transliteration: "Ilā",
-    englishMeaning: "To / Towards / Onto",
-    attachmentType: "standalone",
-    category: "preposition",
-    grammaticalEffect: "Classical preposition causing Majrūr (Genitive) casing on the nominal word that follows it.",
-    syntacticRule: "Voted as a standalone particle. Changes final Alif Maqsurah to standard Ya 'ay' when pronouns are attached.",
-    quranicExampleArabic: "إِلَى اللَّهِ الْمَصِيرُ",
-    quranicExampleTranslation: "Towards Allah is the final return"
-  },
-  {
-    id: "ila_pronoun",
-    arabic: "إِلَيْـ",
-    transliteration: "Ilay-",
-    englishMeaning: "To / Towards (With Attached Pronoun)",
-    attachmentType: "prefixed",
-    category: "preposition",
-    grammaticalEffect: "Preposition variant. Pronoun attaches directly as a suffix (e.g. إِلَيْهِ - to Him).",
-    syntacticRule: "Grammar modifies the spelling of إِلَىٰ to إِلَيْـ before attaching a suffix pronoun.",
-    quranicExampleArabic: "إِلَيْهِ يَرْجِعُ الْأَمْرُ",
-    quranicExampleTranslation: "Unto Him all affairs are returned"
-  },
-  {
-    id: "ala",
-    arabic: "عَلَىٰ",
-    transliteration: "'Alā",
-    englishMeaning: "On / Upon / Over / Against",
-    attachmentType: "standalone",
-    category: "preposition",
-    grammaticalEffect: "Directly causes Genitive casing. Indicates high authority, base ground, or responsibility.",
-    syntacticRule: "Freestanding word. Modifies spelling to (عَلَيْـ) if suffix pronouns are attached.",
-    quranicExampleArabic: "عَلَى الْعَرْشِ اسْتَوَىٰ",
-    quranicExampleTranslation: "Established Himself upon the divine Throne"
+    quranicExampleTranslation: "From among the Jinn and mankind",
+    mnemonic: "Origin / Extraction"
   },
   {
     id: "fi",
     arabic: "فِي",
     transliteration: "Fī",
-    englishMeaning: "In / Inside of / Regarding",
+    englishMeaning: "In / Inside of",
     attachmentType: "standalone",
     category: "preposition",
-    grammaticalEffect: "Forces the next noun into Genitive (Majrūr). Frequently used spatial particle.",
-    syntacticRule: "Written as a standalone word. Can have attached suffix pronouns connected directly to it.",
+    grammaticalEffect: "Forces noun into Genitive (Majrūr). Spatial particle.",
+    syntacticRule: "Written standalone.",
     quranicExampleArabic: "فِي قُلُوبِهِمْ مَرَضٌ",
-    quranicExampleTranslation: "In their hearts is a disease"
+    quranicExampleTranslation: "In their hearts is a disease",
+    mnemonic: "Fi fills the inside"
+  },
+  {
+    id: "an",
+    arabic: "عَنْ",
+    transliteration: "'An",
+    englishMeaning: "About / Away from",
+    attachmentType: "standalone",
+    category: "preposition",
+    grammaticalEffect: "Governs noun into Genitive state.",
+    syntacticRule: "Stands alone.",
+    quranicExampleArabic: "رَضِيَ اللَّهُ عَنْهُمْ",
+    quranicExampleTranslation: "Allah is pleased with them",
+    mnemonic: "Distancing / 'away from'"
+  },
+  {
+    id: "ala",
+    arabic: "عَلَىٰ",
+    transliteration: "'Alā",
+    englishMeaning: "On / Upon",
+    attachmentType: "standalone",
+    category: "preposition",
+    grammaticalEffect: "Causes Genitive casing. Indicates high authority.",
+    syntacticRule: "Freestanding word. Modifies spelling to (عَلَيْـ) if suffix pronouns attached.",
+    quranicExampleArabic: "عَلَى الْعَرْشِ اسْتَوَىٰ",
+    quranicExampleTranslation: "Established Himself upon the Throne",
+    mnemonic: "Elevated / On top of"
   },
   {
     id: "hatta",
     arabic: "حَتَّىٰ",
     transliteration: "Hattā",
-    englishMeaning: "Until / Up to / Even",
+    englishMeaning: "Until / Up to",
     attachmentType: "standalone",
     category: "preposition",
-    grammaticalEffect: "Governs the next noun into Genitive state, or makes present verbs subjunctive (with concealed an).",
-    syntacticRule: "Stands alone. Placed before nouns or action verbs.",
+    grammaticalEffect: "Governs next noun into Genitive, or makes present verbs subjunctive.",
+    syntacticRule: "Stands alone.",
     quranicExampleArabic: "حَتَّىٰ مَطْلَعِ الْفَجْرِ",
-    quranicExampleTranslation: "Until the emergence of the dawn"
+    quranicExampleTranslation: "Until the emergence of the dawn",
+    mnemonic: "Halted at the limit (until)"
   },
   {
-    id: "la",
-    arabic: "لَا",
-    transliteration: "Lā",
-    englishMeaning: "No / Not (Absolute Negation or Prohibition)",
+    id: "ila",
+    arabic: "إِلَىٰ",
+    transliteration: "Ilā",
+    englishMeaning: "To / Towards",
     attachmentType: "standalone",
-    category: "negation",
-    grammaticalEffect: "Categorical Negation (Lā li-Nafiyil Jins) makes nouns accusative (Mansūb) with single fathah. Prohibition makes verbs jussive.",
-    syntacticRule: "Freestanding particle. Precedes nouns (for negation of category) or verbs (for do not/will not).",
-    quranicExampleArabic: "لَا رَيْبَ فِيهِ",
-    quranicExampleTranslation: "No doubt whatsoever inside it"
+    category: "preposition",
+    grammaticalEffect: "Causes Majrūr (Genitive) casing.",
+    syntacticRule: "Changes to إِلَيْـ before suffix pronouns.",
+    quranicExampleArabic: "إِلَى اللَّهِ الْمَصِيرُ",
+    quranicExampleTranslation: "Towards Allah is the final return",
+    mnemonic: "Directional target"
+  },
+
+  // 2. Conjunctions (Haroof al-Atf)
+  {
+    id: "wa_conj",
+    arabic: "وَ",
+    transliteration: "Wa",
+    englishMeaning: "And",
+    attachmentType: "prefixed",
+    category: "conjunction",
+    grammaticalEffect: "Coordinates grammar identically.",
+    syntacticRule: "Always written adjacent to the subsequent word.",
+    quranicExampleArabic: "الْإِنسِ وَالْجِنِّ",
+    quranicExampleTranslation: "Mankind and Jinn",
+    mnemonic: "Creates a linked pair"
   },
   {
-    id: "ya",
-    arabic: "يَا",
-    transliteration: "Yā",
-    englishMeaning: "O...! (Vocative Direct Addressing)",
+    id: "fa",
+    arabic: "فَـ",
+    transliteration: "Fa-",
+    englishMeaning: "So / Then",
+    attachmentType: "prefixed",
+    category: "conjunction",
+    grammaticalEffect: "Connects two events sequentially",
+    syntacticRule: "Fused immediately as a prefix.",
+    quranicExampleArabic: "فَإِذَا جَاءَ وَعْدُ رَبِّي",
+    quranicExampleTranslation: "So when the promise of my Lord comes...",
+    mnemonic: "Fast / Immediate cause and effect"
+  },
+  {
+    id: "thumma",
+    arabic: "ثُمَّ",
+    transliteration: "Thumma",
+    englishMeaning: "Then / Afterward",
     attachmentType: "standalone",
-    category: "vocative",
-    grammaticalEffect: "Forces the addressed noun into a nominative with a single dammah, or genitive if in an idafa construct.",
-    syntacticRule: "Standalone vocative particle written immediately before the targeted person or coordinate name.",
-    quranicExampleArabic: "يَا أَيُّهَا النَّاسُ",
-    quranicExampleTranslation: "O mankind...!"
+    category: "conjunction",
+    grammaticalEffect: "Coordinates two sentences or nouns.",
+    syntacticRule: "Introduces chronologically delayed sequence.",
+    quranicExampleArabic: "ثُمَّ خَلَقْنَا النُّطْفَةَ عَلَقَةً",
+    quranicExampleTranslation: "Then We made the sperm-drop into a clinging clot",
+    mnemonic: "Delayed transition"
   },
   {
-    id: "kum_suffix",
-    arabic: "ـكُمْ",
-    transliteration: "-kum",
-    englishMeaning: "Your / You plural (Attached Pronoun Suffix)",
-    attachmentType: "suffixed",
-    category: "emphasis",
-    grammaticalEffect: "Acts as Genitive possessive when attached to Nouns, or Accusative object when attached to Verbs.",
-    syntacticRule: "Direct suffix. Appended directly onto the end of a core noun, verb, or preposition.",
-    quranicExampleArabic: "رَبُّكُمْ",
-    quranicExampleTranslation: "Your Lord (owner)"
+    id: "aw",
+    arabic: "أَوْ",
+    transliteration: "Aw",
+    englishMeaning: "Or / Either",
+    attachmentType: "standalone",
+    category: "conjunction",
+    grammaticalEffect: "Offers alternative options.",
+    syntacticRule: "Freestanding.",
+    quranicExampleArabic: "أَوْ كَصَيِّبٍ مِّنَ السَّمَاءِ",
+    quranicExampleTranslation: "Or like a rainstorm from the sky",
+    mnemonic: "Another Way (Alternative)"
   },
+  {
+    id: "bal",
+    arabic: "بَلْ",
+    transliteration: "Bal",
+    englishMeaning: "Rather / But",
+    attachmentType: "standalone",
+    category: "conjunction",
+    grammaticalEffect: "Corrects/Cancels previous statement.",
+    syntacticRule: "Freestanding.",
+    quranicExampleArabic: "بَلْ هُمْ فِي شَكٍّ يَلْعَبُونَ",
+    quranicExampleTranslation: "Rather, they are in doubt, amusing themselves",
+    mnemonic: "Backtracks to state reality"
+  },
+
+  // 3. Haroof al-Nasb 'Inna and her sisters'
   {
     id: "inna",
-    arabic: "إِنَّ",
+    arabic: "إِنَّ",
     transliteration: "Inna",
     englishMeaning: "Indeed / Verily",
     attachmentType: "standalone",
     category: "emphasis",
-    grammaticalEffect: "Known as 'Harf al-Tawkīd'. Makes the subject noun that follows it accusative (Mansūb) as 'Ism Inna', while keeping the predicate nominative (Marfū').",
-    syntacticRule: "Stands alone preceding a nominal sentence (Mubtada and Khabar) to affirm absolute certainty.",
+    grammaticalEffect: "Makes the subject noun accusative (Mansūb).",
+    syntacticRule: "Precedes a nominal sentence.",
     quranicExampleArabic: "إِنَّ اللَّهَ مَعَ الصَّابِرِينَ",
-    quranicExampleTranslation: "Indeed, Allah is with those who are patient."
+    quranicExampleTranslation: "Indeed, Allah is with those who are patient.",
+    mnemonic: "Maximum certainty at the start"
   },
   {
-    id: "hal",
-    arabic: "هَلْ",
-    transliteration: "Hal",
-    englishMeaning: "Is / Are / Do",
+    id: "anna",
+    arabic: "أَنَّ",
+    transliteration: "Anna",
+    englishMeaning: "That (Indeed)",
     attachmentType: "standalone",
-    category: "interrogative",
-    grammaticalEffect: "Known as 'Harf al-Istifhām'. No direct case-ending effect on follows. Solicits a positive or negative yes/no statement.",
-    syntacticRule: "Precedes a nominal or verbal sentence as a freestanding word.",
-    quranicExampleArabic: "هَلْ أَتَىٰ عَلَى الْإِنسَانِ حِينٌ مِّنَ الدَّهْرِ",
-    quranicExampleTranslation: "Has there [not] come upon man a period of time..."
+    category: "emphasis",
+    grammaticalEffect: "Makes subject noun accusative (Mansūb).",
+    syntacticRule: "Occurs within a sentence to connect thoughts.",
+    quranicExampleArabic: "وَاعْلَمُوا أَنَّ اللَّهَ سَمِيعٌ عَلِيمٌ",
+    quranicExampleTranslation: "And know that Allah is Hearing and Knowing",
+    mnemonic: "Connects clauses firmly"
   },
   {
-    id: "an",
-    arabic: "أَنْ",
-    transliteration: "An",
-    englishMeaning: "That / To",
+    id: "ka_anna",
+    arabic: "كَأَنَّ",
+    transliteration: "Ka'anna",
+    englishMeaning: "As if",
     attachmentType: "standalone",
-    category: "conjunction",
-    grammaticalEffect: "Known as 'Harf al-Masdariyah'. Forces the subsequent present tense verb into the Subjunctive state (Mansūb), usually replacing dammah with fathah.",
-    syntacticRule: "Standalone particle that sits immediately before a present tense (Mudāri') action verb to construct an infinitive node.",
-    quranicExampleArabic: "وَأَن تَصُومُوا خَيْرٌ لَّكُمْ",
-    quranicExampleTranslation: "And that you fast (to fast) is better for you."
+    category: "emphasis",
+    grammaticalEffect: "Makes subject noun accusative.",
+    syntacticRule: "Freestanding comparison.",
+    quranicExampleArabic: "كَأَنَّهُمْ خُشُبٌ مُّسَنَّدَةٌ",
+    quranicExampleTranslation: "As if they were propped up timbers",
+    mnemonic: "Ka (Like) + Anna (That) = As if"
   },
   {
-    id: "lan",
-    arabic: "لَنْ",
-    transliteration: "Lan",
-    englishMeaning: "Never",
+    id: "lakinna",
+    arabic: "لَٰكِنَّ",
+    transliteration: "Lākinna",
+    englishMeaning: "But / However",
+    attachmentType: "standalone",
+    category: "emphasis",
+    grammaticalEffect: "Makes subject noun accusative.",
+    syntacticRule: "Freestanding contrast.",
+    quranicExampleArabic: "لَٰكِنَّ اللَّهَ ذُو فَضْلٍ",
+    quranicExampleTranslation: "But Allah is the possessor of bounty",
+    mnemonic: "Lacks/Looks for contrast"
+  },
+  {
+    id: "la_alla",
+    arabic: "لَعَلَّ",
+    transliteration: "La'alla",
+    englishMeaning: "Perhaps / So that",
+    attachmentType: "standalone",
+    category: "emphasis",
+    grammaticalEffect: "Makes subject accusative.",
+    syntacticRule: "Freestanding expression of hope.",
+    quranicExampleArabic: "لَعَلَّكُمْ تَتَّقُونَ",
+    quranicExampleTranslation: "So that you may become righteous",
+    mnemonic: "Leaves hope/expectation"
+  },
+  {
+    id: "layta",
+    arabic: "لَيْتَ",
+    transliteration: "Layta",
+    englishMeaning: "If only / Would that",
+    attachmentType: "standalone",
+    category: "emphasis",
+    grammaticalEffect: "Makes subject accusative.",
+    syntacticRule: "Freestanding impossible desire.",
+    quranicExampleArabic: "يَا لَيْتَنِي كُنتُ تُرَابًا",
+    quranicExampleTranslation: "Oh, I wish I were dust",
+    mnemonic: "Lamenting the impossible"
+  },
+
+  // 4. Negation & Interrogation
+  {
+    id: "la_nafy",
+    arabic: "لَا",
+    transliteration: "Lā",
+    englishMeaning: "No / Not",
     attachmentType: "standalone",
     category: "negation",
-    grammaticalEffect: "Known as 'Harf al-Nafy wal-Nasb'. Negates the future state absolutely and changes the following present verb to Subjunctive (Mansūb).",
-    syntacticRule: "Standalone particle that precedes a present tense verb for intensive, permanent-focused future negation.",
-    quranicExampleArabic: "لَن تَنَالُوا الْبِرَّ حَتَّىٰ تُنفِقُوا",
-    quranicExampleTranslation: "Never will you attain righteousness until you spend [from what you love]..."
+    grammaticalEffect: "Negation makes nouns accusative. Prohibition makes verbs jussive.",
+    syntacticRule: "Freestanding particle.",
+    quranicExampleArabic: "لَا رَيْبَ فِيهِ",
+    quranicExampleTranslation: "No doubt whatsoever inside it",
+    mnemonic: "Absolute Void"
+  },
+  {
+    id: "ma",
+    arabic: "مَا",
+    transliteration: "Mā",
+    englishMeaning: "Not / What",
+    attachmentType: "standalone",
+    category: "negation",
+    grammaticalEffect: "Negates past tense verbs or acts as relative pronoun.",
+    syntacticRule: "Freestanding.",
+    quranicExampleArabic: "مَا وَدَّعَكَ رَبُّكَ وَمَا قَلَىٰ",
+    quranicExampleTranslation: "Your Lord has not taken leave of you, nor has He detested",
+    mnemonic: "Missing action in the past"
   },
   {
     id: "lam",
@@ -255,22 +345,132 @@ const CLASSICAL_HURUF: HarfItem[] = [
     englishMeaning: "Did not",
     attachmentType: "standalone",
     category: "negation",
-    grammaticalEffect: "Known as 'Harf al-Jazm'. Negates present tense action and flips its temporal context into the past, forcing the verb into the Jussive state (Majzūm), normally with a sukun.",
-    syntacticRule: "Standalone particle that sits immediately before present tense verbs. Flipping chronological flow to simple past negation.",
+    grammaticalEffect: "Negates present tense action and flips to past, forcing Jussive (Majzūm).",
+    syntacticRule: "Standalone before present verbs.",
     quranicExampleArabic: "لَمْ يَلِدْ وَلَمْ يُولَدْ",
-    quranicExampleTranslation: "He neither begets nor is born"
+    quranicExampleTranslation: "He neither begets nor is born",
+    mnemonic: "Leaps back to the past"
   },
   {
-    id: "thumma",
-    arabic: "ثُمَّ",
-    transliteration: "Thumma",
-    englishMeaning: "Then / Afterward",
+    id: "lan",
+    arabic: "لَنْ",
+    transliteration: "Lan",
+    englishMeaning: "Never",
     attachmentType: "standalone",
-    category: "conjunction",
-    grammaticalEffect: "Known as 'Harf al-'Atf'. Coordinates two sentences or nouns. The second term assumes identical case-marking (nominative/accusative/genitive) as the first.",
-    syntacticRule: "Freestanding coordinating conjunction that introduces a chronologically delayed sequence with an explicit period of delay.",
-    quranicExampleArabic: "ثُمَّ خَلَقْنَا النُّطْفَةَ عَلَقَةً",
-    quranicExampleTranslation: "Then We made the sperm-drop into a clinging clot"
+    category: "negation",
+    grammaticalEffect: "Negates future absolutely. Next verb becomes Subjunctive (Mansūb).",
+    syntacticRule: "Standalone before present verbs.",
+    quranicExampleArabic: "لَن تَنَالُوا الْبِرَّ",
+    quranicExampleTranslation: "Never will you attain righteousness",
+    mnemonic: "Locks the future"
+  },
+  {
+    id: "hal",
+    arabic: "هَلْ",
+    transliteration: "Hal",
+    englishMeaning: "Is / Are / Do",
+    attachmentType: "standalone",
+    category: "interrogative",
+    grammaticalEffect: "No direct case-ending effect.",
+    syntacticRule: "Precedes sentence.",
+    quranicExampleArabic: "هَلْ أَتَىٰ عَلَى الْإِنسَانِ حِينٌ مِّنَ الدَّهْرِ",
+    quranicExampleTranslation: "Has there [not] come upon man a period of time...",
+    mnemonic: "Harvests a Yes/No"
+  },
+  {
+    id: "a",
+    arabic: "أَ",
+    transliteration: "A-",
+    englishMeaning: "Is / Are / Do",
+    attachmentType: "prefixed",
+    category: "interrogative",
+    grammaticalEffect: "No case effect.",
+    syntacticRule: "Prefixed directly to ask yes/no.",
+    quranicExampleArabic: "أَأَنتُمْ أَشَدُّ خَلْقًا أَمِ السَّمَاءُ",
+    quranicExampleTranslation: "Are you a more difficult creation or is the heaven?",
+    mnemonic: "A sharp, quick inquiry"
+  },
+
+  // 5. Exception, Vocative, and Conditionals
+  {
+    id: "illa",
+    arabic: "إِلَّا",
+    transliteration: "Illā",
+    englishMeaning: "Except / But",
+    attachmentType: "standalone",
+    category: "exception",
+    grammaticalEffect: "Can force noun to accusative.",
+    syntacticRule: "Freestanding.",
+    quranicExampleArabic: "لَا إِلَٰهَ إِلَّا اللَّهُ",
+    quranicExampleTranslation: "There is no deity except Allah",
+    mnemonic: "Isolates the exception"
+  },
+  {
+    id: "ya",
+    arabic: "يَا",
+    transliteration: "Yā",
+    englishMeaning: "O...! (Vocative)",
+    attachmentType: "standalone",
+    category: "vocative",
+    grammaticalEffect: "Forces addressed noun to nominative.",
+    syntacticRule: "Standalone vocative.",
+    quranicExampleArabic: "يَا أَيُّهَا النَّاسُ",
+    quranicExampleTranslation: "O mankind...!",
+    mnemonic: "Yells out to call someone"
+  },
+  {
+    id: "in_cond",
+    arabic: "إِنْ",
+    transliteration: "In",
+    englishMeaning: "If / Not",
+    attachmentType: "standalone",
+    category: "conditional",
+    grammaticalEffect: "Causes conditional clauses to become jussive.",
+    syntacticRule: "Precedes verbs.",
+    quranicExampleArabic: "إِن يَنصُرْكُمُ اللَّهُ فَلَا غَالِبَ لَكُمْ",
+    quranicExampleTranslation: "If Allah should aid you, no one can overcome you",
+    mnemonic: "Initiates conditions"
+  },
+
+  // 6. Tense / Emphasis
+  {
+    id: "qad",
+    arabic: "قَدْ",
+    transliteration: "Qad",
+    englishMeaning: "Already / Indeed",
+    attachmentType: "standalone",
+    category: "emphasis",
+    grammaticalEffect: "Before past verbs: denotes certainty.",
+    syntacticRule: "Freestanding before verbs.",
+    quranicExampleArabic: "قَدْ أَفْلَحَ الْمُؤْمِنُونَ",
+    quranicExampleTranslation: "Certainly will the believers have succeeded",
+    mnemonic: "Quantifies certainty"
+  },
+  {
+    id: "sawfa",
+    arabic: "سَوْفَ",
+    transliteration: "Sawfa",
+    englishMeaning: "Will / Soon (Far future)",
+    attachmentType: "standalone",
+    category: "emphasis",
+    grammaticalEffect: "Forces present verb to future tense.",
+    syntacticRule: "Standalone before present verbs.",
+    quranicExampleArabic: "وَسَوْفَ تَعْلَمُونَ",
+    quranicExampleTranslation: "And you will come to know",
+    mnemonic: "Sweeps into the distant future"
+  },
+  {
+    id: "sa",
+    arabic: "سَـ",
+    transliteration: "Sa-",
+    englishMeaning: "Will / Very Soon",
+    attachmentType: "prefixed",
+    category: "emphasis",
+    grammaticalEffect: "Changes to immediate future.",
+    syntacticRule: "Prefixed to present tense verbs.",
+    quranicExampleArabic: "سَيَقُولُ السُّفَهَاءُ",
+    quranicExampleTranslation: "The foolish among the people will say",
+    mnemonic: "Soon..."
   }
 ];
 
@@ -280,7 +480,8 @@ interface HurufLibraryProps {
 
 export default function HurufLibrary({ theme }: HurufLibraryProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<'all' | 'preposition' | 'conjunction' | 'interrogative' | 'negation' | 'emphasis' | 'vocative'>('all');
+  const [showArabicKeyboard, setShowArabicKeyboard] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<'all' | 'preposition' | 'conjunction' | 'interrogative' | 'negation' | 'emphasis' | 'vocative' | 'conditional' | 'exception'>('all');
   const [selectedAttachmentFilter, setSelectedAttachmentFilter] = useState<'all' | 'prefixed' | 'suffixed' | 'standalone'>('all');
   const [activeHarfId, setActiveHarfId] = useState<string>("bi");
 
@@ -362,7 +563,7 @@ export default function HurufLibrary({ theme }: HurufLibraryProps) {
                 placeholder="Search particles (e.g. بِـ, min, to)..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className={`w-full font-medium rounded-xl py-1.5 pl-8 pr-3 text-xs focus:outline-none transition-all border ${
+                className={`w-full font-medium rounded-xl py-1.5 pl-8 pr-8 text-xs focus:outline-none transition-all border ${
                   isParchment
                     ? 'bg-[#fdfbf7] border-[#ebdcc3] text-[#2c241e] focus:border-[#8c6239]'
                     : isCosmic
@@ -370,7 +571,31 @@ export default function HurufLibrary({ theme }: HurufLibraryProps) {
                       : 'bg-slate-950 border border-slate-800 text-slate-100 placeholder-slate-500 focus:border-emerald-500'
                 }`}
               />
+              <button
+                type="button"
+                onClick={() => setShowArabicKeyboard(!showArabicKeyboard)}
+                className={`absolute right-2 top-2 p-0.5 rounded transition-all duration-200 cursor-pointer ${
+                  showArabicKeyboard
+                    ? (isParchment ? 'text-[#8c6239]' : isCosmic ? 'text-pink-400' : 'text-emerald-400')
+                    : (isParchment ? 'text-[#a68c6d]' : 'text-slate-400 hover:text-slate-200')
+                }`}
+                title="Arabic Keyboard Toggle"
+              >
+                <Keyboard className="w-3.5 h-3.5" />
+              </button>
             </div>
+
+            {showArabicKeyboard && (
+              <div className="p-3 border rounded-xl border-current/10 w-full flex justify-center animate-fadeIn">
+                <ArabicVirtualKeyboard
+                  onKeyPress={(char) => setSearchQuery(prev => prev + char)}
+                  onClear={() => setSearchQuery('')}
+                  onBackspace={() => setSearchQuery(prev => prev.slice(0, -1))}
+                  onClose={() => setShowArabicKeyboard(false)}
+                  theme={theme}
+                />
+              </div>
+            )}
 
             {/* 2. Attachment position filter */}
             <div className="flex flex-wrap gap-1">
@@ -428,7 +653,7 @@ export default function HurufLibrary({ theme }: HurufLibraryProps) {
               <span className={`text-[9px] font-bold block w-full uppercase mb-0.5 opacity-65 ${textMutedClass}`}>
                 Grammatical Type:
               </span>
-              {(['all', 'preposition', 'conjunction', 'interrogative', 'negation', 'vocative', 'emphasis'] as const).map(cat => (
+              {(['all', 'preposition', 'conjunction', 'interrogative', 'negation', 'vocative', 'emphasis', 'conditional', 'exception'] as const).map(cat => (
                 <button
                   key={cat}
                   type="button"
@@ -567,6 +792,18 @@ export default function HurufLibrary({ theme }: HurufLibraryProps) {
                   {activeHarf.grammaticalEffect}
                 </p>
               </div>
+
+              {/* Mnemonic / Memorization Tip */}
+              {activeHarf.mnemonic && (
+                <div className="space-y-1 p-3.5 bg-amber-500/5 rounded-xl border border-amber-500/20">
+                  <h4 className="text-[10.5px] font-bold uppercase tracking-wide text-amber-500 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5" /> Memorization Tip (Mnemonic)
+                  </h4>
+                  <p className="text-xs font-semibold leading-relaxed text-amber-600 dark:text-amber-400">
+                    {activeHarf.mnemonic}
+                  </p>
+                </div>
+              )}
 
               {/* Sample illustrative Quranic coordinate verse usage */}
               <div className={`p-4 rounded-xl border ${

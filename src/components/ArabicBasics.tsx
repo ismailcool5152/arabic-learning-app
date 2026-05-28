@@ -41,6 +41,32 @@ export default function ArabicBasics({ theme }: ArabicBasicsProps) {
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [showResults, setShowResults] = useState(false);
 
+  // Sub-navigation state
+  const [activeSection, setActiveSection] = useState<string>(() => {
+    try {
+      return localStorage.getItem('quranic_arabic_basics_nav') || 'blocks';
+    } catch {
+      return 'blocks';
+    }
+  });
+
+  const handleSectionChange = (sectionId: string) => {
+    setActiveSection(sectionId);
+    try {
+      localStorage.setItem('quranic_arabic_basics_nav', sectionId);
+    } catch (e) {
+      // Ignore
+    }
+  };
+
+  const navSections = [
+    { id: 'blocks', label: 'Building Blocks', icon: Layers },
+    { id: 'sentences', label: 'Sentence Lab', icon: Sparkles },
+    { id: 'cases', label: 'Grammar Cases', icon: BookOpen },
+    { id: 'awzan', label: 'Verb Forms', icon: Layers },
+    { id: 'quiz', label: 'Quiz', icon: Award }
+  ];
+
   // 1. Core Part of speech data (Ism, Fi'l, Harf)
   const codePartsOfSpeech: Record<string, GrammarConcept> = {
     ism: {
@@ -213,7 +239,7 @@ export default function ArabicBasics({ theme }: ArabicBasicsProps) {
     <div className={`border rounded-2xl p-6 transition-all duration-300 ${cardBgClass} space-y-8 animate-fadeIn`}>
       
       {/* 1. SECTION HEADER */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-current/10 pb-5">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-1">
         <div>
           <div className="flex items-center gap-2">
             <Compass className={`w-5 h-5 ${fontColorThemeText}`} />
@@ -226,12 +252,31 @@ export default function ArabicBasics({ theme }: ArabicBasicsProps) {
         
         <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[11px] font-mono leading-none ${badgeThemeBg}`}>
           <BookMarked className="w-3.5 h-3.5" />
-          <span>LEVEL: STARTER (FOUNDATIONAL COGNIZANCE)</span>
+          <span>LEVEL: STARTER</span>
         </div>
       </div>
 
+      {/* Sub-Navigation Tabs */}
+      <div className="flex flex-wrap gap-2 border-b border-current/10 pb-4">
+        {navSections.map((sec) => (
+          <button
+            key={sec.id}
+            onClick={() => handleSectionChange(sec.id)}
+            className={`flex items-center gap-1.5 py-1.5 px-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
+              activeSection === sec.id
+                ? (isParchment ? 'bg-[#8c6239] text-white border-[#8c6239]' : isCosmic ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-emerald-600 border-emerald-500 text-white')
+                : 'bg-transparent border-current/10 hover:bg-current/5'
+            }`}
+          >
+            <sec.icon className="w-3.5 h-3.5" />
+            <span>{sec.label}</span>
+          </button>
+        ))}
+      </div>
+
       {/* 2. THREE WORD CLASSES INTRO */}
-      <div className="space-y-4">
+      {activeSection === 'blocks' && (
+      <div className="space-y-4 animate-fadeIn">
         <div className="flex items-center gap-2">
           <Layers className={`w-4 h-4 ${fontColorThemeText}`} />
           <h3 className="text-sm font-bold uppercase tracking-wider">
@@ -288,9 +333,11 @@ export default function ArabicBasics({ theme }: ArabicBasicsProps) {
           ))}
         </div>
       </div>
+      )}
 
       {/* 3. INTERACTIVE SENTENCE DECIPHER BUILDER */}
-      <div className={`p-6 rounded-2xl border ${innerCardBgClass} space-y-5`}>
+      {activeSection === 'sentences' && (
+      <div className={`p-6 rounded-2xl border ${innerCardBgClass} space-y-5 animate-fadeIn`}>
         <div className="space-y-1">
           <div className="flex items-center gap-1.5">
             <Sparkles className="w-4 h-4 text-amber-500" />
@@ -426,9 +473,11 @@ export default function ArabicBasics({ theme }: ArabicBasicsProps) {
 
         </div>
       </div>
+      )}
 
       {/* 4. THE GRAMMATICAL CASE DECLENSIONS (Raf', Nasb, Jarr) */}
-      <div className="space-y-4 pt-4 border-t border-current/10">
+      {activeSection === 'cases' && (
+      <div className="space-y-4 animate-fadeIn">
         <div className="flex items-center gap-2">
           <BookOpen className={`w-4 h-4 ${fontColorThemeText}`} />
           <h3 className="text-sm font-bold uppercase tracking-wider">
@@ -489,9 +538,109 @@ export default function ArabicBasics({ theme }: ArabicBasicsProps) {
           </div>
         </div>
       </div>
+      )}
 
-      {/* 5. INTERACTIVE MINI-QUIZ */}
-      <div className={`p-6 rounded-2xl border ${isParchment ? 'bg-amber-100/30' : 'bg-slate-950/40 border-current/15'} space-y-4`}>
+      {/* 5. ARABIC VERB FORMS (AWZAN) */}
+      {activeSection === 'awzan' && (
+      <div className="space-y-4 animate-fadeIn">
+        <div className="flex items-center gap-2">
+          <Layers className={`w-4 h-4 ${fontColorThemeText}`} />
+          <h3 className="text-sm font-bold uppercase tracking-wider">
+            Verb Forms (الأوزان - Al-Awzān)
+          </h3>
+        </div>
+        <p className="text-xs opacity-90 leading-relaxed max-w-4xl">
+          By adding specific letters to the 3-letter root, Arabic creates 10 derived verb forms (Roman numerals I to X). Each Form applies a consistent shift in meaning to the base root.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
+          {/* Form I */}
+          <div className={`p-4 rounded-xl border ${isParchment ? 'bg-[#faf6ed]' : 'bg-[#0a0d18]/40'} border-current/10`}>
+            <div className="flex justify-between items-center mb-1">
+              <span className="font-bold text-xs uppercase text-slate-400">Form I - فَعَلَ</span>
+              <span className={`text-[10px] font-mono font-bold ${fontColorThemeText}`}>Base Action</span>
+            </div>
+            <p className="text-[11px] opacity-85 leading-relaxed">The basic, native root action. Example: عَلِمَ (He knew).</p>
+          </div>
+          {/* Form II */}
+          <div className={`p-4 rounded-xl border ${isParchment ? 'bg-[#faf6ed]' : 'bg-[#0a0d18]/40'} border-current/10`}>
+            <div className="flex justify-between items-center mb-1">
+              <span className="font-bold text-xs uppercase text-slate-400">Form II - فَعَّلَ</span>
+              <span className={`text-[10px] font-mono font-bold ${fontColorThemeText}`}>Intensify / Causative</span>
+            </div>
+            <p className="text-[11px] opacity-85 leading-relaxed">Emphasizes the action or makes someone do it. Example: عَلَّمَ (He taught / made known).</p>
+          </div>
+          {/* Form III */}
+          <div className={`p-4 rounded-xl border ${isParchment ? 'bg-[#faf6ed]' : 'bg-[#0a0d18]/40'} border-current/10`}>
+            <div className="flex justify-between items-center mb-1">
+              <span className="font-bold text-xs uppercase text-slate-400">Form III - فَاعَلَ</span>
+              <span className={`text-[10px] font-mono font-bold ${fontColorThemeText}`}>Interactive</span>
+            </div>
+            <p className="text-[11px] opacity-85 leading-relaxed">Involves another person. Action applied to/with someone. Example: كَاتَبَ (He corresponded).</p>
+          </div>
+          {/* Form IV */}
+          <div className={`p-4 rounded-xl border ${isParchment ? 'bg-[#faf6ed]' : 'bg-[#0a0d18]/40'} border-current/10`}>
+            <div className="flex justify-between items-center mb-1">
+              <span className="font-bold text-xs uppercase text-slate-400">Form IV - أَفْعَلَ</span>
+              <span className={`text-[10px] font-mono font-bold ${fontColorThemeText}`}>Causative (Transitive)</span>
+            </div>
+            <p className="text-[11px] opacity-85 leading-relaxed">Makes an intransitive verb transitive. Example: أَخْرَجَ (He expelled / brought out).</p>
+          </div>
+          {/* Form V */}
+          <div className={`p-4 rounded-xl border ${isParchment ? 'bg-[#faf6ed]' : 'bg-[#0a0d18]/40'} border-current/10`}>
+            <div className="flex justify-between items-center mb-1">
+              <span className="font-bold text-xs uppercase text-slate-400">Form V - تَفَعَّلَ</span>
+              <span className={`text-[10px] font-mono font-bold ${fontColorThemeText}`}>Reflexive II (Gradual)</span>
+            </div>
+            <p className="text-[11px] opacity-85 leading-relaxed">Applying an action to oneself gradually. Reflexive of Form II. Example: تَعَلَّمَ (He learned).</p>
+          </div>
+          {/* Form VI */}
+          <div className={`p-4 rounded-xl border ${isParchment ? 'bg-[#faf6ed]' : 'bg-[#0a0d18]/40'} border-current/10`}>
+            <div className="flex justify-between items-center mb-1">
+              <span className="font-bold text-xs uppercase text-slate-400">Form VI - تَفَاعَلَ</span>
+              <span className={`text-[10px] font-mono font-bold ${fontColorThemeText}`}>Mutual / Cooperative</span>
+            </div>
+            <p className="text-[11px] opacity-85 leading-relaxed">Mutual action between groups, or pretending. Example: تَسَاءَلَ (They asked each other).</p>
+          </div>
+          {/* Form VII */}
+          <div className={`p-4 rounded-xl border ${isParchment ? 'bg-[#faf6ed]' : 'bg-[#0a0d18]/40'} border-current/10`}>
+            <div className="flex justify-between items-center mb-1">
+              <span className="font-bold text-xs uppercase text-slate-400">Form VII - اِنْفَعَلَ</span>
+              <span className={`text-[10px] font-mono font-bold ${fontColorThemeText}`}>Passive / Yielding</span>
+            </div>
+            <p className="text-[11px] opacity-85 leading-relaxed">Shows submitting to the action (never takes an object). Example: اِنْقَسَمَ (It got divided).</p>
+          </div>
+          {/* Form VIII */}
+          <div className={`p-4 rounded-xl border ${isParchment ? 'bg-[#faf6ed]' : 'bg-[#0a0d18]/40'} border-current/10`}>
+            <div className="flex justify-between items-center mb-1">
+              <span className="font-bold text-xs uppercase text-slate-400">Form VIII - اِفْتَعَلَ</span>
+              <span className={`text-[10px] font-mono font-bold ${fontColorThemeText}`}>Reflexive Intentional</span>
+            </div>
+            <p className="text-[11px] opacity-85 leading-relaxed">Reflexive with effort or acting on behalf of oneself. Example: اِكْتَسَبَ (He earned for himself).</p>
+          </div>
+          {/* Form IX */}
+          <div className={`p-4 rounded-xl border ${isParchment ? 'bg-[#faf6ed]' : 'bg-[#0a0d18]/40'} border-current/10`}>
+            <div className="flex justify-between items-center mb-1">
+              <span className="font-bold text-xs uppercase text-slate-400">Form IX - اِفْعَلَّ</span>
+              <span className={`text-[10px] font-mono font-bold ${fontColorThemeText}`}>Colors / Defects</span>
+            </div>
+            <p className="text-[11px] opacity-85 leading-relaxed">Exclusively used for physical traits, colors, or defects. Example: اِحْمَرَّ (He/it turned red).</p>
+          </div>
+          {/* Form X */}
+          <div className={`p-4 rounded-xl border ${isParchment ? 'bg-[#faf6ed]' : 'bg-[#0a0d18]/40'} border-current/10`}>
+            <div className="flex justify-between items-center mb-1">
+              <span className="font-bold text-xs uppercase text-slate-400">Form X - اِسْتَفْعَلَ</span>
+              <span className={`text-[10px] font-mono font-bold ${fontColorThemeText}`}>Seeking / Deeming</span>
+            </div>
+            <p className="text-[11px] opacity-85 leading-relaxed">Seeking the action to be done, or considering something to be... Example: اِسْتَغْفَرَ (He sought forgiveness).</p>
+          </div>
+        </div>
+      </div>
+      )}
+
+      {/* 6. INTERACTIVE MINI-QUIZ */}
+      {activeSection === 'quiz' && (
+      <div className={`p-6 rounded-2xl border ${isParchment ? 'bg-amber-100/30 border-amber-200/50' : 'bg-slate-950/40 border-current/15'} space-y-4 animate-fadeIn`}>
         <div className="flex items-center justify-between flex-wrap gap-2 border-b border-current/5 pb-2">
           <div className="flex items-center gap-1.5">
             <Award className="w-4 h-4 text-yellow-500" />
@@ -600,6 +749,7 @@ export default function ArabicBasics({ theme }: ArabicBasicsProps) {
           )}
         </div>
       </div>
+      )}
 
     </div>
   );

@@ -14,8 +14,11 @@ import {
   Users,
   Grid,
   Check,
-  RotateCcw
+  RotateCcw,
+  Keyboard,
+  Loader2
 } from 'lucide-react';
+import ArabicVirtualKeyboard from './ArabicVirtualKeyboard';
 
 interface RootToWordsProps {
   theme: LayoutTheme;
@@ -52,6 +55,10 @@ export default function RootToWords({ theme, onSelectWord, initialRoot }: RootTo
   const [r1, setR1] = useState('ك');
   const [r2, setR2] = useState('ت');
   const [r3, setR3] = useState('ب');
+  const [showArabicKeyboard, setShowArabicKeyboard] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [aiTranslations, setAiTranslations] = useState<Record<string, string>>({});
+  const [aiRootMeaning, setAiRootMeaning] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialRoot) {
@@ -65,6 +72,12 @@ export default function RootToWords({ theme, onSelectWord, initialRoot }: RootTo
     }
   }, [initialRoot]);
   
+  // Clear AI context when root changes
+  useEffect(() => {
+    setAiTranslations({});
+    setAiRootMeaning(null);
+  }, [r1, r2, r3]);
+
   const isParchment = theme === 'parchment';
   const isCosmic = theme === 'cosmic';
 
@@ -168,6 +181,46 @@ export default function RootToWords({ theme, onSelectWord, initialRoot }: RootTo
   };
 
   const activeDoc = getActiveKeyword();
+
+  const handleBatchTranslate = async () => {
+    setIsTranslating(true);
+    const root = `${r1} - ${r2} - ${r3}`;
+    
+    // Gather all generated Arabic words
+    const wordsToTranslate: string[] = [];
+    getTenses().forEach(t => {
+      wordsToTranslate.push(t.past, t.present);
+    });
+    getGenderForms().forEach(g => {
+      wordsToTranslate.push(g.masculine, g.feminine);
+    });
+    getQuantityForms().forEach(q => {
+      wordsToTranslate.push(q.singular, q.dual, q.plural);
+    });
+
+    try {
+      const customApiKey = localStorage.getItem('quranic_arabic_custom_api_key') || '';
+      const response = await fetch('/api/translate-root-words', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ root, words: wordsToTranslate, customApiKey }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.translations) {
+          setAiTranslations(data.translations);
+        }
+        if (data.rootMeaning) {
+          setAiRootMeaning(data.rootMeaning);
+        }
+      }
+    } catch (e) {
+      console.error("Batch translation failed:", e);
+    } finally {
+      setIsTranslating(false);
+    }
+  };
 
   // Core Word Generation Engine (based on patterns we have defined)
   // 1. TENSES (Show tenses first)
@@ -365,15 +418,36 @@ export default function RootToWords({ theme, onSelectWord, initialRoot }: RootTo
           </p>
         </div>
 
-        <button 
-          onClick={resetAll}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold cursor-pointer select-none transition-all ${
-            isParchment ? 'bg-[#ebd8c3]/40 hover:bg-[#ebd8c3] border-[#dfd2be]' : 'bg-white/5 hover:bg-white/10 border-current/10'
-          }`}
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-          <span>Reset Conjugator</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={handleBatchTranslate}
+            disabled={isTranslating}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold cursor-pointer select-none transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+              isParchment 
+                ? 'bg-[#8c6239] text-[#faf6ed] hover:bg-[#a67c52] border-[#8c6239]' 
+                : isCosmic 
+                  ? 'bg-indigo-600 text-white hover:bg-indigo-500 border-indigo-500' 
+                  : 'bg-emerald-600 text-white hover:bg-emerald-500 border-emerald-500'
+            }`}
+          >
+            {isTranslating ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Sparkles className="w-3.5 h-3.5" />
+            )}
+            <span>Translate with AI</span>
+          </button>
+          
+          <button 
+            onClick={resetAll}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold cursor-pointer select-none transition-all ${
+              isParchment ? 'bg-[#ebd8c3]/40 hover:bg-[#ebd8c3] border-[#dfd2be]' : 'bg-white/5 hover:bg-white/10 border-current/10'
+            }`}
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Reset</span>
+          </button>
+        </div>
       </div>
 
       {/* 2. Interactive Input Panel and Keyboard Preset */}
@@ -391,15 +465,29 @@ export default function RootToWords({ theme, onSelectWord, initialRoot }: RootTo
                 value={inputWord}
                 onChange={(e) => handleInputChange(e.target.value)}
                 placeholder="e.g. k-t-b, كتب, gh-f-r, غ ف ر"
-                className={`w-full font-serif text-base font-semibold rounded-xl py-3 pl-4 pr-10 focus:outline-none transition-all border ${inputStyleClass}`}
+                className={`w-full font-serif text-base font-semibold rounded-xl py-3 pl-4 pr-20 focus:outline-none transition-all border ${inputStyleClass}`}
                 id="root-to-words-input"
               />
-              <span className="absolute right-3.5 top-3.5 text-lg font-serif opacity-40">
-                {r1}{r2}{r3}
-              </span>
+              <div className="absolute right-3.5 top-3.5 flex items-center gap-2">
+                <span className="text-base font-serif opacity-40 leading-none select-none">
+                  {r1}{r2}{r3}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowArabicKeyboard(!showArabicKeyboard)}
+                  className={`p-1 rounded-lg transition-all duration-200 cursor-pointer ${
+                    showArabicKeyboard
+                      ? (isParchment ? 'bg-[#ebd8c3]/80 text-[#8c6239]' : isCosmic ? 'bg-[#1b1e36] text-pink-400' : 'bg-[#0f2d1e] text-emerald-400')
+                      : (isParchment ? 'hover:bg-[#ebd8c3]/40 text-[#a68c6d]' : 'hover:bg-slate-800 text-slate-400 hover:text-slate-200')
+                  }`}
+                  title="Arabic Keyboard Toggle"
+                >
+                  <Keyboard className="w-4 h-4" />
+                </button>
+              </div>
             </div>
             <p className="text-[10px] text-slate-400 leading-snug">
-              Accepts typed Arabic characters (e.g. كتب) or phonetics separated by spaces or hyphens (e.g. k t b).
+               Accepts typed Arabic characters (e.g. كتب) or phonetics separated by spaces or hyphens (e.g. k t b).
             </p>
           </div>
 
@@ -434,10 +522,22 @@ export default function RootToWords({ theme, onSelectWord, initialRoot }: RootTo
               </span>
             </div>
             <p className="text-[10px] leading-relaxed opacity-85">
-              {activeDoc.meaning} — associated with '{activeDoc.english.toLowerCase()}ing' acts.
+              {aiRootMeaning ? aiRootMeaning : `${activeDoc.meaning} — associated with '${activeDoc.english.toLowerCase()}ing' acts.`}
             </p>
           </div>
         </div>
+
+        {showArabicKeyboard && (
+          <div className="pt-2 border-t border-current/10 w-full flex justify-center animate-fadeIn">
+            <ArabicVirtualKeyboard
+              onKeyPress={(char) => handleInputChange(inputWord + char)}
+              onClear={() => handleInputChange('')}
+              onBackspace={() => handleInputChange(inputWord.slice(0, -1))}
+              onClose={() => setShowArabicKeyboard(false)}
+              theme={theme}
+            />
+          </div>
+        )}
 
         {/* Clickable Quick Classical Root Presets */}
         <div className="space-y-2 pt-2 border-t border-current/10">
@@ -477,39 +577,51 @@ export default function RootToWords({ theme, onSelectWord, initialRoot }: RootTo
           {getTenses().map((t) => (
             <div 
               key={t.id} 
-              className={`p-4 rounded-xl border transition-all duration-200 hover:border-current/15 hover:shadow-sm ${
+              className={`p-4 rounded-xl border transition-all duration-200 hover:border-current/15 hover:shadow-sm flex flex-col justify-between ${
                 isParchment ? 'bg-[#faf6ed]' : 'bg-[#0b0c16]/40'
               }`}
             >
-              <div className="flex items-start justify-between gap-1.5 mb-3">
-                <div>
-                  <h4 className="font-bold text-xs">{t.label}</h4>
-                  <code className="text-[10px] opacity-60 font-mono text-[9px]">{t.pattern}</code>
+              <div>
+                <div className="flex items-start justify-between gap-1.5 mb-3">
+                  <div>
+                    <h4 className="font-bold text-xs">{t.label}</h4>
+                    <code className="text-[10px] opacity-60 font-mono text-[9px]">{t.pattern}</code>
+                  </div>
+                  <span className={`text-[8.5px] font-mono uppercase bg-current/5 border border-current/10 rounded px-1.5`}>
+                    {t.pastTrans}
+                  </span>
                 </div>
-                <span className={`text-[8.5px] font-mono uppercase bg-current/5 border border-current/10 rounded px-1.5`}>
-                  {t.pastTrans}
-                </span>
+
+                {/* Conjugated Tense Boxes */}
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  
+                  {/* Past Tense Box */}
+                  <div className="p-2.5 rounded-lg bg-black/10 border border-current/5 text-right relative overflow-hidden flex flex-col justify-end">
+                    <span className="absolute left-2 top-1 text-[8px] font-mono uppercase opacity-55">Past (Madi)</span>
+                    <div className="text-2xl md:text-3xl font-serif font-extrabold text-amber-500 mt-2 tracking-normal" dir="rtl">{t.past}</div>
+                    <div className="text-[9px] font-mono text-left opacity-65 flex justify-between items-center w-full">
+                      <span>{t.pastTrans.toLowerCase()}</span>
+                      {aiTranslations[t.past] && (
+                        <span className="text-[9px] font-sans font-bold text-amber-500 whitespace-nowrap ml-1">{aiTranslations[t.past]}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Present Tense Box */}
+                  <div className="p-2.5 rounded-lg bg-black/10 border border-current/5 text-right relative overflow-hidden flex flex-col justify-end">
+                    <span className="absolute left-2 top-1 text-[8px] font-mono uppercase opacity-55">Present (Mudari)</span>
+                    <div className="text-2xl md:text-3xl font-serif font-extrabold text-teal-400 mt-2 tracking-normal" dir="rtl">{t.present}</div>
+                    <div className="text-[9px] font-mono text-left opacity-65 flex justify-between items-center w-full">
+                      <span>{t.presentTrans.toLowerCase()}</span>
+                      {aiTranslations[t.present] && (
+                        <span className="text-[9px] font-sans font-bold text-teal-400 whitespace-nowrap ml-1">{aiTranslations[t.present]}</span>
+                      )}
+                    </div>
+                  </div>
+
+                </div>
               </div>
-
-              {/* Conjugated Tense Boxes */}
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                
-                {/* Past Tense Box */}
-                <div className="p-2.5 rounded-lg bg-black/10 border border-current/5 text-right relative overflow-hidden">
-                  <span className="absolute left-2 top-1 text-[8px] font-mono uppercase opacity-55">Past (Madi)</span>
-                  <div className="text-xl font-serif font-bold text-amber-500 mt-2 tracking-normal" dir="rtl">{t.past}</div>
-                  <div className="text-[9px] font-mono text-left opacity-65">{t.pastTrans.toLowerCase()}</div>
-                </div>
-
-                {/* Present Tense Box */}
-                <div className="p-2.5 rounded-lg bg-black/10 border border-current/5 text-right relative overflow-hidden">
-                  <span className="absolute left-2 top-1 text-[8px] font-mono uppercase opacity-55">Present (Mudari)</span>
-                  <div className="text-xl font-serif font-bold text-teal-400 mt-2 tracking-normal" dir="rtl">{t.present}</div>
-                  <div className="text-[9px] font-mono text-left opacity-65">{t.presentTrans.toLowerCase()}</div>
-                </div>
-
-              </div>
-              <p className="text-[10.5px] mt-2 leading-relaxed opacity-85">{t.semantic}</p>
+              <p className="text-[10.5px] mt-3 leading-relaxed opacity-85">{t.semantic}</p>
             </div>
           ))}
         </div>
@@ -543,12 +655,22 @@ export default function RootToWords({ theme, onSelectWord, initialRoot }: RootTo
                     <span className="text-[10px] font-mono opacity-65">{gf.basePattern}</span>
                   </td>
                   <td className="p-3 text-right">
-                    <div className="text-lg font-serif font-bold text-amber-500 tracking-normal" dir="rtl">{gf.masculine}</div>
-                    <div className="text-[10px] opacity-75">{gf.mascMeaning}</div>
+                    <div className="text-2xl font-serif font-extrabold text-amber-500 tracking-normal" dir="rtl">{gf.masculine}</div>
+                    <div className="flex flex-col items-end gap-0.5">
+                      <span className="text-[10px] opacity-75">{gf.mascMeaning}</span>
+                      {aiTranslations[gf.masculine] && (
+                        <span className="text-[10px] font-bold text-amber-500">{aiTranslations[gf.masculine]}</span>
+                      )}
+                    </div>
                   </td>
                   <td className="p-3 text-right">
-                    <div className="text-lg font-serif font-bold text-emerald-400 tracking-normal" dir="rtl">{gf.feminine}</div>
-                    <div className="text-[10px] opacity-75">{gf.femMeaning}</div>
+                    <div className="text-2xl font-serif font-extrabold text-emerald-400 tracking-normal" dir="rtl">{gf.feminine}</div>
+                    <div className="flex flex-col items-end gap-0.5">
+                      <span className="text-[10px] opacity-75">{gf.femMeaning}</span>
+                      {aiTranslations[gf.feminine] && (
+                        <span className="text-[10px] font-bold text-emerald-400">{aiTranslations[gf.feminine]}</span>
+                      )}
+                    </div>
                   </td>
                   <td className="p-3">
                     <span className="inline-block text-[9px] font-mono bg-current/5 border border-current/10 rounded px-1.5 py-0.5 font-bold mb-1">
@@ -592,27 +714,42 @@ export default function RootToWords({ theme, onSelectWord, initialRoot }: RootTo
               <div className="space-y-2.5">
                 
                 {/* Singular */}
-                <div className="flex items-center justify-between p-2 rounded-lg bg-black/10 border border-current/5">
-                  <span className="text-[9px] opacity-60">Singular (مفرد)</span>
-                  <span className="text-base font-serif font-bold text-slate-100 tracking-normal" dir="rtl">{q.singular}</span>
+                <div className="flex flex-col p-2 rounded-lg bg-black/10 border border-current/5 gap-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] opacity-60">Singular (مفرد)</span>
+                    <span className="text-xl md:text-2xl font-serif font-extrabold text-slate-100 tracking-normal" dir="rtl">{q.singular}</span>
+                  </div>
+                  {aiTranslations[q.singular] && (
+                    <div className="text-[9px] font-bold text-slate-300 text-right">{aiTranslations[q.singular]}</div>
+                  )}
                 </div>
 
                 {/* Dual */}
-                <div className="flex items-center justify-between p-2 rounded-lg bg-black/10 border border-current/5">
-                  <span className="text-[9px] opacity-60">Dual (+َانِ)</span>
-                  <div className="flex items-center gap-1">
-                    <span className="text-[9px] font-mono text-cyan-400">Two</span>
-                    <span className="text-base font-serif font-bold text-amber-500 tracking-normal" dir="rtl">{q.dual}</span>
+                <div className="flex flex-col p-2 rounded-lg bg-black/10 border border-current/5 gap-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] opacity-60">Dual (+َانِ)</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[9px] font-mono text-cyan-400">Two</span>
+                      <span className="text-xl md:text-2xl font-serif font-extrabold text-amber-500 tracking-normal" dir="rtl">{q.dual}</span>
+                    </div>
                   </div>
+                  {aiTranslations[q.dual] && (
+                    <div className="text-[9px] font-bold text-amber-500 text-right">{aiTranslations[q.dual]}</div>
+                  )}
                 </div>
 
                 {/* Plural */}
-                <div className="flex items-center justify-between p-2 rounded-lg bg-indigo-950/20 border border-current/5">
-                  <span className="text-[9px] opacity-60">Plural (+ُونَ)</span>
-                  <div className="flex items-center gap-1">
-                    <span className="text-[9px] font-mono text-emerald-400">Union</span>
-                    <span className="text-base font-serif font-bold text-teal-300 tracking-normal" dir="rtl">{q.plural}</span>
+                <div className="flex flex-col p-2 rounded-lg bg-indigo-950/20 border border-current/5 gap-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] opacity-60">Plural (+ُونَ)</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[9px] font-mono text-emerald-400">Union</span>
+                      <span className="text-xl md:text-2xl font-serif font-extrabold text-teal-300 tracking-normal" dir="rtl">{q.plural}</span>
+                    </div>
                   </div>
+                  {aiTranslations[q.plural] && (
+                    <div className="text-[9px] font-bold text-teal-300 text-right">{aiTranslations[q.plural]}</div>
+                  )}
                 </div>
 
               </div>

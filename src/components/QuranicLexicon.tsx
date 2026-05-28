@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { LayoutTheme } from '../types';
-import { BookOpen, Search, ArrowRight } from 'lucide-react';
+import { BookOpen, Search, ArrowRight, Keyboard } from 'lucide-react';
 import { LEXICON_WORDS } from '../data/lexiconData';
+import ArabicVirtualKeyboard from './ArabicVirtualKeyboard';
 
 // Deduplicate and group by letter
 const GROUPED_LEXICON = LEXICON_WORDS.reduce((acc, current) => {
@@ -17,6 +18,7 @@ interface QuranicLexiconProps {
 
 export default function QuranicLexicon({ theme, onSearch }: QuranicLexiconProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [showArabicKeyboard, setShowArabicKeyboard] = useState(false);
 
   const isParchment = theme === 'parchment';
   const isCosmic = theme === 'cosmic';
@@ -71,10 +73,34 @@ export default function QuranicLexicon({ theme, onSearch }: QuranicLexiconProps)
             placeholder="Search word or meaning..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className={`w-full rounded-xl py-2 pl-9 pr-4 text-sm focus:outline-none border ${isParchment ? 'bg-white border-[#ebdcc3] focus:border-[#8c6239]' : 'bg-black/50 border-white/10 focus:border-white/30'}`}
+            className={`w-full rounded-xl py-2 pl-9 pr-10 text-sm focus:outline-none border ${isParchment ? 'bg-white border-[#ebdcc3] focus:border-[#8c6239]' : 'bg-black/50 border-white/10 focus:border-white/30'}`}
           />
+          <button
+            type="button"
+            onClick={() => setShowArabicKeyboard(!showArabicKeyboard)}
+            className={`absolute right-2.5 top-1.5 p-1 rounded-lg transition-all duration-200 cursor-pointer ${
+              showArabicKeyboard
+                ? (isParchment ? 'bg-[#ebd8c3]/80 text-[#8c6239]' : isCosmic ? 'bg-[#1b1e36] text-pink-400' : 'bg-[#0f2d1e] text-emerald-400')
+                : (isParchment ? 'hover:bg-[#ebd8c3]/40 text-[#a68c6d]' : 'hover:bg-slate-800 text-slate-400 hover:text-slate-200')
+            }`}
+            title="Arabic Keyboard Toggle"
+          >
+            <Keyboard className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
+
+      {showArabicKeyboard && (
+        <div className="mb-6 p-4 border rounded-xl border-current/10 w-full flex justify-center animate-fadeIn">
+          <ArabicVirtualKeyboard
+            onKeyPress={(char) => setSearchQuery(prev => prev + char)}
+            onClear={() => setSearchQuery('')}
+            onBackspace={() => setSearchQuery(prev => prev.slice(0, -1))}
+            onClose={() => setShowArabicKeyboard(false)}
+            theme={theme}
+          />
+        </div>
+      )}
 
       <div className="space-y-6 max-h-[500px] overflow-y-auto pr-2" dir="rtl">
         {Object.entries(displayedGroups).map(([letter, words]) => (

@@ -1,16 +1,11 @@
 import React, { useState } from 'react';
 import { SavedWordMap, RecentSearch, LayoutTheme, LayoutMode } from '../types';
 import { 
-  BookOpen, 
   Bookmark, 
   Trash2, 
   ArrowRight, 
   Sparkles, 
-  User, 
-  Edit2, 
-  Check, 
   Clock, 
-  X,
   History 
 } from 'lucide-react';
 
@@ -25,8 +20,6 @@ interface SavedMapsSidebarProps {
   layoutMode?: LayoutMode;
   
   // New personalization and history props
-  userName: string;
-  onSaveUserName: (name: string) => void;
   recentSearches: RecentSearch[];
   onDeleteRecentSearch: (id: string, e: React.MouseEvent) => void;
   onClearRecentSearches: () => void;
@@ -57,8 +50,6 @@ export default function SavedMapsSidebar({
   isSearching,
   theme,
   layoutMode = 'horizontal',
-  userName,
-  onSaveUserName,
   recentSearches,
   onDeleteRecentSearch,
   onClearRecentSearches
@@ -68,20 +59,6 @@ export default function SavedMapsSidebar({
 
   // Toggle state inside notebook (Saved Maps vs Recent Searches)
   const [notebookTab, setNotebookTab] = useState<'saved' | 'recent'>('saved');
-  // Edit name input active state
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [nameInput, setNameInput] = useState(userName);
-
-  const handleNameSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSaveUserName(nameInput.trim());
-    setIsEditingName(false);
-  };
-
-  const handleStartEdit = () => {
-    setNameInput(userName);
-    setIsEditingName(true);
-  };
 
   // Card themes
   const cardBgClass = isParchment 
@@ -113,82 +90,8 @@ export default function SavedMapsSidebar({
   return (
     <div className={containerClasses}>
       
-      {/* Dynamic Profile Personalization Header Card */}
-      <div className={`rounded-2xl p-4 border transition-all duration-300 ${cardBgClass}`}>
-        {isEditingName ? (
-          <form onSubmit={handleNameSave} className="space-y-3">
-            <label className={`text-[10px] font-bold uppercase tracking-wider block ${textMutedClass}`}>
-              What is your name?
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={nameInput}
-                onChange={(e) => setNameInput(e.target.value)}
-                placeholder="Enter your name..."
-                required
-                maxLength={25}
-                className={`flex-1 font-semibold rounded-xl py-1.5 px-3 text-xs focus:outline-none transition-all border ${
-                  isParchment
-                    ? 'bg-[#fdfbf7] border-[#ebdcc3] text-[#2c241e] focus:border-[#8c6239]'
-                    : isCosmic
-                      ? 'bg-black border-indigo-950 text-indigo-50 focus:border-indigo-500'
-                      : 'bg-slate-950 border border-slate-800 text-slate-100 focus:border-emerald-500'
-                }`}
-              />
-              <button
-                type="submit"
-                className="p-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-all cursor-pointer"
-                title="Save profile name"
-              >
-                <Check className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsEditingName(false)}
-                className={`p-1.5 rounded-lg border border-current/10 hover:bg-current/5 transition-all cursor-pointer ${textMutedClass}`}
-                title="Cancel"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          </form>
-        ) : (
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center space-x-3.5 space-x-reverse justify-end md:justify-start">
-              <div className={`p-2 rounded-xl bg-current/5 border border-current/10 ${isParchment ? 'text-[#8c6239]' : isCosmic ? 'text-pink-400' : 'text-emerald-400'}`}>
-                <User className="w-4 h-4" />
-              </div>
-              <div className="min-w-0">
-                <p className={`text-[10px] font-mono uppercase tracking-wider ${textMutedClass} leading-none`}>
-                  Personal Study Circle
-                </p>
-                <h3 className="text-xs font-bold truncate mt-1 leading-tight">
-                  {userName ? (
-                    <span>
-                      Ahlan wa Sahlan, <strong className={`${isParchment ? 'text-[#8c6239]' : isCosmic ? 'text-pink-400' : 'text-emerald-400'}`}>{userName}</strong>! 👋
-                    </span>
-                  ) : (
-                    <span className="opacity-80">Guest Scholar Space</span>
-                  )}
-                </h3>
-              </div>
-            </div>
-
-            <button
-              onClick={handleStartEdit}
-              type="button"
-              className={`p-1.5 rounded-lg border border-current/10 hover:bg-current/5 transition-all text-current/60 hover:text-current cursor-pointer`}
-              title="Personalize Profile Name"
-            >
-              <Edit2 className="w-3 h-3" />
-            </button>
-          </div>
-        )}
-      </div>
-
       {/* Suggestions Section */}
-      <div className={`rounded-2xl p-5 border transition-all duration-300 ${cardBgClass}`}>
+      <div className={`rounded-2xl p-5 border transition-all duration-300 ${cardBgClass} lg:col-span-1`}>
         <div className="flex items-center space-x-2 mb-4">
           <Sparkles className={`w-5 h-5 ${isParchment ? 'text-[#8c6239]' : isCosmic ? 'text-indigo-400' : 'text-amber-500'}`} />
           <h2 className={`text-sm font-semibold tracking-wide uppercase ${headingClass}`}>
@@ -251,7 +154,7 @@ export default function SavedMapsSidebar({
       </div>
 
       {/* Persistent Study Library: Tabs container for Saved Maps & Recent Searches */}
-      <div className={`flex-1 rounded-2xl p-5 border flex flex-col min-h-[300px] transition-all duration-300 ${cardBgClass}`}>
+      <div className={`rounded-2xl p-5 border flex flex-col min-h-[300px] transition-all duration-300 ${cardBgClass} lg:col-span-2`}>
         
         {/* Tab switch header list */}
         <div className="flex bg-current/5 p-1 rounded-xl gap-1 mb-4 border border-current/5">
