@@ -34,6 +34,7 @@ export interface WordAnalysis {
   wazanTransliteration?: string; // The Sarf transliteration of the pattern (e.g., Fā'il, Maf'ūl, Yafta'ilu)
   wazanMeaning?: string; // The syntactic/semantic effect of the pattern (e.g., "Active Participle / One who performs the work")
   wazanEffect?: string; // Comprehensive description of what this pattern does to the core root's meaning
+  totalOccurrences?: number; // Total number of times this word/root occurs in the Quran
   quranicOccurrences: QuranicVerse[];
   relatedWords: RelatedWord[];
   isOfflineFallback?: boolean; // Indicates if the server loaded precompiled/dynamic fallback because of key or quota issues

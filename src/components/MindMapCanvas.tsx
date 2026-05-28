@@ -149,27 +149,24 @@ export default function MindMapCanvas({
       });
     });
 
-    // 5. Dynamic placement of Verses
-    const totalVerses = analysis.quranicOccurrences.length;
-    analysis.quranicOccurrences.forEach((verse, index) => {
-      const arcStart = -Math.PI / 4; 
-      const arcEnd = Math.PI / 3;     
-      const angle = arcStart + (index / (totalVerses - 1 || 1)) * (arcEnd - arcStart);
-
-      list.push({
-        id: `verse-${index}`,
-        type: 'verse',
-        label: verse.surah,
-        subLabel: verse.verseNum,
-        concept: 'Quran Occurrence',
-        description: verse.translation.length > 60 ? verse.translation.substring(0, 60) + '...' : verse.translation,
-        x: cx + outerRadius * Math.cos(angle),
-        y: cy + outerRadius * Math.sin(angle),
-        color: verseColor,
-        textColor: verseTextColor,
-        radius: 46,
-        data: verse
-      });
+    // 5. Dynamic placement of Occurrences Data
+    const totalOccurrencesCount = analysis.totalOccurrences || analysis.quranicOccurrences.length;
+    
+    // Instead of mapping each surah, just show total times occurred
+    const occurrencesAngle = Math.PI / 8; // placed slightly on the top right
+    list.push({
+      id: `verse-summary`,
+      type: 'verse',
+      label: 'Quranic Frequency',
+      subLabel: `${totalOccurrencesCount} Times`,
+      concept: 'Total Occurrences',
+      description: `This root or word appears ${totalOccurrencesCount} times across the Quran.`,
+      x: cx + outerRadius * Math.cos(occurrencesAngle),
+      y: cy + outerRadius * Math.sin(occurrencesAngle),
+      color: verseColor,
+      textColor: verseTextColor,
+      radius: 50,
+      data: { total: totalOccurrencesCount }
     });
 
     return list;
@@ -262,11 +259,59 @@ export default function MindMapCanvas({
         <circle cx={cx} cy={cy} r="280" fill="url(#glow-grad)" />
         <circle cx={cx} cy={cy} r="100" fill="url(#root-glow)" />
 
-        {/* Orbit reference rings */}
-        <circle cx={cx} cy={cy} r="145" fill="none" stroke={ringStroke} strokeWidth="1.5" strokeDasharray="6 8" />
-        <circle cx={cx} cy={cy} r="245" fill="none" stroke={ringStroke} strokeWidth="1.5" strokeDasharray="4 6" />
+        {/* Anatomical Map Component / Ref Rings */}
+        <circle cx={cx} cy={cy} r="90" fill="none" stroke={ringStroke} strokeWidth="0.5" strokeDasharray="2 4" opacity="0.4" />
+        <circle cx={cx} cy={cy} r="145" fill="none" stroke={ringStroke} strokeWidth="1" strokeDasharray="3 9" />
+        <circle cx={cx} cy={cy} r="195" fill="none" stroke={ringStroke} strokeWidth="0.5" strokeDasharray="2 4" opacity="0.5"/>
+        <circle cx={cx} cy={cy} r="245" fill="none" stroke={ringStroke} strokeWidth="1" strokeDasharray="1 6" />
+        <circle cx={cx} cy={cy} r="285" fill="none" stroke={ringStroke} strokeWidth="0.5" strokeDasharray="10 10" opacity="0.4"/>
+        <circle cx={cx} cy={cy} r="295" fill="none" stroke={ringStroke} strokeWidth="0.25" opacity="0.3"/>
 
-        {/* Dynamic Curved Connection Lines */}
+        {/* Anatomical Crosshairs & Axis */}
+        <path d={`M ${cx} ${cy-320} L ${cx} ${cy+320}`} stroke={ringStroke} strokeWidth="1" opacity="0.3" strokeDasharray="5 5" />
+        <path d={`M ${cx-420} ${cy} L ${cx+420} ${cy}`} stroke={ringStroke} strokeWidth="1" opacity="0.3" strokeDasharray="5 5" />
+        
+        {/* Inner Hub detailed gear/ticks */}
+        {[...Array(24)].map((_, i) => {
+          const angle = (i * 15 * Math.PI) / 180;
+          return (
+            <line 
+              key={`hub-tick-${i}`} 
+              x1={cx + 80 * Math.cos(angle)} y1={cy + 80 * Math.sin(angle)}
+              x2={cx + 85 * Math.cos(angle)} y2={cy + 85 * Math.sin(angle)}
+              stroke={ringStroke} strokeWidth="1" opacity="0.5"
+            />
+          );
+        })}
+
+        {/* Degree Markings on Outer Ring */}
+        {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map(deg => {
+          const rad = (deg * Math.PI) / 180;
+          const x1 = cx + 245 * Math.cos(rad);
+          const y1 = cy + 245 * Math.sin(rad);
+          const x2 = cx + 252 * Math.cos(rad);
+          const y2 = cy + 252 * Math.sin(rad);
+          const textRot = deg > 90 && deg < 270 ? deg + 180 : deg;
+          return (
+             <g key={`deg-${deg}`}>
+               <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={ringStroke} strokeWidth="1.5" opacity="0.7"/>
+               <text 
+                 x={cx + 262 * Math.cos(rad)} 
+                 y={cy + 262 * Math.sin(rad) + 3} 
+                 fontSize="9" 
+                 fontFamily="monospace"
+                 fill={ringStroke} 
+                 opacity="0.9" 
+                 textAnchor="middle" 
+                 transform={`rotate(${textRot}, ${cx + 262 * Math.cos(rad)}, ${cy + 262 * Math.sin(rad)})`}
+               >
+                 {deg}°
+               </text>
+             </g>
+          );
+        })}
+
+        {/* Dynamic Curved & Geometric Connection Lines */}
         {nodes.map((node) => {
           if (node.id === 'root') return null;
 
@@ -311,8 +356,23 @@ export default function MindMapCanvas({
           const controlX = midX + px;
           const controlY = midY + py;
 
+          // Geometric/schematic ghost lines
+          const orthoX = dx > dy ? node.x : cx;
+          const orthoY = dx > dy ? cy : node.y;
+
           return (
             <g key={`path-${node.id}`}>
+              {/* Schematic angular shadow connecting path */}
+              <path
+                d={`M ${cx} ${cy} L ${orthoX} ${orthoY} L ${node.x} ${node.y}`}
+                fill="none"
+                stroke={ringStroke}
+                strokeWidth="1"
+                strokeDasharray="3 3"
+                className="opacity-30 transition-all duration-300"
+              />
+              
+              {/* Primary sweeping organic path */}
               <path
                 d={`M ${cx} ${cy} Q ${controlX} ${controlY} ${node.x} ${node.y}`}
                 fill="none"

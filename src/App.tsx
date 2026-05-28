@@ -45,6 +45,7 @@ import {
 } from 'lucide-react';
 import { QURANIC_SUGGESTIONS } from './components/SavedMapsSidebar';
 import ProductDoc from './components/ProductDoc';
+import DriveSettings from './components/DriveSettings';
 
 export default function App() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -197,19 +198,6 @@ export default function App() {
     } catch (e) {
       console.error("Failed to save username:", e);
     }
-  };
-
-  const [isHeaderEditingName, setIsHeaderEditingName] = useState<boolean>(false);
-  const [headerNameInput, setHeaderNameInput] = useState<string>(userName);
-
-  useEffect(() => {
-    setHeaderNameInput(userName);
-  }, [userName]);
-
-  const handleHeaderNameSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleSaveUserName(headerNameInput.trim());
-    setIsHeaderEditingName(false);
   };
 
   const handleAddRecentSearch = (word: string) => {
@@ -707,6 +695,7 @@ export default function App() {
           <RootToWords
             theme={theme}
             initialRoot={selectedRoot}
+            isOfflineMode={isOfflineMode}
             onSelectWord={(word) => {
               setSearchTerm(word);
               setActiveMainTab('map');
@@ -1125,81 +1114,8 @@ export default function App() {
                 <span>Architecture Doc</span>
               </button>
 
-              {/* Personal Study Circle widget */}
-              <div className={`flex items-center rounded-xl border p-1 transition-all duration-300 ${
-                isParchment 
-                  ? 'bg-[#ebd8c3]/35 border-[#dfd2be]/80 text-[#2c241e]' 
-                  : isCosmic 
-                    ? 'bg-indigo-950/35 border-indigo-950/80 text-indigo-100' 
-                    : 'bg-slate-900/60 border-slate-800/80 text-slate-100'
-              }`}>
-                {isHeaderEditingName ? (
-                  <form 
-                    onSubmit={handleHeaderNameSave} 
-                    className="flex items-center gap-1.5 px-1.5"
-                  >
-                    <input
-                      type="text"
-                      value={headerNameInput}
-                      onChange={(e) => setHeaderNameInput(e.target.value)}
-                      placeholder="Enter name..."
-                      required
-                      maxLength={15}
-                      className={`font-semibold rounded-lg py-0.5 px-2 text-[11px] w-24 focus:outline-none transition-all border ${
-                        isParchment
-                          ? 'bg-[#fdfbf7] border-[#ebdcc3] text-[#2c241e] focus:border-[#8c6239]'
-                          : isCosmic
-                            ? 'bg-black border-indigo-950 text-indigo-50 focus:border-indigo-500'
-                            : 'bg-slate-950 border border-slate-800 text-slate-100 focus:border-emerald-500'
-                      }`}
-                    />
-                    <button
-                      type="submit"
-                      className="p-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white transition-all cursor-pointer"
-                      title="Save name"
-                    >
-                      <Check className="w-3 h-3" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setHeaderNameInput(userName);
-                        setIsHeaderEditingName(false);
-                      }}
-                      className="p-1 rounded border border-current/10 hover:bg-current/5 transition-all cursor-pointer opacity-75 hover:opacity-100"
-                      title="Cancel"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </form>
-                ) : (
-                  <div className="flex items-center gap-2 pl-2.5 pr-1.5 py-0.5">
-                    <div className={`p-1 rounded-lg bg-current/5 border border-current/10 ${isParchment ? 'text-[#8c6239]' : isCosmic ? 'text-pink-400' : 'text-emerald-400'}`}>
-                      <User className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="min-w-0 pr-1">
-                      <p className={`text-[8px] font-mono uppercase tracking-wider leading-none text-current/50`}>
-                        Study Circle
-                      </p>
-                      <h3 className="text-[11px] font-bold truncate leading-snug mt-0.5">
-                        {userName ? (
-                          <span>{userName}</span>
-                        ) : (
-                          <span className="opacity-50 font-normal">Guest Scholar</span>
-                        )}
-                      </h3>
-                    </div>
-                    <button
-                      onClick={() => setIsHeaderEditingName(true)}
-                      type="button"
-                      className={`p-1 rounded hover:bg-current/10 text-current/60 hover:text-current transition-all cursor-pointer`}
-                      title="Edit Name"
-                    >
-                      <Edit2 className="w-3 h-3" />
-                    </button>
-                  </div>
-                )}
-              </div>
+              {/* Personal Study Circle widget connected to Drive Sync */}
+              <DriveSettings theme={theme} />
             </div>
           </div>
 

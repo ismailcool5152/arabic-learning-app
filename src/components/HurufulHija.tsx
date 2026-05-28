@@ -680,7 +680,50 @@ function MakharijSvgDiagram({
             <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.4" />
             <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0" />
           </radialGradient>
+          
+          <pattern id="blueprint-grid" width="10" height="10" patternUnits="userSpaceOnUse">
+            <circle cx="1" cy="1" r="0.5" fill="currentColor" className="opacity-15" />
+          </pattern>
+          <pattern id="blueprint-grid-large" width="30" height="30" patternUnits="userSpaceOnUse">
+            <path d="M 30 0 L 0 0 0 30" fill="none" stroke="currentColor" strokeWidth="0.25" className="opacity-15" />
+          </pattern>
         </defs>
+
+        {/* Technical Background Grids */}
+        <rect width="180" height="230" fill="url(#blueprint-grid)" className="text-current" />
+        <rect width="180" height="230" fill="url(#blueprint-grid-large)" className="text-current" />
+
+        {/* HUD Targeting Crosshairs */}
+        <path d="M 90 10 L 90 220" stroke="currentColor" strokeWidth="0.5" strokeDasharray="4 4" className="opacity-10" />
+        <path d="M 10 115 L 170 115" stroke="currentColor" strokeWidth="0.5" strokeDasharray="4 4" className="opacity-10" />
+        
+        {/* Orbital Scanner Ring around Head */}
+        <circle cx="90" cy="115" r="95" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2 6" className="opacity-20" />
+        <circle cx="90" cy="115" r="100" fill="none" stroke="currentColor" strokeWidth="0.25" className="opacity-10" />
+
+        {/* Vocal Tract Base Face Contour (Side Profile) */}
+        {/* Primary Line */}
+        <path 
+          d="M 68,20 C 105,15 145,35 155,75 C 162,110 152,145 144,195 M 68,20 L 53,25 Q 43,38 43,50 L 25,56 C 25,56, 38,62, 40,64 L 32,71 L 43,75 L 35,80 Q 40,88 37,93 L 40,101 Q 48,114 60,114 Q 68,135 68,175 Q 68,195 70,225" 
+          fill="none" 
+          stroke={isParchment ? '#8c6239' : '#64748b'} 
+          strokeWidth="2.5" 
+          strokeLinecap="round"
+          className="opacity-30"
+        />
+        {/* Schematic Outline Shadow */}
+        <path 
+          d="M 68,20 C 105,15 145,35 155,75 C 162,110 152,145 144,195 M 68,20 L 53,25 Q 43,38 43,50 L 25,56 C 25,56, 38,62, 40,64 L 32,71 L 43,75 L 35,80 Q 40,88 37,93 L 40,101 Q 48,114 60,114 Q 68,135 68,175 Q 68,195 70,225" 
+          fill="none" 
+          stroke="currentColor" 
+          strokeWidth="0.5" 
+          strokeDasharray="2 2"
+          className="opacity-20 translate-x-[2px] translate-y-[2px]"
+        />
+
+        {/* Abstract Spinal/Throat Track Schematic */}
+        <path d="M 86,115 L 86,225 M 92,115 L 92,225" stroke="currentColor" strokeWidth="0.5" strokeDasharray="1 3" className="opacity-20" />
+        <path d="M 80,120 L 98,120 M 80,140 L 98,140 M 80,160 L 98,160 M 80,180 L 98,180 M 80,200 L 98,200" stroke="currentColor" strokeWidth="0.5" className="opacity-15" />
 
         {/* Al-Jawf (Cavity Back Glow) */}
         <path 
@@ -688,16 +731,8 @@ function MakharijSvgDiagram({
           fill={activeGroup === 'jauf' ? 'url(#glow-jauf)' : 'none'} 
           className="transition-all duration-300"
         />
-
-        {/* Vocal Tract Base Face Contour (Side Profile) */}
-        <path 
-          d="M 68,20 C 105,15 145,35 155,75 C 162,110 152,145 144,195 M 68,20 L 53,25 Q 43,38 43,50 L 25,56 C 25,56, 38,62, 40,64 L 32,71 L 43,75 L 35,80 Q 40,88 37,93 L 40,101 Q 48,114 60,114 Q 68,135 68,175 Q 68,195 70,225" 
-          fill="none" 
-          stroke={isParchment ? '#8c6239' : '#64748b'} 
-          strokeWidth="2.5" 
-          strokeLinecap="round"
-          className="opacity-20"
-        />
+        {/* Jawf Inner Framework */}
+        <path d="M 50,110 C 65,100 85,100 92,115 C 92,130 86,155 86,185 C 86,185, 76,185, 76,155 C 76,135 62,125 50,110 Z" fill="none" stroke="#2dd4bf" strokeWidth="0.5" strokeDasharray="2 3" opacity={activeGroup === 'jauf' ? 0.8 : hoveredRegion === 'jauf' ? 0.3 : 0} />
 
         {/* Al-Khayshūm (Nasal Cavity Area) */}
         <path
@@ -705,12 +740,16 @@ function MakharijSvgDiagram({
           fill={activeGroup === 'khayshum' ? 'rgba(139, 92, 246, 0.25)' : hoveredRegion === 'khayshum' || filterGroup === 'khayshum' ? 'rgba(139, 92, 246, 0.15)' : 'none'}
           stroke="#8b5cf6"
           strokeWidth={activeGroup === 'khayshum' ? 2 : 1}
-          strokeDasharray={activeGroup === 'khayshum' ? 'none' : '3,3'}
+          strokeDasharray={activeGroup === 'khayshum' ? 'none' : '3 3'}
           className="transition-all duration-300"
           onMouseEnter={() => setHoveredRegion('khayshum')}
           onMouseLeave={() => setHoveredRegion(null)}
           onClick={() => handleRegionClick('khayshum')}
         />
+        {/* Nasal Tech Lines */}
+        {(activeGroup === 'khayshum' || hoveredRegion === 'khayshum') && (
+          <path d="M 50,70 L 65,82 L 85,87" fill="none" stroke="#8b5cf6" strokeWidth="0.5" opacity="0.6" className="animate-pulse" />
+        )}
 
         {/* Al-Ḥalq (Throat Passage Area) */}
         <path
@@ -718,12 +757,19 @@ function MakharijSvgDiagram({
           fill={activeGroup === 'throat' ? 'rgba(245, 158, 11, 0.25)' : hoveredRegion === 'throat' || filterGroup === 'throat' ? 'rgba(245, 158, 11, 0.15)' : 'none'}
           stroke="#f59e0b"
           strokeWidth={activeGroup === 'throat' ? 2 : 1}
-          strokeDasharray={activeGroup === 'throat' ? 'none' : '3,3'}
+          strokeDasharray={activeGroup === 'throat' ? 'none' : '3 3'}
           className="transition-all duration-300"
           onMouseEnter={() => setHoveredRegion('throat')}
           onMouseLeave={() => setHoveredRegion(null)}
           onClick={() => handleRegionClick('throat')}
         />
+        {(activeGroup === 'throat' || hoveredRegion === 'throat') && (
+          <>
+            <line x1="84" y1="130" x2="92" y2="130" stroke="#f59e0b" strokeWidth="1" opacity="0.5" />
+            <line x1="84" y1="150" x2="92" y2="150" stroke="#f59e0b" strokeWidth="1" opacity="0.5" />
+            <line x1="84" y1="170" x2="92" y2="170" stroke="#f59e0b" strokeWidth="1" opacity="0.5" />
+          </>
+        )}
 
         {/* Al-Lisān (Tongue Area) */}
         <path
@@ -731,12 +777,15 @@ function MakharijSvgDiagram({
           fill={activeGroup === 'tongue' ? 'rgba(56, 189, 248, 0.25)' : hoveredRegion === 'tongue' || filterGroup === 'tongue' ? 'rgba(56, 189, 248, 0.15)' : 'none'}
           stroke="#38bdf8"
           strokeWidth={activeGroup === 'tongue' ? 2 : 1}
-          strokeDasharray={activeGroup === 'tongue' ? 'none' : '3,3'}
+          strokeDasharray={activeGroup === 'tongue' ? 'none' : '3 3'}
           className="transition-all duration-300"
           onMouseEnter={() => setHoveredRegion('tongue')}
           onMouseLeave={() => setHoveredRegion(null)}
           onClick={() => handleRegionClick('tongue')}
         />
+        {(activeGroup === 'tongue' || hoveredRegion === 'tongue') && (
+          <path d="M 68,110 C 72,112 75,115 78,120" fill="none" stroke="#38bdf8" strokeWidth="1" opacity="0.5" />
+        )}
 
         {/* Ash-Shafatayn (Lips Area Capsule) */}
         <ellipse
@@ -744,28 +793,30 @@ function MakharijSvgDiagram({
           cy="92"
           rx="6"
           ry="13"
+          transform="rotate(25 34 92)"
           fill={activeGroup === 'lips' ? 'rgba(244, 63, 94, 0.25)' : hoveredRegion === 'lips' || filterGroup === 'lips' ? 'rgba(244, 63, 94, 0.15)' : 'none'}
           stroke="#f43f5e"
           strokeWidth={activeGroup === 'lips' ? 2 : 1}
-          strokeDasharray={activeGroup === 'lips' ? 'none' : '3,3'}
-          className="transition-all duration-300"
+          strokeDasharray={activeGroup === 'lips' ? 'none' : '2 2'}
+          className="transition-all duration-300 cursor-pointer"
           onMouseEnter={() => setHoveredRegion('lips')}
           onMouseLeave={() => setHoveredRegion(null)}
           onClick={() => handleRegionClick('lips')}
         />
-
-        {/* Al-Jawf Outline (Hollow space) */}
-        <path
-          d="M 45,74 C 60,65 85,65 92,85 C 92,105 84,130 84,160 Z"
-          fill={activeGroup === 'jauf' ? 'rgba(45, 212, 191, 0.15)' : hoveredRegion === 'jauf' || filterGroup === 'jauf' ? 'rgba(45, 212, 191, 0.1)' : 'none'}
-          stroke="#2dd4bf"
-          strokeWidth={activeGroup === 'jauf' ? 1.5 : 0.75}
-          strokeDasharray="4,4"
-          className="transition-all duration-300"
-          onMouseEnter={() => setHoveredRegion('jauf')}
-          onMouseLeave={() => setHoveredRegion(null)}
-          onClick={() => handleRegionClick('jauf')}
-        />
+        
+        {/* HUD Indicator Leader Lines linking to selected activeGroup */}
+        {activeGroup && (
+          <g className="animate-fadeIn opacity-50">
+            {activeGroup === 'khayshum' && <path d="M 70 70 L 120 40 L 150 40" fill="none" stroke="#8b5cf6" strokeWidth="0.5" />}
+            {activeGroup === 'jauf' && <path d="M 65 115 L 120 90 L 150 90" fill="none" stroke="#2dd4bf" strokeWidth="0.5" />}
+            {activeGroup === 'tongue' && <path d="M 70 120 L 120 120 L 150 120" fill="none" stroke="#38bdf8" strokeWidth="0.5" />}
+            {activeGroup === 'lips' && <path d="M 30 92 L 15 92 L 15 150 L 150 150" fill="none" stroke="#f43f5e" strokeWidth="0.5" />}
+            {activeGroup === 'throat' && <path d="M 88 170 L 120 170 L 150 170" fill="none" stroke="#f59e0b" strokeWidth="0.5" />}
+            
+            {/* Tech Terminal Marker */}
+            <circle cx="150" cy={activeGroup === 'khayshum' ? 40 : activeGroup === 'jauf' ? 90 : activeGroup === 'tongue' ? 120 : activeGroup === 'lips' ? 150 : 170} r="1.5" fill="currentColor" />
+          </g>
+        )}
 
         {/* Teeth Lines */}
         <line x1="43" y1="84" x2="44" y2="92" stroke="currentColor" strokeWidth="2.5" className="opacity-40" />

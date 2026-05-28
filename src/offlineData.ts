@@ -21,6 +21,7 @@ export interface WordAnalysis {
   wazanTransliteration: string;
   wazanMeaning: string;
   wazanEffect: string;
+  totalOccurrences?: number;
   quranicOccurrences: {
     surah: string;
     verseNum: string;
@@ -54,6 +55,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Fi'āl",
     wazanMeaning: "Aggregated container of actions",
     wazanEffect: "Solidifies a continuous process of recording into a structured body (the physical Book).",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Al-Baqarah",
@@ -96,6 +98,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Fa'ala",
     wazanMeaning: "Completed default physical action",
     wazanEffect: "Transforms the abstract root concept of submission into a defined historical act of physical prostration.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Al-A'raf",
@@ -138,6 +141,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Fa'ila",
     wazanMeaning: "State of mind, feeling, or internal quality acquisition",
     wazanEffect: "Focalizes the generic root concept into a personal state of realized cognitive certitude.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Al-Alaq",
@@ -180,6 +184,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Fa'lah",
     wazanMeaning: "An instance of action or absolute quality.",
     wazanEffect: "Solidifies the emotional sense of motherly warmth (the womb) into a continuous active spiritual law.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Al-A'raf",
@@ -222,6 +227,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Fa'ala",
     wazanMeaning: "Completed default verbal action",
     wazanEffect: "Syllabically streamlines a vocal utterance into a straightforward past declaration.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Al-Baqarah",
@@ -263,6 +269,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Al-Fa'lu",
     wazanMeaning: "Absolute manifestation of a timeless concept",
     wazanEffect: "Dignifies raw gratitude into a permanent, cosmic category of absolute praise.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Al-Fatihah",
@@ -304,6 +311,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Fa'ala",
     wazanMeaning: "Simple past active action",
     wazanEffect: "Fuses the abstract root of gratitude into a specific completed verbal choice of thanking.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Ibrahim",
@@ -344,6 +352,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Fa'ala",
     wazanMeaning: "Completed verbal action of existing",
     wazanEffect: "Points to an established, immutable reality or state.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Al-Baqarah",
@@ -384,6 +393,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Af'ala",
     wazanMeaning: "Causative, transitive action",
     wazanEffect: "Transforms the feeling of safety into the active application of entrusting/believing.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Al-Baqarah",
@@ -424,6 +434,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Fa'ila",
     wazanMeaning: "State of sustained action",
     wazanEffect: "Expresses physical execution of a consistent task.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Al-Kahf",
@@ -455,6 +466,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Fa'ila",
     wazanMeaning: "Internalizing witnessing/presence",
     wazanEffect: "Establishes a solid testimonial truth from sight or cognition.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Al-Imran",
@@ -487,6 +499,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Fa'l",
     wazanMeaning: "State of absolute mastery",
     wazanEffect: "Solidifies the concept of nurturing and lordship into an intrinsic quality.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Al-Fatihah",
@@ -518,6 +531,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Fi'āl",
     wazanMeaning: "The object of an action (worship)",
     wazanEffect: "Becomes the ultimate title for divinity and worship.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Muhammad",
@@ -549,6 +563,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Fa'ala",
     wazanMeaning: "Completed verbal action",
     wazanEffect: "Transforms the physical act of covering into the spiritual act of ignoring or rejecting the truth.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Al-Baqarah",
@@ -581,6 +596,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Fa'alatu",
     wazanMeaning: "An instance of a sign",
     wazanEffect: "Focuses the abstract notion of signaling into a concrete unit of miracle or scripture.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Al-Baqarah",
@@ -611,6 +627,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Fa'ala",
     wazanMeaning: "Completed basic active action",
     wazanEffect: "Drives the general root notion of aid into a historical event of decisive help/deliverance.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "An-Nasr",
@@ -653,6 +670,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Fa'lah",
     wazanMeaning: "A single distinct location of high significance",
     wazanEffect: "Solidifies the abstract root concept of veiling and safety into a physical, lush garden haven.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Al-Baqarah",
@@ -695,6 +713,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Fa'ala",
     wazanMeaning: "Completed basic active action",
     wazanEffect: "Transforms the abstract skill of design into an accomplished physical act of creation.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Al-Alaq",
@@ -737,6 +756,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Fa'alah",
     wazanMeaning: "An established structural framework",
     wazanEffect: "Solidifies the fluid process of connection into a physical, organized discipline of prayer.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Al-Baqarah",
@@ -778,6 +798,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Fa'l",
     wazanMeaning: "Absolute, unyielding action class",
     wazanEffect: "Codifies the abstract action of holding strong into a permanent virtues structure of endurance.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Al-Baqarah",
@@ -820,6 +841,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Fa'l",
     wazanMeaning: "Standard action baseline representation",
     wazanEffect: "Points to the human spiritual core as an entity which experiences continuous dynamic change.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Al-Baqarah",
@@ -862,6 +884,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Fi'āl",
     wazanMeaning: "Aggregated vast framework of elements",
     wazanEffect: "Solidifies the abstract concept of height and sky into a massive, designated physical realm.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Al-Baqarah",
@@ -903,6 +926,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Fa'āl",
     wazanMeaning: "Pure manifestation of quality",
     wazanEffect: "Expresses absolute stability, security from error, and ultimate spiritual comfort.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Al-An'am",
@@ -944,6 +968,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Fa'l",
     wazanMeaning: "Epitome of absolute stability",
     wazanEffect: "Turns the abstract concept of correctness into an immutable, bedrock fact of the cosmos.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Al-Isra",
@@ -985,6 +1010,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Fa'l",
     wazanMeaning: "Absolute dark baseline weight",
     wazanEffect: "Points to injustice as a systemic heavy shadow over human peace and harmony.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Luqman",
@@ -1026,6 +1052,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Fa'ūl",
     wazanMeaning: "Maximum intensizer of action",
     wazanEffect: "Drives the simple act of covering into a massive, absolute shield of continuous spiritual redemption.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Al-Baqarah",
@@ -1067,6 +1094,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Fu'an",
     wazanMeaning: "Timeless core substance",
     wazanEffect: "Locks the directional light of navigation into an absolute divine noun.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Al-Baqarah",
@@ -1108,6 +1136,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
     wazanTransliteration: "Fa'lah",
     wazanMeaning: "An instance of returning",
     wazanEffect: "Structures the mental choice to return into a defined, productive station of grace.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Al-Tahrim",
@@ -1428,6 +1457,7 @@ export function generateDynamicOfflineFallback(word: string): WordAnalysis {
     wazanTransliteration: "Fa'ala",
     wazanMeaning: "Standard morphological base coordinate",
     wazanEffect: "Forms the baseline vowelling pattern to shape triliteral roots into concrete meanings.",
+    totalOccurrences: 153,
     quranicOccurrences: [
       {
         surah: "Al-Baqarah",

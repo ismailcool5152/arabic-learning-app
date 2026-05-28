@@ -239,6 +239,79 @@ export default function ProductDoc({ theme }: ProductDocProps) {
         </div>
       </section>
 
+      {/* 5. DATA DICTIONARY & UML MODEL */}
+      <section className="space-y-6">
+        <div className="flex items-center gap-3">
+          <Database className={`w-6 h-6 ${highlightClass}`} />
+          <h2 className="text-2xl font-bold">5. Data Dictionary (Offline Profiles)</h2>
+        </div>
+        <div className={`p-6 rounded-xl border ${innerCardBgClass} space-y-4`}>
+          <p className={`text-sm ${mutedTextClass} mb-4`}>
+            To facilitate easy updates and extension of offline data properties, here is the complete UML Class visualization and schema for the <code>WordAnalysis</code> data model used for both offline fallback storage and Live generative caching.
+          </p>
+
+          <div className={`rounded-xl border ${cardBgClass} bg-black/5 p-6 overflow-x-auto my-6`}>
+            <div className="min-w-[700px] font-mono text-xs space-y-4">
+              
+              <div className="flex gap-6 justify-center">
+                {/* UML Object Box */}
+                <div className={`px-4 py-3 rounded-lg border shadow-sm w-72 ${isParchment ? 'bg-white border-[#ebdcc3]' : 'bg-slate-900 border-indigo-900/50'}`}>
+                  <div className={`font-bold pb-2 mb-2 border-b text-center ${highlightClass} border-current/20`}>WordAnalysis</div>
+                  <ul className="space-y-1 text-[11px] opacity-80 list-disc list-inside">
+                    <li>word: string</li>
+                    <li>wordArabic: string</li>
+                    <li>wordTransliteration: string</li>
+                    <li>meaning: string</li>
+                    <li>root: string</li>
+                    <li>rootTransliteration: string</li>
+                    <li>rootMeaning: string</li>
+                    <li>derivationExplanation: string</li>
+                    <li>morphologyForm: string</li>
+                    <li>wordType: string</li>
+                    <li>wazan: string</li>
+                    <li>wazanTransliteration: string</li>
+                    <li>wazanMeaning: string</li>
+                    <li>wazanEffect: string</li>
+                    <li className="font-bold text-emerald-500">totalOccurrences?: number</li>
+                  </ul>
+                </div>
+
+                <div className="flex flex-col justify-around">
+                  <div className="flex items-center gap-2">
+                    <div className="h-0.5 w-12 bg-current opacity-20"></div>
+                    <div className={`px-4 py-3 rounded-lg border shadow-sm w-64 ${isParchment ? 'bg-white border-[#ebdcc3]' : 'bg-slate-900 border-indigo-900/50'}`}>
+                      <div className={`font-bold pb-2 mb-2 border-b text-center ${highlightClass} border-current/20`}>QuranicVerse[]</div>
+                      <ul className="space-y-1 text-[11px] opacity-80 list-disc list-inside">
+                        <li>surah: string</li>
+                        <li>verseNum: string</li>
+                        <li>arabic: string</li>
+                        <li>translation: string</li>
+                        <li>explanation: string</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className="h-0.5 w-12 bg-current opacity-20"></div>
+                    <div className={`px-4 py-3 rounded-lg border shadow-sm w-64 ${isParchment ? 'bg-white border-[#ebdcc3]' : 'bg-slate-900 border-indigo-900/50'}`}>
+                      <div className={`font-bold pb-2 mb-2 border-b text-center ${highlightClass} border-current/20`}>RelatedWord[]</div>
+                      <ul className="space-y-1 text-[11px] opacity-80 list-disc list-inside">
+                        <li>word: string</li>
+                        <li>transliteration: string</li>
+                        <li>meaning: string</li>
+                        <li>morphology: string</li>
+                        <li>quranicExample?: string</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </section>
+
       {/* 4. SECURITY & DEPLOYMENT */}
       <section className="space-y-6">
         <div className="flex items-center gap-3">

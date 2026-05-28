@@ -261,6 +261,7 @@ app.post("/api/translate-root-words", async (req: express.Request, res: express.
 Given the Arabic root "${root}", provide the root's main meaning, and translate the following derived words based on this root:
 Words: ${wordsList}
 
+For each word, provide its English translation and determine if this specific derived word actually exists and is used in Classical Arabic dictionaries (determine 'exists' as true or false). If a word does not exist in standard linguistic usage, provide a literal translation of what it WOULD mean.
 Provide the output in strict JSON format.
     `;
 
@@ -278,8 +279,17 @@ Provide the output in strict JSON format.
               description: "The core semantic meaning of the Root."
             },
             translations: {
-              type: Type.OBJECT,
-              description: "A mapping of the Arabic words to their specific short English translations. Key is the Arabic word, Value is the English translation string.",
+              type: Type.ARRAY,
+              description: "A list of translations for each Arabic word, including whether the word technically exists.",
+              items: {
+                 type: Type.OBJECT,
+                 properties: {
+                    word: { type: Type.STRING, description: "The Arabic word provided" },
+                    meaning: { type: Type.STRING, description: "English translation or literal meaning" },
+                    exists: { type: Type.BOOLEAN, description: "True if used in Classical/Standard Arabic, false if it is merely a theoretical pattern." }
+                 },
+                 required: ["word", "meaning", "exists"]
+              }
             }
           },
           required: ["rootMeaning", "translations"]

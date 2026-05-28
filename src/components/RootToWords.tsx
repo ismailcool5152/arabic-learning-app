@@ -19,11 +19,13 @@ import {
   Loader2
 } from 'lucide-react';
 import ArabicVirtualKeyboard from './ArabicVirtualKeyboard';
+import { saveTranslationToCache, getTranslationFromCache } from '../lib/translationCache';
 
 interface RootToWordsProps {
   theme: LayoutTheme;
   onSelectWord: (word: string) => void;
   initialRoot?: string;
+  isOfflineMode?: boolean;
 }
 
 // Map English characters to Arabic equivalent for phonetic type support
@@ -50,14 +52,14 @@ const COGNATE_PRESETS = [
   { letters: ['ض', 'ر', 'ب'], transliteration: 'D-R-B', meaning: 'Strike, Travel & Projecting Examples', english: 'Strike' }
 ];
 
-export default function RootToWords({ theme, onSelectWord, initialRoot }: RootToWordsProps) {
+export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflineMode }: RootToWordsProps) {
   const [inputWord, setInputWord] = useState('');
   const [r1, setR1] = useState('ك');
   const [r2, setR2] = useState('ت');
   const [r3, setR3] = useState('ب');
   const [showArabicKeyboard, setShowArabicKeyboard] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
-  const [aiTranslations, setAiTranslations] = useState<Record<string, string>>({});
+  const [aiTranslations, setAiTranslations] = useState<Record<string, {meaning: string, exists: boolean}>>({});
   const [aiRootMeaning, setAiRootMeaning] = useState<string | null>(null);
 
   useEffect(() => {
@@ -182,6 +184,18 @@ export default function RootToWords({ theme, onSelectWord, initialRoot }: RootTo
 
   const activeDoc = getActiveKeyword();
 
+  useEffect(() => {
+    // If the root changes, let's see if we have offline cache
+    const cached = getTranslationFromCache(`${r1} - ${r2} - ${r3}`);
+    if (cached) {
+      setAiTranslations(cached.translations);
+      setAiRootMeaning(cached.rootMeaning);
+    } else {
+      setAiTranslations({});
+      setAiRootMeaning(null);
+    }
+  }, [r1, r2, r3]);
+
   const handleBatchTranslate = async () => {
     setIsTranslating(true);
     const root = `${r1} - ${r2} - ${r3}`;
@@ -208,12 +222,25 @@ export default function RootToWords({ theme, onSelectWord, initialRoot }: RootTo
 
       if (response.ok) {
         const data = await response.json();
-        if (data.translations) {
-          setAiTranslations(data.translations);
+        let transRecord: Record<string, { meaning: string; exists: boolean }> = {};
+        
+        if (data.translations && Array.isArray(data.translations)) {
+          data.translations.forEach((item: any) => {
+            if (item.word) transRecord[item.word] = { meaning: item.meaning, exists: item.exists };
+          });
+          setAiTranslations(transRecord);
+        } else if (data.translations && typeof data.translations === 'object') {
+          // Fallback just in case model returned object
+          transRecord = data.translations;
+          setAiTranslations(transRecord);
         }
+        
         if (data.rootMeaning) {
           setAiRootMeaning(data.rootMeaning);
         }
+
+        // Save successfully fetched and parsed record to cache
+        saveTranslationToCache(root, data.rootMeaning || '', transRecord);
       }
     } catch (e) {
       console.error("Batch translation failed:", e);
@@ -421,13 +448,15 @@ export default function RootToWords({ theme, onSelectWord, initialRoot }: RootTo
         <div className="flex items-center gap-2">
           <button 
             onClick={handleBatchTranslate}
-            disabled={isTranslating}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold cursor-pointer select-none transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+            disabled={isTranslating || isOfflineMode}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold select-none transition-all ${
+              isTranslating || isOfflineMode ? 'opacity-50 cursor-not-allowed grayscale' : 'cursor-pointer hover:scale-105'
+            } ${
               isParchment 
-                ? 'bg-[#8c6239] text-[#faf6ed] hover:bg-[#a67c52] border-[#8c6239]' 
+                ? 'bg-[#8c6239] text-[#faf6ed] border-[#8c6239]' 
                 : isCosmic 
-                  ? 'bg-indigo-600 text-white hover:bg-indigo-500 border-indigo-500' 
-                  : 'bg-emerald-600 text-white hover:bg-emerald-500 border-emerald-500'
+                  ? 'bg-indigo-600 text-white border-indigo-500' 
+                  : 'bg-emerald-600 text-white border-emerald-500'
             }`}
           >
             {isTranslating ? (
@@ -598,11 +627,13 @@ export default function RootToWords({ theme, onSelectWord, initialRoot }: RootTo
                   {/* Past Tense Box */}
                   <div className="p-2.5 rounded-lg bg-black/10 border border-current/5 text-right relative overflow-hidden flex flex-col justify-end">
                     <span className="absolute left-2 top-1 text-[8px] font-mono uppercase opacity-55">Past (Madi)</span>
-                    <div className="text-2xl md:text-3xl font-serif font-extrabold text-amber-500 mt-2 tracking-normal" dir="rtl">{t.past}</div>
+                    <div className={`text-2xl md:text-3xl font-serif font-extrabold text-amber-500 mt-2 tracking-normal ${aiTranslations[t.past] && !aiTranslations[t.past].exists ? 'line-through opacity-60' : ''}`} dir="rtl">{t.past}</div>
                     <div className="text-[9px] font-mono text-left opacity-65 flex justify-between items-center w-full">
                       <span>{t.pastTrans.toLowerCase()}</span>
                       {aiTranslations[t.past] && (
-                        <span className="text-[9px] font-sans font-bold text-amber-500 whitespace-nowrap ml-1">{aiTranslations[t.past]}</span>
+                        <span className={`text-[9px] font-sans font-bold whitespace-nowrap ml-1 ${aiTranslations[t.past].exists ? 'text-amber-500' : 'text-slate-400'}`}>
+                          {!aiTranslations[t.past].exists && '🚫 '}{aiTranslations[t.past].meaning}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -610,11 +641,13 @@ export default function RootToWords({ theme, onSelectWord, initialRoot }: RootTo
                   {/* Present Tense Box */}
                   <div className="p-2.5 rounded-lg bg-black/10 border border-current/5 text-right relative overflow-hidden flex flex-col justify-end">
                     <span className="absolute left-2 top-1 text-[8px] font-mono uppercase opacity-55">Present (Mudari)</span>
-                    <div className="text-2xl md:text-3xl font-serif font-extrabold text-teal-400 mt-2 tracking-normal" dir="rtl">{t.present}</div>
+                    <div className={`text-2xl md:text-3xl font-serif font-extrabold text-teal-400 mt-2 tracking-normal ${aiTranslations[t.present] && !aiTranslations[t.present].exists ? 'line-through opacity-60' : ''}`} dir="rtl">{t.present}</div>
                     <div className="text-[9px] font-mono text-left opacity-65 flex justify-between items-center w-full">
                       <span>{t.presentTrans.toLowerCase()}</span>
                       {aiTranslations[t.present] && (
-                        <span className="text-[9px] font-sans font-bold text-teal-400 whitespace-nowrap ml-1">{aiTranslations[t.present]}</span>
+                        <span className={`text-[9px] font-sans font-bold whitespace-nowrap ml-1 ${aiTranslations[t.present].exists ? 'text-teal-400' : 'text-slate-400'}`}>
+                          {!aiTranslations[t.present].exists && '🚫 '}{aiTranslations[t.present].meaning}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -655,20 +688,24 @@ export default function RootToWords({ theme, onSelectWord, initialRoot }: RootTo
                     <span className="text-[10px] font-mono opacity-65">{gf.basePattern}</span>
                   </td>
                   <td className="p-3 text-right">
-                    <div className="text-2xl font-serif font-extrabold text-amber-500 tracking-normal" dir="rtl">{gf.masculine}</div>
+                    <div className={`text-2xl font-serif font-extrabold text-amber-500 tracking-normal ${aiTranslations[gf.masculine] && !aiTranslations[gf.masculine].exists ? 'line-through opacity-60' : ''}`} dir="rtl">{gf.masculine}</div>
                     <div className="flex flex-col items-end gap-0.5">
                       <span className="text-[10px] opacity-75">{gf.mascMeaning}</span>
                       {aiTranslations[gf.masculine] && (
-                        <span className="text-[10px] font-bold text-amber-500">{aiTranslations[gf.masculine]}</span>
+                        <span className={`text-[10px] font-bold ${aiTranslations[gf.masculine].exists ? 'text-amber-500' : 'text-slate-400'}`}>
+                          {!aiTranslations[gf.masculine].exists && '🚫 '}{aiTranslations[gf.masculine].meaning}
+                        </span>
                       )}
                     </div>
                   </td>
                   <td className="p-3 text-right">
-                    <div className="text-2xl font-serif font-extrabold text-emerald-400 tracking-normal" dir="rtl">{gf.feminine}</div>
+                    <div className={`text-2xl font-serif font-extrabold text-emerald-400 tracking-normal ${aiTranslations[gf.feminine] && !aiTranslations[gf.feminine].exists ? 'line-through opacity-60' : ''}`} dir="rtl">{gf.feminine}</div>
                     <div className="flex flex-col items-end gap-0.5">
                       <span className="text-[10px] opacity-75">{gf.femMeaning}</span>
                       {aiTranslations[gf.feminine] && (
-                        <span className="text-[10px] font-bold text-emerald-400">{aiTranslations[gf.feminine]}</span>
+                        <span className={`text-[10px] font-bold ${aiTranslations[gf.feminine].exists ? 'text-emerald-400' : 'text-slate-400'}`}>
+                           {!aiTranslations[gf.feminine].exists && '🚫 '}{aiTranslations[gf.feminine].meaning}
+                        </span>
                       )}
                     </div>
                   </td>
@@ -717,10 +754,12 @@ export default function RootToWords({ theme, onSelectWord, initialRoot }: RootTo
                 <div className="flex flex-col p-2 rounded-lg bg-black/10 border border-current/5 gap-1">
                   <div className="flex items-center justify-between">
                     <span className="text-[9px] opacity-60">Singular (مفرد)</span>
-                    <span className="text-xl md:text-2xl font-serif font-extrabold text-slate-100 tracking-normal" dir="rtl">{q.singular}</span>
+                    <span className={`text-xl md:text-2xl font-serif font-extrabold text-slate-100 tracking-normal ${aiTranslations[q.singular] && !aiTranslations[q.singular].exists ? 'line-through opacity-60' : ''}`} dir="rtl">{q.singular}</span>
                   </div>
                   {aiTranslations[q.singular] && (
-                    <div className="text-[9px] font-bold text-slate-300 text-right">{aiTranslations[q.singular]}</div>
+                    <div className={`text-[9px] font-bold text-right ${aiTranslations[q.singular].exists ? 'text-slate-300' : 'text-slate-500'}`}>
+                      {!aiTranslations[q.singular].exists && '🚫 '}{aiTranslations[q.singular].meaning}
+                    </div>
                   )}
                 </div>
 
@@ -730,11 +769,13 @@ export default function RootToWords({ theme, onSelectWord, initialRoot }: RootTo
                     <span className="text-[9px] opacity-60">Dual (+َانِ)</span>
                     <div className="flex items-center gap-1">
                       <span className="text-[9px] font-mono text-cyan-400">Two</span>
-                      <span className="text-xl md:text-2xl font-serif font-extrabold text-amber-500 tracking-normal" dir="rtl">{q.dual}</span>
+                      <span className={`text-xl md:text-2xl font-serif font-extrabold text-amber-500 tracking-normal ${aiTranslations[q.dual] && !aiTranslations[q.dual].exists ? 'line-through opacity-60' : ''}`} dir="rtl">{q.dual}</span>
                     </div>
                   </div>
                   {aiTranslations[q.dual] && (
-                    <div className="text-[9px] font-bold text-amber-500 text-right">{aiTranslations[q.dual]}</div>
+                    <div className={`text-[9px] font-bold text-right ${aiTranslations[q.dual].exists ? 'text-amber-500' : 'text-slate-500'}`}>
+                      {!aiTranslations[q.dual].exists && '🚫 '}{aiTranslations[q.dual].meaning}
+                    </div>
                   )}
                 </div>
 
@@ -744,11 +785,13 @@ export default function RootToWords({ theme, onSelectWord, initialRoot }: RootTo
                     <span className="text-[9px] opacity-60">Plural (+ُونَ)</span>
                     <div className="flex items-center gap-1">
                       <span className="text-[9px] font-mono text-emerald-400">Union</span>
-                      <span className="text-xl md:text-2xl font-serif font-extrabold text-teal-300 tracking-normal" dir="rtl">{q.plural}</span>
+                      <span className={`text-xl md:text-2xl font-serif font-extrabold text-teal-300 tracking-normal ${aiTranslations[q.plural] && !aiTranslations[q.plural].exists ? 'line-through opacity-60' : ''}`} dir="rtl">{q.plural}</span>
                     </div>
                   </div>
                   {aiTranslations[q.plural] && (
-                    <div className="text-[9px] font-bold text-teal-300 text-right">{aiTranslations[q.plural]}</div>
+                    <div className={`text-[9px] font-bold text-right ${aiTranslations[q.plural].exists ? 'text-teal-300' : 'text-slate-500'}`}>
+                       {!aiTranslations[q.plural].exists && '🚫 '}{aiTranslations[q.plural].meaning}
+                    </div>
                   )}
                 </div>
 
