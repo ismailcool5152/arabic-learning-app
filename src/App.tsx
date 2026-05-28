@@ -9,6 +9,7 @@ import RootFormsTable from './components/RootFormsTable';
 import HurufLibrary from './components/HurufLibrary';
 import QuranicLexicon from './components/QuranicLexicon';
 import RootToWords from './components/RootToWords';
+import ArabicBasics from './components/ArabicBasics';
 import { findOfflineFallback, generateDynamicOfflineFallback } from './offlineData';
 import { 
   BookOpen, 
@@ -31,7 +32,8 @@ import {
   Layout,
   Wifi,
   WifiOff,
-  GitBranch
+  GitBranch,
+  Compass
 } from 'lucide-react';
 import { QURANIC_SUGGESTIONS } from './components/SavedMapsSidebar';
 
@@ -40,7 +42,7 @@ export default function App() {
   const [showArabicKeyboard, setShowArabicKeyboard] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeMainTab, setActiveMainTab] = useState<'map' | 'database' | 'root' | 'huruf' | 'lexicon'>('map');
+  const [activeMainTab, setActiveMainTab] = useState<'basics' | 'huruf' | 'database' | 'root' | 'map' | 'lexicon'>('basics');
   
   // Layout Arrangement Mode selection
   const [layoutMode, setLayoutMode] = useState<LayoutMode>(() => {
@@ -392,101 +394,159 @@ export default function App() {
   const renderWorkspace = () => (
     <div className="space-y-6">
       {/* Main Visualizer vs Pattern Codex Tab Switcher */}
-      <div className="flex bg-current/5 border border-current/10 p-1.5 rounded-2xl w-full sm:w-fit gap-1 items-center">
-        <button
-          onClick={() => setActiveMainTab('map')}
-          type="button"
-          className={`flex-1 sm:flex-initial flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-            activeMainTab === 'map'
-              ? (isParchment
-                  ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
-                  : isCosmic
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
-                    : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
-              : (isParchment
-                  ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5')
-          }`}
-        >
-          <Milestone className="w-4 h-4" />
-          <span>Interactive Sarf Map</span>
-        </button>
-        <button
-          onClick={() => setActiveMainTab('database')}
-          type="button"
-          className={`flex-1 sm:flex-initial flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-            activeMainTab === 'database'
-              ? (isParchment
-                  ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
-                  : isCosmic
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
-                    : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
-              : (isParchment
-                  ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5')
-          }`}
-        >
-          <Database className="w-4 h-4" />
-          <span>Patterns Codex & DB</span>
-        </button>
-        <button
-          onClick={() => setActiveMainTab('root')}
-          type="button"
-          className={`flex-1 sm:flex-initial flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-            activeMainTab === 'root'
-              ? (isParchment
-                  ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
-                  : isCosmic
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
-                    : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
-              : (isParchment
-                  ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5')
-          }`}
-        >
-          <GitBranch className="w-4 h-4" />
-          <span>Root-to-Words Gen</span>
-        </button>
-        <button
-          onClick={() => setActiveMainTab('huruf')}
-          type="button"
-          className={`flex-1 sm:flex-initial flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-            activeMainTab === 'huruf'
-              ? (isParchment
-                  ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
-                  : isCosmic
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
-                    : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
-              : (isParchment
-                  ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5')
-          }`}
-        >
-          <BookOpen className="w-4 h-4" />
-          <span>Hurūf & Particles Codex</span>
-        </button>
-        <button
-          onClick={() => setActiveMainTab('lexicon')}
-          type="button"
-          className={`flex-1 sm:flex-initial flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-            activeMainTab === 'lexicon'
-              ? (isParchment
-                  ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
-                  : isCosmic
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
-                    : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
-              : (isParchment
-                  ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5')
-          }`}
-        >
-          <BookOpen className="w-4 h-4" />
-          <span>Offline Lexicon (100 Words)</span>
-        </button>
+      <div className="w-full overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex bg-current/5 border border-current/10 p-1.5 rounded-2xl w-max min-w-full gap-1 items-center">
+          
+          {/* STEP 1: Arabic Basics */}
+          <button
+            onClick={() => setActiveMainTab('basics')}
+            type="button"
+            className={`shrink-0 flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+              activeMainTab === 'basics'
+                ? (isParchment
+                    ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
+                    : isCosmic
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
+                      : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
+                : (isParchment
+                    ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5')
+            }`}
+          >
+            <Compass className="w-4 h-4 text-amber-500 animate-pulse" />
+            <span className="flex items-center gap-1">
+              <span className="opacity-50 font-mono text-[10px]">1.</span> Arabic Basics
+            </span>
+          </button>
+
+          <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
+
+          {/* STEP 2: Hurūf Library */}
+          <button
+            onClick={() => setActiveMainTab('huruf')}
+            type="button"
+            className={`shrink-0 flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+              activeMainTab === 'huruf'
+                ? (isParchment
+                    ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
+                    : isCosmic
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
+                      : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
+                : (isParchment
+                    ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5')
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span className="flex items-center gap-1">
+              <span className="opacity-50 font-mono text-[10px]">2.</span> Hurūf & Particles
+            </span>
+          </button>
+
+          <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
+
+          {/* STEP 3: Pattern DB */}
+          <button
+            onClick={() => setActiveMainTab('database')}
+            type="button"
+            className={`shrink-0 flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+              activeMainTab === 'database'
+                ? (isParchment
+                    ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
+                    : isCosmic
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
+                      : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
+                : (isParchment
+                    ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5')
+            }`}
+          >
+            <Database className="w-4 h-4" />
+            <span className="flex items-center gap-1">
+              <span className="opacity-50 font-mono text-[10px]">3.</span> Patterns Codex & DB
+            </span>
+          </button>
+
+          <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
+
+          {/* STEP 4: Root Synthesizer */}
+          <button
+            onClick={() => setActiveMainTab('root')}
+            type="button"
+            className={`shrink-0 flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+              activeMainTab === 'root'
+                ? (isParchment
+                    ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
+                    : isCosmic
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
+                      : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
+                : (isParchment
+                    ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5')
+            }`}
+          >
+            <GitBranch className="w-4 h-4" />
+            <span className="flex items-center gap-1">
+              <span className="opacity-50 font-mono text-[10px]">4.</span> Root-to-Words Gen
+            </span>
+          </button>
+
+          <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
+
+          {/* STEP 5: Interactive Sarf Map */}
+          <button
+            onClick={() => setActiveMainTab('map')}
+            type="button"
+            className={`shrink-0 flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+              activeMainTab === 'map'
+                ? (isParchment
+                    ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
+                    : isCosmic
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
+                      : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
+                : (isParchment
+                    ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5')
+            }`}
+          >
+            <Milestone className="w-4 h-4" />
+            <span className="flex items-center gap-1">
+              <span className="opacity-50 font-mono text-[10px]">5.</span> Interactive Sarf Map
+            </span>
+          </button>
+
+          <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
+
+          {/* STEP 6: Offline Lexicon */}
+          <button
+            onClick={() => setActiveMainTab('lexicon')}
+            type="button"
+            className={`shrink-0 flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+              activeMainTab === 'lexicon'
+                ? (isParchment
+                    ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
+                    : isCosmic
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
+                      : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
+                : (isParchment
+                    ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5')
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span className="flex items-center gap-1">
+              <span className="opacity-50 font-mono text-[10px]">6.</span> Lexicon Dictionary
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* Render activeMainTab panel */}
-      {activeMainTab === 'database' ? (
+      {activeMainTab === 'basics' ? (
+        <div className="animate-fadeIn">
+          <ArabicBasics theme={theme} />
+        </div>
+      ) : activeMainTab === 'database' ? (
         <div className="animate-fadeIn">
           <PatternDatabase
             currentAnalysis={analysis}
