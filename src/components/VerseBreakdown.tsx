@@ -464,9 +464,9 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
                 </span>
               </div>
 
-              {/* Word-by-Word Color-Coded Semantic Sentence Display */}
+              {/* Word-by-Word Color-Coded Semantic Sentence Display with inline meaning */}
               <div 
-                className="flex flex-wrap gap-x-2 md:gap-x-4 gap-y-2 md:gap-y-3 justify-center py-5 max-w-4xl mx-auto select-none" 
+                className="flex flex-wrap gap-x-4 md:gap-x-6 gap-y-4 md:gap-y-6 justify-center py-6 max-w-4xl mx-auto select-none" 
                 dir="rtl"
               >
                 {activeVerseData.words.map((w, idx) => {
@@ -482,14 +482,29 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
                     <button
                       key={`aayat-word-${idx}`}
                       onClick={() => setSelectedWordToken(w)}
-                      className={`font-serif text-3xl md:text-4xl lg:text-5xl font-bold leading-[1.8] tracking-normal transition-all duration-150 transform hover:scale-105 active:scale-95 cursor-pointer rounded-xl px-2.5 py-0.5 ${typeColor} ${
+                      type="button"
+                      dir="ltr"
+                      className={`flex flex-col items-center justify-between p-2.5 md:p-3.5 rounded-2xl transition-all duration-150 transform hover:scale-105 active:scale-95 cursor-pointer min-w-[100px] md:min-w-[120px] max-w-[150px] border border-transparent ${
                         isSelected 
-                          ? 'bg-current/10 ring-2 ring-current/25 scale-105' 
-                          : 'hover:bg-current/5'
+                          ? 'bg-current/10 ring-2 ring-current/20 scale-105 shadow-sm' 
+                          : 'hover:bg-current/5 hover:border-current/10'
                       }`}
                       title={`${w.transliteration} - ${w.wordType} (${w.meaning})`}
                     >
-                      {w.word}
+                      {/* Arabic word, always formatted beautifully with parts of speech color */}
+                      <span className={`font-serif text-3xl md:text-4xl font-bold leading-normal mb-1.5 ${typeColor}`}>
+                        {w.word}
+                      </span>
+                      
+                      {/* Transliteration */}
+                      <span className="text-[10px] md:text-[11px] font-semibold tracking-wide opacity-50 mb-1 text-center line-clamp-1">
+                        {w.transliteration}
+                      </span>
+
+                      {/* Word by Word English Meaning directly within the sentence map */}
+                      <span className="text-[11px] md:text-xs font-bold leading-tight text-center text-current/80 opacity-90 line-clamp-2">
+                        {w.meaning}
+                      </span>
                     </button>
                   );
                 })}
