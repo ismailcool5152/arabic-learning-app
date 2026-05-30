@@ -12,6 +12,8 @@ import RootToWords from './components/RootToWords';
 import ArabicBasics from './components/ArabicBasics';
 import AsmaAlHusna from './components/AsmaAlHusna';
 import HurufulHija from './components/HurufulHija';
+import CommonWordsTable from './components/CommonWordsTable';
+import VerseBreakdown from './components/VerseBreakdown';
 import { findOfflineFallback, generateDynamicOfflineFallback } from './offlineData';
 import { 
   BookOpen, 
@@ -52,7 +54,7 @@ export default function App() {
   const [showArabicKeyboard, setShowArabicKeyboard] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeMainTab, setActiveMainTab] = useState<'hija' | 'basics' | 'huruf' | 'database' | 'root' | 'map' | 'names' | 'lexicon' | 'doc'>('hija');
+  const [activeMainTab, setActiveMainTab] = useState<'hija' | 'basics' | 'huruf' | 'database' | 'root' | 'map' | 'names' | 'lexicon' | 'doc' | 'vocab' | 'verse'>('hija');
   const [selectedRoot, setSelectedRoot] = useState<string>('');
   
   // Layout Arrangement Mode selection
@@ -637,11 +639,59 @@ export default function App() {
             </span>
           </button>
 
+          <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
+
+          {/* STEP 8: Verse Breakdown */}
+          <button
+            onClick={() => setActiveMainTab('verse')}
+            type="button"
+            className={`shrink-0 flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+              activeMainTab === 'verse'
+                ? (isParchment
+                    ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
+                    : isCosmic
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
+                      : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
+                : (isParchment
+                    ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5')
+            }`}
+          >
+            <Sparkles className="w-4 h-4 text-emerald-500 animate-pulse" />
+            <span className="flex items-center gap-1">
+              <span className="opacity-50 font-mono text-[10px]">8.</span> Ayat Segmenter
+            </span>
+          </button>
+
+          <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
+
+          {/* STEP 9: 500 Codex */}
+          <button
+            onClick={() => setActiveMainTab('vocab')}
+            type="button"
+            className={`shrink-0 flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+              activeMainTab === 'vocab'
+                ? (isParchment
+                    ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
+                    : isCosmic
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
+                      : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
+                : (isParchment
+                    ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5')
+            }`}
+          >
+            <Database className="w-4 h-4 text-amber-500" />
+            <span className="flex items-center gap-1">
+              <span className="opacity-50 font-mono text-[10px]">9.</span> 500 Core Words Codex
+            </span>
+          </button>
+
           {!isOfflineMode && (
             <>
               <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
 
-              {/* STEP 8: Word Search & Analysis */}
+              {/* STEP 10: Word Search & Analysis */}
               <button
                 onClick={() => setActiveMainTab('map')}
                 type="button"
@@ -659,7 +709,7 @@ export default function App() {
               >
                 <Search className="w-4 h-4" />
                 <span className="flex items-center gap-1">
-                  <span className="opacity-50 font-mono text-[10px]">8.</span> Word Search & Analysis
+                  <span className="opacity-50 font-mono text-[10px]/['8px']">10.</span> Word Search & Analysis
                 </span>
               </button>
             </>
@@ -731,6 +781,32 @@ export default function App() {
               setActiveMainTab('map');
               handleSearch(word);
             }} 
+          />
+        </div>
+      ) : activeMainTab === 'verse' ? (
+        <div className="animate-fadeIn">
+          <VerseBreakdown
+            theme={theme}
+            onSelectRoot={(root) => {
+              setSelectedRoot(root);
+              setActiveMainTab('root');
+            }}
+            onSelectWord={(word) => {
+              setSearchTerm(word);
+              setActiveMainTab('map');
+              handleSearch(word);
+            }}
+          />
+        </div>
+      ) : activeMainTab === 'vocab' ? (
+        <div className="animate-fadeIn">
+          <CommonWordsTable
+            theme={theme}
+            onSelectWord={(word) => {
+              setSearchTerm(word);
+              setActiveMainTab('map');
+              handleSearch(word);
+            }}
           />
         </div>
       ) : activeMainTab === 'doc' ? (
