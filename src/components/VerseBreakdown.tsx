@@ -1,13 +1,130 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { OFFLINE_VERSES_MAP, VerseBreakdownData, VerseWordBreakdown } from '../data/offlineVerses';
 import { SURAH_MAPPING_LIST, SurahDefinition } from '../data/surahMapping';
-import { Search, Loader2, Sparkles, BookOpen, AlertTriangle, ArrowRight, HelpCircle, FileText, Check, Trash2 } from 'lucide-react';
+import { Search, Loader2, Sparkles, BookOpen, AlertTriangle, ArrowRight, HelpCircle, FileText, Check, Trash2, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { LayoutTheme } from '../types';
 
 interface VerseBreakdownProps {
   theme: LayoutTheme;
   onSelectRoot?: (root: string) => void;
   onSelectWord?: (word: string) => void;
+}
+
+interface WordGrammarDetails {
+  wordType: string;
+  tense: string;
+  pattern: string;
+  number: string;
+  gender: string;
+  aspect: string;
+  caseOrMood: string;
+}
+
+function parseWordGrammar(w: VerseWordBreakdown): WordGrammarDetails {
+  const explanation = w.explanation.toLowerCase();
+  const meaning = w.meaning.toLowerCase();
+  const wordType = w.wordType; // "Ism" | "Fi'l" | "Harf"
+
+  let tense = "N/A";
+  let pattern = "Standard / General";
+  let number = "Singular (Mufrad)";
+  let gender = "Masculine (Mudhakkar)";
+  let aspect = "N/A";
+  let caseOrMood = "N/A";
+
+  // Check tense (mainly for verbs)
+  if (wordType === "Fi'l") {
+    tense = "Perfect Past (Māḍī)";
+    if (explanation.includes("imperative") || explanation.includes("command") || explanation.includes("amr")) {
+      tense = "Imperative Command (Amr)";
+    } else if (explanation.includes("imperfect") || explanation.includes("present") || explanation.includes("future") || explanation.includes("mudari")) {
+      tense = "Imperfect Present-Future (Muḍāri')";
+    } else if (explanation.includes("perfect") || explanation.includes("madi") || explanation.includes("past")) {
+      tense = "Perfect Past (Māḍī)";
+    }
+  }
+
+  // Check pattern
+  const patternMatch = w.explanation.match(/(pattern\s+\([^)]+\)|fa'lān|fa'īl|muf'il|tā'īr|form\s+[ivxldcm]+)/i);
+  if (patternMatch) {
+    pattern = patternMatch[0];
+  } else if (explanation.includes("form i ")) {
+    pattern = "Form I (Basic)";
+  } else if (explanation.includes("form ii")) {
+    pattern = "Form II (Derived)";
+  } else if (explanation.includes("intensive hyperbole")) {
+    pattern = "Fa'lān (Intense)";
+  } else if (explanation.includes("constant qualitative")) {
+    pattern = "Fa'īl (Constant quality)";
+  } else if (w.isIsmFail) {
+    pattern = "Fā'il (Active Participle)";
+  }
+
+  // Check Number (singular / plural / dual)
+  if (explanation.includes("plural") || meaning.includes("(pl.") || meaning.includes("plural")) {
+    number = "Plural (Jam')";
+  } else if (explanation.includes("dual") || meaning.includes("dual")) {
+    number = "Dual (Muthannā)";
+  } else if (explanation.includes("collective")) {
+    number = "Collective Noun";
+  } else {
+    number = "Singular (Mufrad)";
+  }
+
+  // Check Gender (masculine / feminine / common)
+  if (explanation.includes("feminine") || explanation.includes("female") || explanation.includes("maternal")) {
+    gender = "Feminine (Mu'annath)";
+  } else if (explanation.includes("masculine") || explanation.includes("male")) {
+    gender = "Masculine (Mudhakkar)";
+  } else {
+    if (wordType === "Harf") {
+      gender = "N/A (Particle)";
+    } else {
+      gender = "Masculine (By Default)";
+    }
+  }
+
+  // Voice or derivation state
+  if (wordType === "Fi'l") {
+    if (explanation.includes("passive")) {
+      aspect = "Passive Voice (Majhūl)";
+    } else {
+      aspect = "Active Voice (Ma'rūf)";
+    }
+  } else {
+    aspect = w.isIsmFail ? "Active Participle" : "Standard Noun derivation";
+  }
+
+  // Case/State for Ism / Mood for Fi'l
+  if (wordType === "Ism") {
+    if (explanation.includes("genitive") || explanation.includes("majroor") || explanation.includes("majrir")) {
+      caseOrMood = "Genitive (Majrūr)";
+    } else if (explanation.includes("accusative") || explanation.includes("mansoob") || explanation.includes("mansub")) {
+      caseOrMood = "Accusative (Manṣūb)";
+    } else if (explanation.includes("nominative") || explanation.includes("marfoo") || explanation.includes("marfu")) {
+      caseOrMood = "Nominative (Marfū')";
+    } else {
+      caseOrMood = "Nominative Base (Marfū')";
+    }
+  } else if (wordType === "Fi'l") {
+    if (explanation.includes("subjunctive") || explanation.includes("mansub")) {
+      caseOrMood = "Subjunctive (Manṣūb)";
+    } else if (explanation.includes("jussive") || explanation.includes("majzum")) {
+      caseOrMood = "Jussive (Majzūm)";
+    } else {
+      caseOrMood = "Indicative (Marfū')";
+    }
+  }
+
+  return {
+    wordType,
+    tense,
+    pattern,
+    number,
+    gender,
+    aspect,
+    caseOrMood
+  };
 }
 
 export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: VerseBreakdownProps) {
@@ -31,6 +148,26 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
   const [isSearching, setIsSearching] = useState(false);
   const [activeVerseData, setActiveVerseData] = useState<VerseBreakdownData | null>(null);
   const [selectedWordToken, setSelectedWordToken] = useState<VerseWordBreakdown | null>(null);
+
+  const currentWordIndex = useMemo(() => {
+    if (!activeVerseData || !selectedWordToken) return -1;
+    return activeVerseData.words.findIndex(w => w.word === selectedWordToken.word);
+  }, [activeVerseData, selectedWordToken]);
+
+  const handlePrevWord = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (activeVerseData && currentWordIndex > 0) {
+      setSelectedWordToken(activeVerseData.words[currentWordIndex - 1]);
+    }
+  };
+
+  const handleNextWord = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (activeVerseData && currentWordIndex < activeVerseData.words.length - 1) {
+      setSelectedWordToken(activeVerseData.words[currentWordIndex + 1]);
+    }
+  };
+
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [apiSuccessTriggered, setApiSuccessTriggered] = useState(false);
 
@@ -150,7 +287,7 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
     const defaultData = allVersesMap[selectedPresetId];
     if (defaultData) {
       setActiveVerseData(defaultData);
-      setSelectedWordToken(defaultData.words[0] || null);
+      setSelectedWordToken(null);
       setErrorMessage(null);
     }
   }, [selectedPresetId, allVersesMap]);
@@ -170,7 +307,7 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
     // LOCAL OFFLINE ADVANTAGE: Check if this is already cached in our offline registry!
     if (allVersesMap[cacheKey]) {
       setActiveVerseData(allVersesMap[cacheKey]);
-      setSelectedWordToken(allVersesMap[cacheKey].words[0] || null);
+      setSelectedWordToken(null);
       setSelectedPresetId(cacheKey);
       setApiSuccessTriggered(true);
       setErrorMessage(null);
@@ -215,7 +352,7 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
         localStorage.setItem('offline_saved_verses', JSON.stringify(updatedOffline));
 
         setActiveVerseData(freshVerseData);
-        setSelectedWordToken(freshVerseData.words[0]);
+        setSelectedWordToken(null);
         setSelectedPresetId(cacheKey);
         setApiSuccessTriggered(true);
       } else {
@@ -448,221 +585,160 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
 
       {/* Main Structural Display Panel */}
       {activeVerseData && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <div className="max-w-4xl mx-auto space-y-6">
           
-          {/* Left / Center 2-Cols: Full Verse + Word breakdowns */}
-          <div className="lg:col-span-2 space-y-6">
-            
-            {/* The Verse display card */}
-            <div className={`border rounded-2xl p-6 md:p-8 flex flex-col items-center justify-center text-center transition-all ${colors.cardBg} shadow-sm`}>
-              <div className="w-full flex items-center justify-between border-b border-current/10 pb-3 mb-5">
-                <span className="text-[10px] font-mono opacity-50 uppercase tracking-widest">
-                  Quranic Arabic Orthography & Grammatical Wave
-                </span>
-                <span className={`text-[10px] font-mono font-bold uppercase rounded p-1 px-2 border border-current/10 ${colors.accentText}`}>
-                  Surah {activeVerseData.surahName} ({activeVerseData.surahNumber}:{activeVerseData.verseNumber})
-                </span>
+          {/* The Verse display card */}
+          <div className={`border rounded-2xl p-6 md:p-8 flex flex-col items-center justify-center text-center transition-all ${colors.cardBg} shadow-sm`}>
+            <div className="w-full flex items-center justify-between border-b border-current/10 pb-3 mb-5">
+              <span className="text-[10px] font-mono opacity-50 uppercase tracking-widest">
+                Quranic Arabic Orthography & Grammatical Wave
+              </span>
+              <span className={`text-[10px] font-mono font-bold uppercase rounded p-1 px-2 border border-current/10 ${colors.accentText}`}>
+                Surah {activeVerseData.surahName} ({activeVerseData.surahNumber}:{activeVerseData.verseNumber})
+              </span>
+            </div>
+
+            {/* Word-by-Word Color-Coded Semantic Sentence Display */}
+            <div 
+              className="flex flex-wrap gap-x-2.5 md:gap-x-4 gap-y-2 md:gap-y-3.5 justify-center py-8 max-w-4xl mx-auto select-none" 
+              dir="rtl"
+            >
+              {activeVerseData.words.map((w, idx) => {
+                const isSelected = selectedWordToken?.word === w.word;
+                let typeColor = colors.textIsm;
+                if (w.wordType === "Fi'l") {
+                  typeColor = colors.textFil;
+                } else if (w.wordType === "Harf") {
+                  typeColor = colors.textHarf;
+                }
+
+                return (
+                  <button
+                    key={`aayat-word-inline-${idx}`}
+                    onClick={() => setSelectedWordToken(w)}
+                    type="button"
+                    className={`font-serif text-3xl md:text-4xl lg:text-5xl font-bold leading-relaxed transition-all duration-150 transform hover:scale-110 active:scale-95 cursor-pointer rounded-xl px-2 py-0.5 ${typeColor} ${
+                      isSelected 
+                        ? 'bg-current/10 ring-2 ring-current/25 scale-110 shadow-sm' 
+                        : 'hover:bg-current/10'
+                    }`}
+                    title={`Click to deconstruct: "${w.transliteration} - ${w.meaning}"`}
+                  >
+                    {w.word}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Parts of Speech Legend Guide */}
+            <div className="w-full mt-3 mb-5 py-2.5 px-4 bg-current/5 rounded-xl border border-current/10 flex flex-wrap items-center justify-center gap-6 text-xs font-mono">
+              <span className="opacity-60 text-[10px] uppercase font-bold tracking-wider">Parts of Speech Coloring:</span>
+              <div className="flex items-center gap-1.5">
+                <span className={`w-3 h-3 rounded-full ${colors.bgIsmBadge.split(' ')[0]} border border-current/10 shrink-0`}></span>
+                <span className="font-bold opacity-85">Ism (Noun)</span>
               </div>
-
-              {/* Word-by-Word Color-Coded Semantic Sentence Display with inline meaning */}
-              <div 
-                className="flex flex-wrap gap-x-4 md:gap-x-6 gap-y-4 md:gap-y-6 justify-center py-6 max-w-4xl mx-auto select-none" 
-                dir="rtl"
-              >
-                {activeVerseData.words.map((w, idx) => {
-                  const isSelected = selectedWordToken?.word === w.word;
-                  let typeColor = colors.textIsm;
-                  if (w.wordType === "Fi'l") {
-                    typeColor = colors.textFil;
-                  } else if (w.wordType === "Harf") {
-                    typeColor = colors.textHarf;
-                  }
-
-                  return (
-                    <button
-                      key={`aayat-word-${idx}`}
-                      onClick={() => setSelectedWordToken(w)}
-                      type="button"
-                      dir="ltr"
-                      className={`flex flex-col items-center justify-between p-2.5 md:p-3.5 rounded-2xl transition-all duration-150 transform hover:scale-105 active:scale-95 cursor-pointer min-w-[100px] md:min-w-[120px] max-w-[150px] border border-transparent ${
-                        isSelected 
-                          ? 'bg-current/10 ring-2 ring-current/20 scale-105 shadow-sm' 
-                          : 'hover:bg-current/5 hover:border-current/10'
-                      }`}
-                      title={`${w.transliteration} - ${w.wordType} (${w.meaning})`}
-                    >
-                      {/* Arabic word, always formatted beautifully with parts of speech color */}
-                      <span className={`font-serif text-3xl md:text-4xl font-bold leading-normal mb-1.5 ${typeColor}`}>
-                        {w.word}
-                      </span>
-                      
-                      {/* Transliteration */}
-                      <span className="text-[10px] md:text-[11px] font-semibold tracking-wide opacity-50 mb-1 text-center line-clamp-1">
-                        {w.transliteration}
-                      </span>
-
-                      {/* Word by Word English Meaning directly within the sentence map */}
-                      <span className="text-[11px] md:text-xs font-bold leading-tight text-center text-current/80 opacity-90 line-clamp-2">
-                        {w.meaning}
-                      </span>
-                    </button>
-                  );
-                })}
+              <div className="flex items-center gap-1.5">
+                <span className={`w-3 h-3 rounded-full ${colors.bgFilBadge.split(' ')[0]} border border-current/10 shrink-0`}></span>
+                <span className="font-bold opacity-85">Fi'l (Verb)</span>
               </div>
-
-              {/* Parts of Speech Legend Guide */}
-              <div className="w-full mt-3 mb-5 py-2.5 px-4 bg-current/5 rounded-xl border border-current/10 flex flex-wrap items-center justify-center gap-6 text-xs font-mono">
-                <span className="opacity-60 text-[10px] uppercase font-bold tracking-wider">Parts of Speech Coloring:</span>
-                <div className="flex items-center gap-1.5">
-                  <span className={`w-3 h-3 rounded-full ${colors.bgIsmBadge.split(' ')[0]} border border-current/10 shrink-0`}></span>
-                  <span className="font-bold opacity-85">Ism (Noun)</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className={`w-3 h-3 rounded-full ${colors.bgFilBadge.split(' ')[0]} border border-current/10 shrink-0`}></span>
-                  <span className="font-bold opacity-85">Fi'l (Verb)</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className={`w-3 h-3 rounded-full ${colors.bgHarfBadge.split(' ')[0]} border border-current/10 shrink-0`}></span>
-                  <span className="font-bold opacity-85">Harf (Particle)</span>
-                </div>
-              </div>
-
-              {/* English Translation */}
-              <div className="mt-2 border-t border-current/5 pt-4 w-full">
-                <p className="text-[10px] font-mono opacity-40 uppercase tracking-wider mb-1.5">
-                  Universal English Translation
-                </p>
-                <p className="text-sm italic opacity-85 leading-relaxed font-serif text-current/90">
-                  "{activeVerseData.fullVerseTranslation}"
-                </p>
+              <div className="flex items-center gap-1.5">
+                <span className={`w-3 h-3 rounded-full ${colors.bgHarfBadge.split(' ')[0]} border border-current/10 shrink-0`}></span>
+                <span className="font-bold opacity-85">Harf (Particle)</span>
               </div>
             </div>
 
-            {/* Tokenized Verse Grid */}
-            <div className={`border rounded-2xl p-6 ${colors.cardBg} transition-all shadow-sm`}>
-              <div className="border-b border-current/10 pb-3 mb-5">
-                <h3 className="text-sm font-bold opacity-80 flex items-center gap-1.5">
-                  <Sparkles className={`w-4 h-4 ${colors.accentText}`} /> Word-by-Word Morphological Breakdowns
-                </h3>
-                <p className="text-xs opacity-60 mt-1">
-                  Read from right to left (<span className="font-mono">dir="rtl"</span>). Word types of special interest are highlighted natively:
-                </p>
-                <div className="flex flex-wrap gap-4 mt-3">
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <span className={`w-3 h-3 rounded-full border ${colors.ismFailBorder}`}></span>
-                    <span className="font-semibold text-current opacity-80">Ism Fā'il (Active Participle)</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <span className={`w-3 h-3 rounded-full border ${colors.harfBorder}`}></span>
-                    <span className="font-semibold text-current opacity-80">Harf (Particle Group)</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <span className={`w-3 h-3 rounded-full border ${colors.regularBorder}`}></span>
-                    <span className="font-semibold text-current opacity-50">General Nouns & Verbs</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Words Flex Container */}
-              <div className="flex flex-wrap gap-3.5 justify-end py-4" dir="rtl">
-                {activeVerseData.words.map((token, i) => {
-                  const isSelected = selectedWordToken?.word === token.word;
-                  
-                  // Style logic
-                  let borderStyle = colors.regularBorder;
-                  let typeIndicator = "";
-
-                  if (token.isIsmFail) {
-                    borderStyle = colors.ismFailBorder;
-                    typeIndicator = "Ism Fā'il";
-                  } else if (token.isHarf) {
-                    borderStyle = colors.harfBorder;
-                    typeIndicator = "Harf";
-                  }
-
-                  const activeStyle = isSelected ? colors.activePill : '';
-
-                  return (
-                    <button
-                      key={`${token.word}-${i}`}
-                      onClick={() => setSelectedWordToken(token)}
-                      type="button"
-                      className={`relative flex flex-col items-center justify-between p-3.5 pb-2.5 rounded-2xl border text-center transition-all duration-150 cursor-pointer hover:shadow-md hover:-translate-y-0.5 shrink-0 min-w-[100px] ${
-                        isSelected ? colors.activePill : `${borderStyle} hover:bg-current/5`
-                      }`}
-                    >
-                      {/* Arabic Word */}
-                      <span className="text-2xl font-serif font-bold tracking-normal leading-relaxed mb-1 block">
-                        {token.word}
-                      </span>
-
-                      {/* Transliteration */}
-                      <span className={`text-[10px] font-semibold tracking-wider ${isSelected ? 'text-white' : 'opacity-70'}`}>
-                        {token.transliteration}
-                      </span>
-
-                      {/* Word category Indicator subtext */}
-                      {typeIndicator && (
-                        <span className={`text-[8px] font-mono uppercase tracking-widest mt-1.5 px-1 py-0.5 rounded leading-none ${
-                          isSelected ? 'bg-white/20 text-white' : isParchment ? 'bg-[#ebd8c3]/40 text-stone-800 font-bold' : 'bg-black/20 text-current'
-                        }`}>
-                          {typeIndicator}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+            {/* English Translation */}
+            <div className="mt-2 border-t border-current/5 pt-4 w-full">
+              <p className="text-[10px] font-mono opacity-40 uppercase tracking-wider mb-1.5">
+                Universal English Translation
+              </p>
+              <p className="text-sm italic opacity-85 leading-relaxed font-serif text-current/90">
+                "{activeVerseData.fullVerseTranslation}"
+              </p>
             </div>
-
           </div>
 
-          {/* Right 1-Col: Token Inspector detail card */}
-          <div className="space-y-6">
-            
-            <div className={`border rounded-2xl p-6 ${colors.cardBg} transition-all shadow-sm sticky top-6`}>
-              <div className="border-b border-current/10 pb-3 mb-5">
-                <h4 className="text-xs font-mono uppercase tracking-widest opacity-60">
-                  Linguistic Inspector
-                </h4>
-                <p className="text-xs mt-1 opacity-70">
-                  Deep morphological properties of the selected segment.
-                </p>
-              </div>
+          <p className="text-center text-xs opacity-50 italic py-2">
+            💡 TIP: Click on any Arabic word inside the Aayat to display its morphological deconstruction and contextual direct translation instantly!
+          </p>
 
-              {selectedWordToken ? (
-                <div className="space-y-5 animate-fadeIn">
-                  
+          {/* Hover Screen / Detached Modal for Word-by-Word details */}
+          {selectedWordToken && (
+            <div 
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn"
+              onClick={() => setSelectedWordToken(null)}
+            >
+              <div 
+                className={`relative w-full max-w-lg rounded-2xl border p-6 md:p-8 shadow-2xl transition-all transform scale-100 animate-slideUp ${colors.cardBg}`}
+                onClick={(e) => e.stopPropagation()} // Prevent close on card click
+              >
+                {/* Top Header Row with Close Button */}
+                <div className="flex items-center justify-between border-b border-current/10 pb-3 mb-5">
+                  <span className="text-[10px] font-mono opacity-50 uppercase tracking-widest">
+                    Word Segment Deconstruction
+                  </span>
+                  <button
+                    onClick={() => setSelectedWordToken(null)}
+                    type="button"
+                    className="p-1 px-2.5 rounded-lg hover:bg-current/10 opacity-70 hover:opacity-100 transition-all text-xs font-mono flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>Close</span> <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
                   {/* Huge script review */}
-                  <div className={`p-4 rounded-xl text-center border ${colors.innerBg} relative overflow-hidden`}>
-                    <div className="absolute top-1 left-2 text-[9px] font-mono opacity-35 uppercase">
+                  <div className={`p-5 rounded-2xl text-center border ${colors.innerBg} relative overflow-hidden`}>
+                    <div className="absolute top-1 right-2 text-[8px] font-mono opacity-35 uppercase tracking-wider">
                       ORTHOGRAPHY
                     </div>
-                    <span className="text-4xl font-serif font-bold text-current drop-shadow-sm leading-snug">
+                    
+                    <span className="text-5xl md:text-6xl font-serif font-bold text-current drop-shadow-sm leading-snug">
                       {selectedWordToken.word}
                     </span>
-                    <span className={`block font-bold tracking-wider text-xs mt-2 ${colors.accentText}`}>
+                    <span className={`block font-bold tracking-wider text-xs md:text-sm mt-3 ${colors.accentText}`}>
                       {selectedWordToken.transliteration}
                     </span>
                   </div>
 
-                  {/* Morphological classification */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="p-2 border border-current/5 rounded-xl bg-current/5">
-                      <span className="block text-[9px] font-mono opacity-50 uppercase">Word Category</span>
-                      <span className="text-xs font-bold leading-none">{selectedWordToken.wordType}</span>
-                    </div>
-                    <div className="p-2 border border-current/5 rounded-xl bg-current/5">
-                      <span className="block text-[9px] font-mono opacity-50 uppercase">Sub classification</span>
-                      <span className="text-xs font-bold leading-none">
-                        {selectedWordToken.isIsmFail ? "Ism Fā'il (Participle)" : selectedWordToken.isHarf ? "Harf (Particle)" : "Standard Word"}
-                      </span>
-                    </div>
-                  </div>
+                  {/* Morphological classification indicators */}
+                  {selectedWordToken && (() => {
+                    const info = parseWordGrammar(selectedWordToken);
+                    return (
+                      <div className="grid grid-cols-2 gap-3 pb-1">
+                        <div className="p-3 border border-current/5 rounded-xl bg-current/5 shadow-inner">
+                          <span className="block text-[9px] font-mono opacity-55 uppercase tracking-wider mb-0.5">Word Category</span>
+                          <span className="text-xs font-bold text-current">{info.wordType}</span>
+                        </div>
+                        <div className="p-3 border border-current/5 rounded-xl bg-current/5 shadow-inner">
+                          <span className="block text-[9px] font-mono opacity-55 uppercase tracking-wider mb-0.5">Case / Mood State</span>
+                          <span className="text-xs font-bold text-current">{info.caseOrMood}</span>
+                        </div>
+                        <div className="p-3 border border-current/5 rounded-xl bg-current/5 shadow-inner">
+                          <span className="block text-[9px] font-mono opacity-55 uppercase tracking-wider mb-0.5">Grammatical Number</span>
+                          <span className="text-xs font-bold text-current">{info.number}</span>
+                        </div>
+                        <div className="p-3 border border-current/5 rounded-xl bg-current/5 shadow-inner">
+                          <span className="block text-[9px] font-mono opacity-55 uppercase tracking-wider mb-0.5">Gender (Mudhakkar/Mu'annath)</span>
+                          <span className="text-xs font-bold text-current">{info.gender}</span>
+                        </div>
+                        <div className="p-3 border border-current/5 rounded-xl bg-current/5 shadow-inner">
+                          <span className="block text-[9px] font-mono opacity-55 uppercase tracking-wider mb-0.5">Linguistic Pattern</span>
+                          <span className="text-sm font-bold text-current font-serif">{info.pattern}</span>
+                        </div>
+                        <div className="p-3 border border-current/5 rounded-xl bg-current/5 shadow-inner">
+                          <span className="block text-[9px] font-mono opacity-55 uppercase tracking-wider mb-0.5">Tense / Aspect</span>
+                          <span className="text-xs font-bold text-current">
+                            {selectedWordToken.wordType === "Fi'l" ? info.tense : info.aspect}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* Root display section */}
-                  <div className="border-t border-current/10 pt-3">
-                    <span className="block text-[10px] font-mono opacity-50 uppercase mb-1">
+                  <div className="border-t border-current/10 pt-3.5">
+                    <span className="block text-[10px] font-mono opacity-55 uppercase tracking-wider mb-1.5">
                       Morpheme Root Group
                     </span>
                     <div className="flex items-center gap-2">
@@ -671,7 +747,10 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
                       </span>
                       {selectedWordToken.root !== "None" && onSelectRoot && (
                         <button
-                          onClick={() => onSelectRoot(selectedWordToken.root.replace(/\s+/g, ''))}
+                          onClick={() => {
+                            if (onSelectRoot) onSelectRoot(selectedWordToken.root.replace(/\s+/g, ''));
+                            setSelectedWordToken(null); // optionally close to view root panel
+                          }}
                           className={`p-1.5 max-h-8 rounded-lg border border-current/15 hover:bg-current/10 transition-all font-mono text-[10px] flex items-center gap-1 cursor-pointer`}
                           title="Generate root derivatives"
                         >
@@ -682,35 +761,57 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
                   </div>
 
                   {/* Context Translation meaning */}
-                  <div className="border-t border-current/10 pt-3">
-                    <span className="block text-[10px] font-mono opacity-50 uppercase mb-1">
-                      Ayat Translation meaning
+                  <div className="border-t border-current/10 pt-3.5">
+                    <span className="block text-[10px] font-mono opacity-55 uppercase tracking-wider mb-1">
+                      Context Translation Meaning
                     </span>
-                    <p className="text-sm font-semibold opacity-90 leading-relaxed">
+                    <p className="text-sm font-bold opacity-90 leading-relaxed text-current/90">
                       {selectedWordToken.meaning}
                     </p>
                   </div>
 
                   {/* Concise Sarf Description / analysis explanation */}
-                  <div className="border-t border-current/10 pt-3">
-                    <span className="block text-[10px] font-mono opacity-50 uppercase mb-1.5">
-                      Linguistic Analysis (Sarf / Wave)
+                  <div className="border-t border-current/10 pt-3.5">
+                    <span className="block text-[10px] font-mono opacity-55 uppercase tracking-wider mb-1.5">
+                      Detailed Linguistic Analysis
                     </span>
-                    <div className={`p-3 rounded-lg text-xs leading-relaxed opacity-95 ${colors.innerBg}`}>
+                    <div className={`p-4 rounded-xl text-xs leading-relaxed opacity-95 max-h-40 overflow-y-auto font-sans ${colors.innerBg}`}>
                       {selectedWordToken.explanation}
                     </div>
                   </div>
+                </div>
 
+                {/* Prev & Next Word Buttons Row */}
+                <div className="mt-6 pt-4 border-t border-current/10 flex items-center justify-between gap-4">
+                  {/* Previous Button */}
+                  <button
+                    onClick={handlePrevWord}
+                    disabled={currentWordIndex <= 0}
+                    type="button"
+                    className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold font-mono border border-current/10 hover:bg-current/5 disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer"
+                  >
+                    <ChevronLeft className="w-4 h-4" /> <span>Previous</span>
+                  </button>
+
+                  {/* Word Counter info */}
+                  <span className="text-[10px] font-mono opacity-40">
+                    Word {currentWordIndex + 1} of {activeVerseData.words.length}
+                  </span>
+
+                  {/* Next Button */}
+                  <button
+                    onClick={handleNextWord}
+                    disabled={currentWordIndex >= activeVerseData.words.length - 1}
+                    type="button"
+                    className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold font-mono border border-current/10 hover:bg-current/5 disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer"
+                  >
+                    <span>Next</span> <ChevronRight className="w-4 h-4" />
+                  </button>
                 </div>
-              ) : (
-                <div className="py-12 text-center opacity-60 flex flex-col items-center justify-center gap-2.5">
-                  <HelpCircle className="w-8 h-8 opacity-45" />
-                  <p className="text-xs">Select any word token left to inspect its complete underlying morphology parameters.</p>
-                </div>
-              )}
+
+              </div>
             </div>
-
-          </div>
+          )}
 
         </div>
       )}
