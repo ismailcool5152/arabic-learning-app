@@ -20,6 +20,209 @@ interface WordGrammarDetails {
   caseOrMood: string;
 }
 
+interface WordMeaningSplit {
+  exact: string;
+  contextual: string;
+  rootConcept: string;
+  formation: string;
+}
+
+function getDetailedWordMeanings(w: VerseWordBreakdown): WordMeaningSplit {
+  const normWord = w.word.trim();
+  const meaning = w.meaning;
+
+  // Let's match the exact words in our offline verses map
+  const vocabularyDetails: Record<string, { exact: string; contextual: string; rootConcept: string; formation: string }> = {
+    // Basics
+    "بِ": {
+      exact: "With / In / By means of (Preposition)",
+      contextual: "Direct attachment of an ongoing action to a supreme source.",
+      rootConcept: "Connecting agent (instrumentality).",
+      formation: "Inseparable prefix particle ('Harf Jarr') that anchors the subsequent noun under absolute authority."
+    },
+    "سْمِ": {
+      exact: "Name / Attribute / Label of loftiness",
+      contextual: "To invoke and initiate a pathway through a prestigious brand of absolute power.",
+      rootConcept: "Loftiness, high stature, or a distinctive signpost.",
+      formation: "Derived from 'S-M-W' (to be high). Grammatically aligned here in the genitive state ('Majrūr')."
+    },
+    "اللَّهِ": {
+      exact: "The Singular Supreme Creator & Deity",
+      contextual: "Allah, the only source of absolute metaphysical and material coordination.",
+      rootConcept: "Loving, awe-inspiring deity of perfect adoration.",
+      formation: "The majestic proper noun. Combines the definite prefix 'al-' (The) with 'Inseparable Divine Entity'."
+    },
+    "الرَّحْمَٰنِ": {
+      exact: "The Boundless, Universally Merciful (Immediate)",
+      contextual: "The Entirely Merciful, immediately sustaining all cells and molecules proactively.",
+      rootConcept: "Immediate, extreme, and maternal protection of growth.",
+      formation: "Derived from 'R-H-M' (womb/compassion). Cast in the intensive active adjective form 'Fa'lān'."
+    },
+    "الرَّحِيمِ": {
+      exact: "The Specially, Everlastingly Merciful (Sustained)",
+      contextual: "The Especially Merciful, sustaining targeted guidance for human spiritual success.",
+      rootConcept: "Continuous, targeted, and qualitative supportive protection.",
+      formation: "Derived from 'R-H-M'. Cast in the steady constant-attribute form 'Fa'īl'."
+    },
+    // Al-Ikhlas
+    "قُلْ": {
+      exact: "Say! / Proclaim! / Declare with absolute certitude",
+      contextual: "Say! (A direct divine command to articulate and broadcast monotheism explicitly).",
+      rootConcept: "Speaking, voice, or declaring a verbal truth.",
+      formation: "Form I active imperative command ('Amr') verb for second-person singular."
+    },
+    "هُوَ": {
+      exact: "He (Detached personal third-person pronoun)",
+      contextual: "He, the Transcendent Entity beyond gender, space, and local visual comprehension.",
+      rootConcept: "The absent yet absolute singular core of reality.",
+      formation: "A standard detached personal pronoun indicating complete metaphysical uniqueness."
+    },
+    "أَحَدٌ": {
+      exact: "Indivisible, absolute and peerless One",
+      contextual: "One, unique, and atomic deity who cannot be split, multiplied, or partnered.",
+      rootConcept: "Oneness, uniqueness, and complete isolation from duplicates.",
+      formation: "Formed from 'W-H-D' (Oneness), showing complete integrity and absolute unique singularity."
+    },
+    // Al-Asr
+    "وَ": {
+      exact: "Oath marker ('By...') / Conjunction ('And')",
+      contextual: "I swear by... / Consequent witness (drawing immediate focus to witness temporal reality).",
+      rootConcept: "Linking, swearing an oath with deep solemnity.",
+      formation: "Oathtaking prefix particle ('Waw al-Qasam') which functions grammatically as a preposition."
+    },
+    "الْعَصْرِ": {
+      exact: "Squeezing / Compression of time / Declining daylight",
+      contextual: "The Declining Era / Squeezed Daylight (the finite container of human test cycles).",
+      rootConcept: "Compressing juice from grapes or extracting meaning from historical lessons.",
+      formation: "Definite noun in genitive state due to the oath of Waw. Derived from root 'A-S-R'."
+    },
+    "إِنَّ": {
+      exact: "Verily / Certainly / Emphatic truth marker",
+      contextual: "Indeed (establishing absolute physical and spiritual certainty of the claim).",
+      rootConcept: "Solidifying, locking a statement down beyond dispute.",
+      formation: "An inorganic emphatic particle ('Harf Mushabbah bil-Fi'l') that initiates a strong assertion."
+    },
+    "الْإِنْسَانَ": {
+      exact: "The Companionable Being / Forgetful Creature",
+      contextual: "Mankind / Human Being (vulnerable to natural decline, temporal entropy, and forgetfulness).",
+      rootConcept: "Affinity, sociability, intimacy, or forgetfulness.",
+      formation: "Definite collective noun in the accusative case ('Manṣūb'), derived from the root 'A-N-S'."
+    },
+    "لَ": {
+      exact: "Surely / Truly / Emphatic prefix",
+      contextual: "Is surely/truly (double-locking the truth of the subsequent condition of loss).",
+      rootConcept: "Empowering, confirming, and highlighting a state.",
+      formation: "Lām of emphasis ('Lām al-Muzahlaqah') prefixed to the predicate container to prevent doubt."
+    },
+    "فِي": {
+      exact: "In / Inside of / Engulfed by",
+      contextual: "Drowning in / Fully encapsulated inside (as if loss is a thick liquid surrounding him).",
+      rootConcept: "Preposition of containing, surrounding, and spatial embedding.",
+      formation: "Preposition particle ('Harf Jarr') establishing containment."
+    },
+    "خُسْرٍ": {
+      exact: "Deficit / Bankruptcy / Structural waste and decay",
+      contextual: "Severe spiritual and existential deficit, representing lost capital of time.",
+      rootConcept: "Wasting investments, losing capital, or organic decay under entropy.",
+      formation: "Indefinite singular noun in genitive state ('Majrūr'). Formed from root 'Kh-S-R'."
+    },
+    // Al-Baqarah (2:255)
+    "لَا": {
+      exact: "No / Absolute structural denial of alternative options",
+      contextual: "There is absolutely no (extinguishing any claim of other potential sources of worship).",
+      rootConcept: "Negation, sweeping cancellation, or refusal of authority.",
+      formation: "Categorical Negation Particle ('Lā Nafiyah lil-Jins') which rules out any potential plural deities."
+    },
+    "إِلَٰهَ": {
+      exact: "Object of adoration / Beautiful deity worthy of submission",
+      contextual: "Deity, center of worship, or ultimate master of human coordinates.",
+      rootConcept: "Adoring, seeking shelter in, or finding peace in a supreme master.",
+      formation: "A generic singular noun in the accusative state of absolute negation. Derived from 'A-L-H'."
+    },
+    "إِلَّا": {
+      exact: "Except / Save for (exclusivity operator)",
+      contextual: "Except (shattering the previous negation to isolate and crown the single exception).",
+      rootConcept: "Limiting, sorting, and narrowing down down to one absolute coordinate.",
+      formation: "Surgical exception particle ('Harf Istithna') used to build absolute theological monotheism."
+    },
+    "الْحَيُّ": {
+      exact: "The Everlastingly Alive / Source of life",
+      contextual: "The Ever-Living (possessing self-originating continuous vitality without origin or end).",
+      rootConcept: "Life, molecular growth, consciousness, and living coordinates.",
+      formation: "Majestic Divine Attribute. Active noun derived from 'H-Y-Y' in the nominative state ('Marfū'')."
+    },
+    "الْقَيُّومُ": {
+      exact: "The Absolute Self-Sustaining & Constant Protector of Cells",
+      contextual: "The All-Sustainer (who handles gravity, orbits, and atomic structures constantly).",
+      rootConcept: "Standing up, guarding, and keeping systems vertically upright.",
+      formation: "Form II/Form IV derived intensive active participle ('Fa''ūl'/'Fay'ūl'). Derived from 'Q-W-M'."
+    },
+    // Ma'un & Kafirun
+    "لِلْمُصَلِّينَ": {
+      exact: "To those who perform standard prayers (Form II Participle)",
+      contextual: "To those who perform physical prayers (yet are heedless of their inner justice coordinates).",
+      rootConcept: "Performing connection, sending prayers, or aligning the spine during bowing.",
+      formation: "Form II plural active participle ('Muṣallīna') preceded by the target preposition 'Li-' (For)."
+    },
+    "عَابِدٌ": {
+      exact: "Active dedicated worshipper / Dedicated server",
+      contextual: "An active worshipper (proclaiming independent, continuous, conscious monotheism).",
+      rootConcept: "Serving, working as a slave, or dedicating work to a master.",
+      formation: "Form I active agent participle ('Ism Fā'il') matching the rhythmic template 'Fā'il'."
+    },
+    "عَبَدتُّمْ": {
+      exact: "You served / You chose to worship (plural past tense)",
+      contextual: "You have spent your lives worshipping (temporary, cultural tribal deities).",
+      rootConcept: "Submitting to custom, servitude, or worship.",
+      formation: "Form I past active verb configured in second-person masculine plural form."
+    }
+  };
+
+  // Check if we have exact preset data
+  if (vocabularyDetails[normWord]) {
+    return vocabularyDetails[normWord];
+  }
+
+  // Fallback heuristic calculations for custom words
+  let literal = meaning;
+  let contextual = meaning;
+  let concept = "Universal Base Concept represented by root letters.";
+  let logic = `Word represents direct morphological application of Category: ${w.wordType}.`;
+
+  if (meaning.includes("/")) {
+    const parts = meaning.split("/");
+    literal = parts[0].trim();
+    contextual = parts[1] ? parts[1].trim() : parts[0].trim();
+  } else if (meaning.split(" / ").length > 1) {
+    const parts = meaning.split(" / ");
+    literal = parts[0].trim();
+    contextual = parts[1] ? parts[1].trim() : parts[0].trim();
+  } else if (meaning.includes("(")) {
+    // split parenthesis context
+    const idx = meaning.indexOf("(");
+    literal = meaning.slice(0, idx).trim();
+    contextual = meaning.trim();
+  }
+
+  if (w.wordType === "Ism") {
+    concept = w.isIsmFail ? "Targeted agency / ACTIVE ACTOR" : "Substantive state / permanent quality.";
+    logic = `This is an 'Ism' (Noun/Substantive name of concept). Root is '${w.root}'. Case structure is defined by its current position.`;
+  } else if (w.wordType === "Fi'l") {
+    concept = "Active event / temporal transformation.";
+    logic = `This is a 'Fi'l' (Verb) indicating active event propagation in physical space, anchored to the Root '${w.root}'.`;
+  } else if (w.wordType === "Harf") {
+    concept = "Relational connection / directional vector.";
+    logic = "This is a fixed structural particle ('Harf') providing emphasis, containment, or direction to nouns or verbs.";
+  }
+
+  return {
+    exact: literal,
+    contextual: contextual,
+    rootConcept: concept,
+    formation: logic
+  };
+}
+
 function parseWordGrammar(w: VerseWordBreakdown): WordGrammarDetails {
   const explanation = w.explanation.toLowerCase();
   const meaning = w.meaning.toLowerCase();
@@ -663,155 +866,236 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
           </p>
 
           {/* Hover Screen / Detached Modal for Word-by-Word details */}
-          {selectedWordToken && (
-            <div 
-              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn"
-              onClick={() => setSelectedWordToken(null)}
-            >
-              <div 
-                className={`relative w-full max-w-lg rounded-2xl border p-6 md:p-8 shadow-2xl transition-all transform scale-100 animate-slideUp ${colors.cardBg}`}
-                onClick={(e) => e.stopPropagation()} // Prevent close on card click
-              >
-                {/* Top Header Row with Close Button */}
-                <div className="flex items-center justify-between border-b border-current/10 pb-3 mb-5">
-                  <span className="text-[10px] font-mono opacity-50 uppercase tracking-widest">
-                    Word Segment Deconstruction
-                  </span>
-                  <button
-                    onClick={() => setSelectedWordToken(null)}
-                    type="button"
-                    className="p-1 px-2.5 rounded-lg hover:bg-current/10 opacity-70 hover:opacity-100 transition-all text-xs font-mono flex items-center gap-1 cursor-pointer"
-                  >
-                    <span>Close</span> <X className="w-4 h-4" />
-                  </button>
-                </div>
+          {selectedWordToken && (() => {
+            const parsedDetails = getDetailedWordMeanings(selectedWordToken);
+            const info = parseWordGrammar(selectedWordToken);
+            
+            // Helpful descriptions for Part of Speech
+            const categoryDesc = 
+              selectedWordToken.wordType === "Ism" 
+                ? "Noun / Adjective / Pronoun (Names a core entity or quality independently of active time)" 
+                : selectedWordToken.wordType === "Fi'l"
+                  ? "Action Verb (Represents a dynamic event bound to a past, present, or future timeline)"
+                  : "Particle (Preposition/Conjunction. Yields semantic vectors only when linked to other words)";
 
-                <div className="space-y-4">
-                  {/* Huge script review */}
-                  <div className={`p-5 rounded-2xl text-center border ${colors.innerBg} relative overflow-hidden`}>
-                    <div className="absolute top-1 right-2 text-[8px] font-mono opacity-35 uppercase tracking-wider">
-                      ORTHOGRAPHY
+            return (
+              <div 
+                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md animate-fadeIn"
+                onClick={() => setSelectedWordToken(null)}
+              >
+                <div 
+                  className={`relative w-full max-w-2xl rounded-2xl border p-5 md:p-7 shadow-2xl transition-all transform scale-100 max-h-[92vh] overflow-y-auto ${colors.cardBg} border-current/15`}
+                  onClick={(e) => e.stopPropagation()} // Prevent close on card click
+                >
+                  {/* Top Header Row with Close Button */}
+                  <div className="flex items-center justify-between border-b border-current/10 pb-3.5 mb-4 font-mono">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-emerald-500 animate-pulse animate-duration-1000" />
+                      <span className="text-[11px] font-mono opacity-65 uppercase tracking-wider font-semibold">
+                        Linguistic Deconstruction & Commentary
+                      </span>
                     </div>
-                    
-                    <span className="text-5xl md:text-6xl font-serif font-bold text-current drop-shadow-sm leading-snug">
-                      {selectedWordToken.word}
-                    </span>
-                    <span className={`block font-bold tracking-wider text-xs md:text-sm mt-3 ${colors.accentText}`}>
-                      {selectedWordToken.transliteration}
-                    </span>
+                    <button
+                      onClick={() => setSelectedWordToken(null)}
+                      type="button"
+                      className="p-1 px-3 rounded-lg bg-current/5 hover:bg-current/10 border border-current/10 transition-all text-xs font-mono flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <span>Close</span> <X className="w-3.5 h-3.5" />
+                    </button>
                   </div>
 
-                  {/* Morphological classification indicators */}
-                  {selectedWordToken && (() => {
-                    const info = parseWordGrammar(selectedWordToken);
-                    return (
-                      <div className="grid grid-cols-2 gap-3 pb-1">
-                        <div className="p-3 border border-current/5 rounded-xl bg-current/5 shadow-inner">
-                          <span className="block text-[9px] font-mono opacity-55 uppercase tracking-wider mb-0.5">Word Category</span>
-                          <span className="text-xs font-bold text-current">{info.wordType}</span>
+                  <div className="space-y-4">
+                    {/* Orthography, Transliteration, and Word Type */}
+                    <div className={`p-4 md:p-6 rounded-2xl text-center border relative overflow-hidden flex flex-col items-center justify-center ${colors.innerBg} border-current/5 shadow-inner`}>
+                      <div className="absolute top-2 right-3 text-[8px] font-mono opacity-40 uppercase tracking-widest">
+                        Word Orthography
+                      </div>
+                      
+                      <span className="text-5xl md:text-6xl font-serif font-bold text-current drop-shadow-sm leading-snug">
+                        {selectedWordToken.word}
+                      </span>
+                      <span className={`block font-bold tracking-wider text-sm mt-1.5 ${colors.accentText}`}>
+                        / {selectedWordToken.transliteration} /
+                      </span>
+
+                      {/* Part of Speech Mini-card */}
+                      <div className="mt-3.5 px-3 py-1.5 rounded-xl bg-current/5 border border-current/10 text-[11px] text-current/80 max-w-md w-full">
+                        <span className="font-bold uppercase text-[10px] tracking-wider text-emerald-500 block mb-0.5">
+                          Part of Speech: {selectedWordToken.wordType}
+                        </span>
+                        <span className="opacity-75 block text-center leading-normal">
+                          {categoryDesc}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* TWO-COLUMN MEANING SPECTRA */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+                      {/* Exact Literal Translation */}
+                      <div className="p-4 rounded-xl border border-current/10 bg-current/5 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center gap-1.5 mb-2.5">
+                            <BookOpen className="w-4 h-4 text-emerald-500 shrink-0" />
+                            <span className="text-[10px] font-mono opacity-60 uppercase tracking-wider font-bold">
+                              Exact Root Translation
+                            </span>
+                          </div>
+                          <p className="text-sm font-semibold opacity-95 leading-relaxed text-current/95 font-serif">
+                            {parsedDetails.exact}
+                          </p>
                         </div>
-                        <div className="p-3 border border-current/5 rounded-xl bg-current/5 shadow-inner">
-                          <span className="block text-[9px] font-mono opacity-55 uppercase tracking-wider mb-0.5">Case / Mood State</span>
-                          <span className="text-xs font-bold text-current">{info.caseOrMood}</span>
+                        <p className="text-[9px] opacity-45 mt-3 leading-relaxed">
+                          💡 The pure etymological core meaning of the root in classical lexicons.
+                        </p>
+                      </div>
+
+                      {/* Precise Contextual Meaning */}
+                      <div className="p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center gap-1.5 mb-2.5">
+                            <Sparkles className="w-4 h-4 text-emerald-500 shrink-0 animate-pulse" />
+                            <span className="text-[10px] font-mono opacity-85 uppercase tracking-wider font-bold text-emerald-600 dark:text-emerald-400">
+                              Contextual Verse Meaning
+                            </span>
+                          </div>
+                          <p className="text-sm font-extrabold opacity-100 leading-relaxed text-emerald-600 dark:text-emerald-400 font-serif">
+                            {parsedDetails.contextual}
+                          </p>
                         </div>
-                        <div className="p-3 border border-current/5 rounded-xl bg-current/5 shadow-inner">
-                          <span className="block text-[9px] font-mono opacity-55 uppercase tracking-wider mb-0.5">Grammatical Number</span>
-                          <span className="text-xs font-bold text-current">{info.number}</span>
-                        </div>
-                        <div className="p-3 border border-current/5 rounded-xl bg-current/5 shadow-inner">
-                          <span className="block text-[9px] font-mono opacity-55 uppercase tracking-wider mb-0.5">Gender (Mudhakkar/Mu'annath)</span>
-                          <span className="text-xs font-bold text-current">{info.gender}</span>
-                        </div>
-                        <div className="p-3 border border-current/5 rounded-xl bg-current/5 shadow-inner">
-                          <span className="block text-[9px] font-mono opacity-55 uppercase tracking-wider mb-0.5">Linguistic Pattern</span>
-                          <span className="text-sm font-bold text-current font-serif">{info.pattern}</span>
-                        </div>
-                        <div className="p-3 border border-current/5 rounded-xl bg-current/5 shadow-inner">
-                          <span className="block text-[9px] font-mono opacity-55 uppercase tracking-wider mb-0.5">Tense / Aspect</span>
-                          <span className="text-xs font-bold text-current">
-                            {selectedWordToken.wordType === "Fi'l" ? info.tense : info.aspect}
+                        <p className="text-[9px] opacity-45 mt-3 leading-relaxed">
+                          🎯 The tailored translation of this token as it functions inside this sentence.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Word Formation & Core Concept */}
+                    <div className={`p-4 rounded-xl border border-current/10 ${colors.innerBg} space-y-3`}>
+                      <div className="flex items-center justify-between border-b border-current/5 pb-2">
+                        <span className="text-[10px] font-mono opacity-65 uppercase tracking-wider font-bold">
+                          Word Formation & Morphemics
+                        </span>
+                        {selectedWordToken.root !== "None" && (
+                          <span className="text-[9px] font-mono bg-current/5 px-2 py-0.5 rounded-md text-current/60">
+                            Root-Derived
                           </span>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs leading-relaxed">
+                        <div>
+                          <span className="block text-[9px] font-mono opacity-50 uppercase mb-0.5">Morpheme Root Group</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-serif text-lg font-bold tracking-wider bg-current/10 border border-current/15 rounded-lg p-1.5 px-3">
+                              {selectedWordToken.root}
+                            </span>
+                            {selectedWordToken.root !== "None" && onSelectRoot && (
+                              <button
+                                onClick={() => {
+                                  if (onSelectRoot) onSelectRoot(selectedWordToken.root.replace(/\s+/g, ''));
+                                  setSelectedWordToken(null);
+                                }}
+                                type="button"
+                                className={`p-1.5 px-2.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/25 text-emerald-600 dark:text-emerald-450 transition-all font-mono text-[9px] flex items-center gap-1.5 cursor-pointer`}
+                                title="Synthesize root derivatives"
+                              >
+                                <span>Synthesize</span> <ArrowRight className="w-2.5 h-2.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        <div>
+                          <span className="block text-[9px] font-mono opacity-50 uppercase mb-0.5">Base Root Core Semantic</span>
+                          <p className="font-serif text-current/90 italic font-medium">
+                            "{parsedDetails.rootConcept}"
+                          </p>
                         </div>
                       </div>
-                    );
-                  })()}
 
-                  {/* Root display section */}
-                  <div className="border-t border-current/10 pt-3.5">
-                    <span className="block text-[10px] font-mono opacity-55 uppercase tracking-wider mb-1.5">
-                      Morpheme Root Group
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <span className="font-serif text-xl font-bold tracking-wider bg-current/5 border border-current/10 rounded-lg p-1.5 px-3">
-                        {selectedWordToken.root}
+                      <div className="pt-2 border-t border-current/5 text-xs text-current/80">
+                        <span className="block text-[9px] font-mono opacity-50 uppercase mb-1">Structural Formation Mechanics</span>
+                        <p className="leading-relaxed font-sans text-xs">
+                          {parsedDetails.formation}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Morphological specification Grid */}
+                    <div className="border-t border-current/10 pt-3">
+                      <span className="block text-[10px] font-mono opacity-50 uppercase tracking-wider mb-2 font-bold">
+                        Morphological Characteristics
                       </span>
-                      {selectedWordToken.root !== "None" && onSelectRoot && (
-                        <button
-                          onClick={() => {
-                            if (onSelectRoot) onSelectRoot(selectedWordToken.root.replace(/\s+/g, ''));
-                            setSelectedWordToken(null); // optionally close to view root panel
-                          }}
-                          className={`p-1.5 max-h-8 rounded-lg border border-current/15 hover:bg-current/10 transition-all font-mono text-[10px] flex items-center gap-1 cursor-pointer`}
-                          title="Generate root derivatives"
-                        >
-                          Synthesize Root <ArrowRight className="w-3 h-3" />
-                        </button>
-                      )}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                        <div className="p-2 border border-current/5 rounded-xl bg-current/5">
+                          <span className="block text-[8px] font-mono opacity-40 uppercase tracking-wider mb-0.5">Grammatical State</span>
+                          <span className="text-xs font-bold text-current">{info.caseOrMood}</span>
+                        </div>
+                        <div className="p-2 border border-current/5 rounded-xl bg-current/5">
+                          <span className="block text-[8px] font-mono opacity-40 uppercase tracking-wider mb-0.5">Grammatical Number</span>
+                          <span className="text-xs font-bold text-current">{info.number}</span>
+                        </div>
+                        <div className="p-2 border border-current/5 rounded-xl bg-current/5">
+                          <span className="block text-[8px] font-mono opacity-40 uppercase tracking-wider mb-0.5">Gender / Class</span>
+                          <span className="text-xs font-bold text-current">{info.gender}</span>
+                        </div>
+                        <div className="p-2 border border-current/5 rounded-xl bg-current/5">
+                          <span className="block text-[8px] font-mono opacity-40 uppercase tracking-wider mb-0.5">Sarf Pattern Blueprint</span>
+                          <span className="text-xs font-bold text-current font-serif italic text-emerald-500 dark:text-emerald-400">{info.pattern}</span>
+                        </div>
+                        <div className="p-2 border border-current/5 rounded-xl bg-current/5">
+                          <span className="block text-[8px] font-mono opacity-40 uppercase tracking-wider mb-0.5">Tense</span>
+                          <span className="text-xs font-bold text-current">{info.tense}</span>
+                        </div>
+                        <div className="p-2 border border-current/5 rounded-xl bg-current/5">
+                          <span className="block text-[8px] font-mono opacity-40 uppercase tracking-wider mb-0.5">Voice / Aspect</span>
+                          <span className="text-xs font-bold text-current">{info.aspect}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Detailed Syntax / Contextual Grammar Commentary */}
+                    <div className="border-t border-current/10 pt-3">
+                      <span className="block text-[10px] font-mono opacity-50 uppercase tracking-wider mb-1.5 font-bold">
+                        Detailed Morphological & Syntax Explanation
+                      </span>
+                      <div className={`p-3 md:p-4 rounded-xl text-xs leading-relaxed max-h-32 overflow-y-auto font-sans ${colors.innerBg} border border-current/5 shadow-inner`}>
+                        {selectedWordToken.explanation}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Context Translation meaning */}
-                  <div className="border-t border-current/10 pt-3.5">
-                    <span className="block text-[10px] font-mono opacity-55 uppercase tracking-wider mb-1">
-                      Context Translation Meaning
+                  {/* Prev & Next Word Buttons Row */}
+                  <div className="mt-5 pt-3.5 border-t border-current/10 flex items-center justify-between gap-4">
+                    {/* Previous Button */}
+                    <button
+                      onClick={handlePrevWord}
+                      disabled={currentWordIndex <= 0}
+                      type="button"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold font-mono border border-current/15 hover:bg-current/5 disabled:opacity-25 disabled:pointer-events-none transition-all cursor-pointer"
+                    >
+                      <ChevronLeft className="w-4 h-4" /> <span>Previous</span>
+                    </button>
+
+                    {/* Word Counter info */}
+                    <span className="text-[10px] font-mono opacity-40">
+                      Word {currentWordIndex + 1} of {activeVerseData.words.length}
                     </span>
-                    <p className="text-sm font-bold opacity-90 leading-relaxed text-current/90">
-                      {selectedWordToken.meaning}
-                    </p>
+
+                    {/* Next Button */}
+                    <button
+                      onClick={handleNextWord}
+                      disabled={currentWordIndex >= activeVerseData.words.length - 1}
+                      type="button"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold font-mono border border-current/15 hover:bg-current/5 disabled:opacity-25 disabled:pointer-events-none transition-all cursor-pointer"
+                    >
+                      <span>Next</span> <ChevronRight className="w-4 h-4" />
+                    </button>
                   </div>
 
-                  {/* Concise Sarf Description / analysis explanation */}
-                  <div className="border-t border-current/10 pt-3.5">
-                    <span className="block text-[10px] font-mono opacity-55 uppercase tracking-wider mb-1.5">
-                      Detailed Linguistic Analysis
-                    </span>
-                    <div className={`p-4 rounded-xl text-xs leading-relaxed opacity-95 max-h-40 overflow-y-auto font-sans ${colors.innerBg}`}>
-                      {selectedWordToken.explanation}
-                    </div>
-                  </div>
                 </div>
-
-                {/* Prev & Next Word Buttons Row */}
-                <div className="mt-6 pt-4 border-t border-current/10 flex items-center justify-between gap-4">
-                  {/* Previous Button */}
-                  <button
-                    onClick={handlePrevWord}
-                    disabled={currentWordIndex <= 0}
-                    type="button"
-                    className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold font-mono border border-current/10 hover:bg-current/5 disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer"
-                  >
-                    <ChevronLeft className="w-4 h-4" /> <span>Previous</span>
-                  </button>
-
-                  {/* Word Counter info */}
-                  <span className="text-[10px] font-mono opacity-40">
-                    Word {currentWordIndex + 1} of {activeVerseData.words.length}
-                  </span>
-
-                  {/* Next Button */}
-                  <button
-                    onClick={handleNextWord}
-                    disabled={currentWordIndex >= activeVerseData.words.length - 1}
-                    type="button"
-                    className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold font-mono border border-current/10 hover:bg-current/5 disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer"
-                  >
-                    <span>Next</span> <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-
               </div>
-            </div>
-          )}
+            );
+          })()}
 
         </div>
       )}

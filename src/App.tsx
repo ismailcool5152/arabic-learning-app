@@ -14,6 +14,7 @@ import AsmaAlHusna from './components/AsmaAlHusna';
 import HurufulHija from './components/HurufulHija';
 import CommonWordsTable from './components/CommonWordsTable';
 import VerseBreakdown from './components/VerseBreakdown';
+import RootFlashcards from './components/RootFlashcards';
 import { findOfflineFallback, generateDynamicOfflineFallback } from './offlineData';
 import { 
   BookOpen, 
@@ -54,7 +55,7 @@ export default function App() {
   const [showArabicKeyboard, setShowArabicKeyboard] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeMainTab, setActiveMainTab] = useState<'hija' | 'basics' | 'huruf' | 'database' | 'root' | 'map' | 'names' | 'lexicon' | 'doc' | 'vocab' | 'verse'>('hija');
+  const [activeMainTab, setActiveMainTab] = useState<'hija' | 'basics' | 'huruf' | 'database' | 'root' | 'map' | 'names' | 'lexicon' | 'doc' | 'vocab' | 'verse' | 'flashcards'>('hija');
   const [selectedRoot, setSelectedRoot] = useState<string>('');
   
   // Layout Arrangement Mode selection
@@ -687,11 +688,35 @@ export default function App() {
             </span>
           </button>
 
+          <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
+
+          {/* STEP 10: Root Flashcards */}
+          <button
+            onClick={() => setActiveMainTab('flashcards')}
+            type="button"
+            className={`shrink-0 flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+              activeMainTab === 'flashcards'
+                ? (isParchment
+                    ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
+                    : isCosmic
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
+                      : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
+                : (isParchment
+                    ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5')
+            }`}
+          >
+            <Award className="w-4 h-4 text-emerald-400 animate-pulse" />
+            <span className="flex items-center gap-1">
+              <span className="opacity-50 font-mono text-[10px]">10.</span> Root Flashcards
+            </span>
+          </button>
+
           {!isOfflineMode && (
             <>
               <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
 
-              {/* STEP 10: Word Search & Analysis */}
+              {/* STEP 11: Word Search & Analysis */}
               <button
                 onClick={() => setActiveMainTab('map')}
                 type="button"
@@ -709,7 +734,7 @@ export default function App() {
               >
                 <Search className="w-4 h-4" />
                 <span className="flex items-center gap-1">
-                  <span className="opacity-50 font-mono text-[10px]/['8px']">10.</span> Word Search & Analysis
+                  <span className="opacity-50 font-mono text-[10px]/['8px']">11.</span> Word Search & Analysis
                 </span>
               </button>
             </>
@@ -801,6 +826,17 @@ export default function App() {
       ) : activeMainTab === 'vocab' ? (
         <div className="animate-fadeIn">
           <CommonWordsTable
+            theme={theme}
+            onSelectWord={(word) => {
+              setSearchTerm(word);
+              setActiveMainTab('map');
+              handleSearch(word);
+            }}
+          />
+        </div>
+      ) : activeMainTab === 'flashcards' ? (
+        <div className="animate-fadeIn">
+          <RootFlashcards
             theme={theme}
             onSelectWord={(word) => {
               setSearchTerm(word);
