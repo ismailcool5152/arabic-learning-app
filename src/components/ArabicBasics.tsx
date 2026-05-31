@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { LayoutTheme } from '../types';
+import { SURAH_DATABASE } from './surahData';
 import { 
   BookOpen, 
   Sparkles, 
@@ -809,6 +810,10 @@ export default function ArabicBasics({ theme }: ArabicBasicsProps) {
   const [selectedFormNum, setSelectedFormNum] = useState<number>(2); // Default to Form II because it's beautiful
   const [sandboxRootIdx, setSandboxRootIdx] = useState<number>(0);
 
+  // States for Surah Summary section
+  const [selectedSurahId, setSelectedSurahId] = useState<string>('fatihah');
+  const [selectedRootLetters, setSelectedRootLetters] = useState<string>('ح - م - د');
+
   const sandboxRoots = [
     { label: "ك - ت - ب (Prescribing / Writing)", letters: ['ك', 'ت', 'ب'], mean: "to write / prescribe" },
     { label: "ع - ل - م (Knowledge / Instruction)", letters: ['ع', 'ل', 'م'], mean: "to know / teach" },
@@ -840,6 +845,7 @@ export default function ArabicBasics({ theme }: ArabicBasicsProps) {
     { id: 'sentences', label: 'Sentence Lab', icon: Sparkles },
     { id: 'cases', label: 'Grammar Cases', icon: BookOpen },
     { id: 'awzan', label: 'Verb Forms', icon: Layers },
+    { id: 'surah', label: 'Surah Summary', icon: BookMarked },
     { id: 'quiz', label: 'Quiz', icon: Award }
   ];
 
@@ -1838,6 +1844,357 @@ export default function ArabicBasics({ theme }: ArabicBasicsProps) {
 
               </div>
             </div>
+          </div>
+        );
+      })()}
+
+      {/* 5. SURAH SUMMARY SECTION */}
+      {activeSection === 'surah' && (() => {
+        const currentSurah = SURAH_DATABASE.find(s => s.id === selectedSurahId) || SURAH_DATABASE[0];
+        const hasRoot = currentSurah.roots.some(r => r.letters === selectedRootLetters);
+        const activeRoot = hasRoot 
+          ? currentSurah.roots.find(r => r.letters === selectedRootLetters)!
+          : currentSurah.roots[0];
+
+        return (
+          <div className="space-y-8 animate-fadeIn">
+            {/* Header Title Block */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-current/10 pb-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <BookMarked className={`w-5 h-5 ${fontColorThemeText}`} />
+                  <h3 className="text-base font-bold uppercase tracking-wider">
+                    Surah Linguistic & Theological Summary (تَحْلِيل السُّور)
+                  </h3>
+                </div>
+                <p className="text-xs opacity-80 leading-relaxed max-w-2xl">
+                  Analyze classical Quranic Surahs by tracing their root structures, tracking how their words are synthesized, discovering particles, and exploring theological themes.
+                </p>
+              </div>
+
+              {/* Informative Badge */}
+              <div className={`p-3 rounded-xl border max-w-xs text-[10px] leading-relaxed flex gap-2 items-start ${innerCardBgClass}`}>
+                <Info className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold block mb-0.5">Root Families (الاشتقاق)</span>
+                  Almost all words in a Surah derive from a 3-letter root core. Tracking this reveals how different physical/abstract concepts interconnect.
+                </div>
+              </div>
+            </div>
+
+            {/* A. SURAH SELECTOR TAB-GRID */}
+            <div className="space-y-3">
+              <span className="text-[10px] font-mono opacity-50 uppercase tracking-widest font-bold block pl-1">
+                Select a Surah for Linguistic Deconstruction:
+              </span>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {SURAH_DATABASE.map((surah) => {
+                  const isSelected = selectedSurahId === surah.id;
+                  return (
+                    <button
+                      key={surah.id}
+                      onClick={() => {
+                        setSelectedSurahId(surah.id);
+                        setSelectedRootLetters(surah.roots[0].letters); // Auto-focus first root on switch!
+                      }}
+                      className={`p-4 rounded-xl border text-left cursor-pointer transition-all ${
+                        isSelected
+                          ? (isParchment ? 'bg-[#ebd8c3]/40 border-[#8c6239] ring-1 ring-[#8c6239]/30' : isCosmic ? 'bg-indigo-950/60 border-indigo-500 text-indigo-100 ring-1 ring-indigo-500/30' : 'bg-emerald-950/40 border-emerald-500 text-emerald-100 ring-1 ring-emerald-500/30')
+                          : 'bg-transparent border-current/15 hover:bg-current/5'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between pointer-events-none">
+                        <span className="text-[10px] font-mono opacity-50 uppercase font-bold">Surah #{surah.number}</span>
+                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-mono uppercase font-bold border ${badgeThemeBg}`}>
+                          {surah.revelationType}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between mt-2 pointer-events-none">
+                        <div>
+                          <h4 className="font-bold text-sm text-current">{surah.nameEnglish}</h4>
+                          <p className="text-[11px] opacity-75">{surah.nameMeaning}</p>
+                        </div>
+                        <span className="text-2xl font-serif font-black text-[#8c6239] dark:text-amber-500">
+                          {surah.nameArabic}
+                        </span>
+                      </div>
+                      
+                      <div className="mt-3 text-[10px] opacity-60 pointer-events-none flex items-center justify-between border-t border-current/5 pt-2">
+                        <span>{surah.verseCount} verses</span>
+                        <span>{surah.roots.length} distinct roots</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* B. BIRD-EYE THEMATIC VIEW MAPS */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+              {/* Theme Summary and Origin */}
+              <div className="lg:col-span-7 space-y-4">
+                <div className={`p-5 rounded-2xl border ${innerCardBgClass} space-y-4`}>
+                  <div className="flex items-center gap-2 border-b border-current/5 pb-2">
+                    <Compass className={`w-4 h-4 ${fontColorThemeText}`} />
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-current">Theme & Analytical Summary</h4>
+                  </div>
+                  <p className="text-xs leading-relaxed opacity-95">
+                    {currentSurah.birdsEyeView.themeSummary}
+                  </p>
+                  
+                  <div className="pt-2">
+                    <span className="text-[10px] font-mono text-amber-500 font-bold block uppercase tracking-widest mb-1">Historical Context:</span>
+                    <p className="text-[11px] leading-relaxed opacity-85 italic">
+                      {currentSurah.birdsEyeView.historicalContext}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Theological Cruxes */}
+              <div className="lg:col-span-5">
+                <div className={`p-5 rounded-2xl border ${innerCardBgClass} space-y-3 h-full`}>
+                  <div className="flex items-center gap-2 border-b border-current/5 pb-2">
+                    <Sparkles className={`w-4 h-4 ${fontColorThemeText}`} />
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-current">Theological Significations & Cruxes</h4>
+                  </div>
+                  <ul className="space-y-3">
+                    {currentSurah.birdsEyeView.theologicalSignificance.map((point, index) => (
+                      <li key={index} className="flex gap-2.5 items-start">
+                        <span className={`w-4 h-4 rounded-full border flex items-center justify-center text-[9px] font-mono font-bold shrink-0 mt-0.5 ${badgeThemeBg}`}>
+                          {index + 1}
+                        </span>
+                        <span className="text-[11px] leading-relaxed opacity-90">
+                          {point}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* C. COMPLETE SURAH REFERENCE AND READOUT */}
+            <div className={`p-5 rounded-2xl border ${innerCardBgClass} space-y-6`}>
+              <div className="flex items-center justify-between border-b border-current/5 pb-3">
+                <div className="flex items-center gap-2">
+                  <BookOpen className={`w-4 h-4 ${fontColorThemeText}`} />
+                  <span className="text-xs font-bold uppercase tracking-wider text-current">Complete Surah Text & Translations</span>
+                </div>
+                <span className="text-[10px] font-mono opacity-50 uppercase">RTL Contextual Layout</span>
+              </div>
+
+              <div className="space-y-5 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                {currentSurah.verses.map((v) => (
+                  <div key={v.number} className="pb-4 border-b border-current/5 last:border-0 last:pb-0 space-y-2">
+                    {/* Arabic verse right aligned - big beautiful typography */}
+                    <div className="flex flex-row-reverse items-start gap-4">
+                      {/* Verse badge in circle */}
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full border border-current/10 shrink-0 text-amber-500 font-serif font-black text-sm text-center">
+                        {v.number}
+                      </div>
+                      
+                      {/* Arabic text */}
+                      <p className="text-2xl font-serif font-black text-current tracking-wide leading-loose select-all text-right w-full" style={{ direction: 'rtl' }}>
+                        {v.arabic}
+                      </p>
+                    </div>
+                    
+                    {/* Transliteration and English left aligned */}
+                    <div className="pl-12 space-y-1">
+                      <p className="text-[10px] font-mono font-semibold text-amber-600/90 italic">
+                        {v.transliteration}
+                      </p>
+                      <p className="text-xs opacity-90 leading-relaxed">
+                        {v.translation}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* D. DISTINCT ROOTS & WORD FAMILY MATRIX */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                <h4 className="text-xs font-bold uppercase tracking-widest text-[#0ea5e9]">
+                  Lexical Root Family Analysis (المفردات وجذورها)
+                </h4>
+              </div>
+              <p className="text-xs opacity-90 leading-relaxed">
+                Every derived noun and verb in the Quran has a 3-letter (triliteral) root family. Select a root below to trace how its raw meaning is augmented into the distinct words seen in this Surah!
+              </p>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                {/* Left Hand: Roots selectors */}
+                <div className="lg:col-span-4 space-y-2.5">
+                  <span className="text-[10px] font-mono opacity-50 uppercase block font-bold pl-1">Roots Present in Surah:</span>
+                  <div className="grid grid-cols-2 lg:grid-cols-1 gap-2.5">
+                    {currentSurah.roots.map((r) => {
+                      const isSel = r.letters === activeRoot.letters;
+                      return (
+                        <button
+                          key={r.letters}
+                          onClick={() => setSelectedRootLetters(r.letters)}
+                          className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
+                            isSel
+                              ? (isParchment ? 'bg-[#ebd8c3]/40 border-[#8c6239] shadow-inner' : isCosmic ? 'bg-indigo-950/65 border-indigo-500 text-indigo-300 shadow-inner' : 'bg-emerald-950/40 border-emerald-500 text-emerald-300 shadow-inner')
+                              : 'bg-transparent border-current/10 hover:bg-current/5'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between pointer-events-none">
+                            <span className="text-base font-serif font-black text-amber-500 mr-2 tracking-wider">
+                              {r.letters}
+                            </span>
+                            <span className="text-[9px] font-mono opacity-50 font-bold">
+                              {r.derivedWords.length} Form{r.derivedWords.length > 1 ? 's' : ''}
+                            </span>
+                          </div>
+                          <div className="text-[11px] font-medium opacity-85 truncate mt-1 pointer-events-none">
+                            {r.meaning.split(',')[0]}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Right Hand: Root detail explanation and derived words table */}
+                <div className="lg:col-span-8">
+                  <div className={`p-5 rounded-2xl border ${innerCardBgClass} space-y-5 h-full flex flex-col justify-between`}>
+                    <div className="space-y-4">
+                      {/* Header with big root showcase */}
+                      <div className="flex items-center justify-between border-b border-current/5 pb-3">
+                        <div>
+                          <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400 block mb-0.5">Selected Core Root:</span>
+                          <div className="flex flex-wrap items-center gap-3">
+                            <h5 className="text-2xl font-serif font-black text-[#8c6239] dark:text-amber-500 tracking-widest">
+                              {activeRoot.letters}
+                            </h5>
+                            <span className="text-xs font-semibold opacity-90">
+                              - {activeRoot.meaning}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <span className="text-[10px] font-mono opacity-50 font-bold uppercase shrink-0">
+                          Triliteral Arabic Root
+                        </span>
+                      </div>
+
+                      {/* Derived Words List representing academic details */}
+                      <div className="space-y-4">
+                        <span className="text-[10px] font-mono opacity-50 uppercase block font-bold pl-1">Derived Words present in this Surah:</span>
+                        
+                        <div className="grid grid-cols-1 gap-4">
+                          {activeRoot.derivedWords.map((word, idx) => (
+                            <div 
+                              key={idx} 
+                              className={`p-4 rounded-xl border ${isParchment ? 'bg-white border-[#ebdcc3]' : 'bg-black/35 border-current/10'} space-y-3`}
+                            >
+                              <div className="flex items-center justify-between border-b border-current/5 pb-2">
+                                <div className="flex items-baseline gap-2">
+                                  <span className="text-2xl font-serif font-black text-emerald-500 tracking-wide">
+                                    {word.arabic}
+                                  </span>
+                                  <span className="text-xs font-mono font-bold text-amber-500">
+                                    / {word.transliteration} /
+                                  </span>
+                                </div>
+
+                                <span className={`px-2 py-0.5 rounded text-[8.5px] font-mono font-bold border ${badgeThemeBg}`}>
+                                  {word.verseIndex}
+                                </span>
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 pt-0.5 text-[11px] leading-relaxed">
+                                <div className="md:col-span-4">
+                                  <span className="text-[9px] font-mono opacity-50 uppercase block">Contextual Meaning:</span>
+                                  <strong className="text-current">{word.meaning}</strong>
+                                </div>
+                                <div className="md:col-span-8">
+                                  <span className="text-[9px] font-mono opacity-50 uppercase block">Morphological Synthesis (Augmentation):</span>
+                                  <p className="opacity-90">{word.morphologyBreakdown}</p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-current/5 text-[10px] italic opacity-60">
+                      * Clicking a different root folder on the left dynamically computes the corresponding morphological augmentations and verse offsets.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* E. HURUF (PARTICLES) PANEL INDEX */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                <h4 className="text-xs font-bold uppercase tracking-widest text-pink-500">
+                  Particles & Connectors (الحُرُوف - Al-Ḥurūf) Index
+                </h4>
+              </div>
+              <p className="text-xs opacity-90 leading-relaxed">
+                Unlike nouns or verbs, a **Harf (Particle)** does not carry a standalone meaning unless coupled with other words. Yet, they govern the sentence structure, coordinate actions, and force cases (such as prepositions driving nouns to Genitive).
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {currentSurah.huruf.map((h) => (
+                  <div 
+                    key={h.arabic}
+                    className={`p-4 rounded-xl border ${innerCardBgClass} flex flex-col justify-between space-y-4`}
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between border-b border-current/5 pb-2">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-2xl font-serif font-black text-pink-500">
+                            {h.arabic}
+                          </span>
+                          <span className="text-xs font-mono font-bold text-slate-450">
+                            / {h.transliteration} /
+                          </span>
+                        </div>
+                        
+                        <span className={`px-2 py-0.5 rounded text-[8.5px] font-mono font-bold border ${badgeThemeBg}`}>
+                          {h.classification}
+                        </span>
+                      </div>
+
+                      <div className="text-[11px] leading-relaxed">
+                        <span className="text-[9px] font-mono opacity-50 uppercase block">Functional Lexical Meaning:</span>
+                        <strong className="text-current text-[11.5px]">{h.meaning}</strong>
+                      </div>
+                    </div>
+
+                    {/* Examples in Surah Box */}
+                    <div className="space-y-2 pt-2 border-t border-current/5">
+                      <span className="text-[9px] font-mono opacity-50 uppercase block font-bold pl-1">Occurrence & Structural Impact:</span>
+                      
+                      {h.examples.map((item, idx) => (
+                        <div key={idx} className="p-2.5 rounded-lg bg-black/15 border border-current/5 space-y-1.5 text-[10.5px]">
+                          <div className="flex justify-between items-center flex-row-reverse" style={{ direction: 'rtl' }}>
+                            <span className="font-serif font-black text-sm text-current">{item.arabicPhrase}</span>
+                            <span className="font-sans text-[10px] opacity-85" style={{ direction: 'ltr' }}>"{item.translationPhrase}"</span>
+                          </div>
+                          
+                          <p className="text-[10px] text-slate-400 italic leading-relaxed pt-1 border-t border-current/5">
+                            <strong className="text-pink-400">Grammar Effect:</strong> {item.grammaticalEffect}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </div>
         );
       })()}
