@@ -252,7 +252,7 @@ app.post("/api/translate-root-words", async (req: express.Request, res: express.
       return res.status(500).json({ error: "GEMINI_API_KEY is not configured and no custom key was provided." });
     }
 
-    let selectedModel = "gemini-3.5-flash";
+    let selectedModel = "gemini-2.5-flash";
 
     const wordsList = words.join(", ");
     
@@ -265,39 +265,52 @@ For each word, provide its English translation and determine if this specific de
 Provide the output in strict JSON format.
     `;
 
-    const response = await activeAi.models.generateContent({
-      model: selectedModel,
-      contents: queryPrompt,
-      config: {
-        systemInstruction: "You translate Arabic roots and derived Quranic vocabulary accurately into English.",
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            rootMeaning: {
-              type: Type.STRING,
-              description: "The core semantic meaning of the Root."
-            },
-            translations: {
-              type: Type.ARRAY,
-              description: "A list of translations for each Arabic word, including whether the word technically exists.",
-              items: {
-                 type: Type.OBJECT,
-                 properties: {
-                    word: { type: Type.STRING, description: "The Arabic word provided" },
-                    meaning: { type: Type.STRING, description: "English translation or literal meaning" },
-                    exists: { type: Type.BOOLEAN, description: "True if used in Classical/Standard Arabic, false if it is merely a theoretical pattern." }
-                 },
-                 required: ["word", "meaning", "exists"]
-              }
+    let response;
+    let retries = 3;
+    let delay = 1000;
+    while (retries > 0) {
+      try {
+        response = await activeAi.models.generateContent({
+          model: selectedModel,
+          contents: queryPrompt,
+          config: {
+            systemInstruction: "You translate Arabic roots and derived Quranic vocabulary accurately into English.",
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                rootMeaning: {
+                  type: Type.STRING,
+                  description: "The core semantic meaning of the Root."
+                },
+                translations: {
+                  type: Type.ARRAY,
+                  description: "A list of translations for each Arabic word, including whether the word technically exists.",
+                  items: {
+                     type: Type.OBJECT,
+                     properties: {
+                        word: { type: Type.STRING, description: "The Arabic word provided" },
+                        meaning: { type: Type.STRING, description: "English translation or literal meaning" },
+                        exists: { type: Type.BOOLEAN, description: "True if used in Classical/Standard Arabic, false if it is merely a theoretical pattern." }
+                     },
+                     required: ["word", "meaning", "exists"]
+                  }
+                }
+              },
+              required: ["rootMeaning", "translations"]
             }
-          },
-          required: ["rootMeaning", "translations"]
-        }
+          }
+        });
+        break;
+      } catch (e: any) {
+        retries--;
+        if (retries === 0) throw e;
+        await new Promise(r => setTimeout(r, delay));
+        delay *= 2;
       }
-    });
+    }
 
-    const textContent = response.text || "{}";
+    const textContent = response?.text || "{}";
     const result = JSON.parse(textContent);
 
     res.json(result);
@@ -327,11 +340,11 @@ app.post("/api/breakdown-verse", async (req: express.Request, res: express.Respo
       return res.status(500).json({ error: "GEMINI_API_KEY is not configured and no custom key was provided." });
     }
 
-    const selectedModel = "gemini-3.5-flash";
+    const selectedModel = "gemini-2.5-flash";
 
     const queryPrompt = `
-Analyze the Quranic verse specified: Surah: "${surah}", Verse: "${verse}".
-Perform a detailed word-by-word morphological analysis of all words in the specified verse.
+Analyze the Quranic verse(s) specified: Surah: "${surah}", Verse(s): "${verse}".
+Perform a detailed word-by-word morphological analysis of all words in the specified verse(s). If a range is provided, analyze all words consecutively across all verses in one unified sequential list.
 
 For each word token:
 1. Provide the actual Arabic word with complete harakat (e.g., "الْحَمْدُ" or "ٱلَّذِينَ").
@@ -342,49 +355,62 @@ For each word token:
 6. Provide the context-specific English meaning of this specific word of the verse.
 7. Provide a concise explanation (in English) as to why the word has this classification (e.g., "Active participle representing of the root...", "Preposition particle denoting place", "Definite noun representing absolute praise").
 
-Ensure the words are returned in the exact sequential reading order of the verse.
+Ensure the words are returned in the exact sequential reading order of the verse(s).
 Output strictly in JSON format.
     `;
 
-    const response = await activeAi.models.generateContent({
-      model: selectedModel,
-      contents: queryPrompt,
-      config: {
-        systemInstruction: "You are a world-class scholar in Quranic Linguistics, Sarf (morphology), and syntax who performs precise, sequential word-by-word morphological segmentations of Quranic verses into JSON.",
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            surahName: { type: Type.STRING, description: "Official English transliterated name of the Surah" },
-            surahNumber: { type: Type.INTEGER, description: "The surah index number" },
-            verseNumber: { type: Type.INTEGER, description: "The verse index number" },
-            fullVerseArabic: { type: Type.STRING, description: "The entire Arabic text of the verse with complete vocalization/tashkeel" },
-            fullVerseTranslation: { type: Type.STRING, description: "A high-quality English translation of the entire verse" },
-            words: {
-              type: Type.ARRAY,
-              description: "Array of parsed tokens in correct sequential order",
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  word: { type: Type.STRING, description: "The original Arabic word token with full harakat" },
-                  transliteration: { type: Type.STRING, description: "Romanized spelling of the token" },
-                  isIsmFail: { type: Type.BOOLEAN, description: "True if grammatical profile is Ism Fā'il (active participle)" },
-                  isHarf: { type: Type.BOOLEAN, description: "True if the word is a Harf / Particle" },
-                  wordType: { type: Type.STRING, description: "Categorized as 'Ism', 'Fi'l', or 'Harf'" },
-                  root: { type: Type.STRING, description: "3 or 4 letter Arabic root (e.g. 'س - ج - د') or 'None'" },
-                  meaning: { type: Type.STRING, description: "English context meaning of this term in the verse" },
-                  explanation: { type: Type.STRING, description: "Linguistic explanation of its form and pattern" }
-                },
-                required: ["word", "transliteration", "isIsmFail", "isHarf", "wordType", "root", "meaning", "explanation"]
-              }
+    let response;
+    let retries = 3;
+    let delay = 1000;
+    while (retries > 0) {
+      try {
+        response = await activeAi.models.generateContent({
+          model: selectedModel,
+          contents: queryPrompt,
+          config: {
+            systemInstruction: "You are a world-class scholar in Quranic Linguistics, Sarf (morphology), and syntax who performs precise, sequential word-by-word morphological segmentations of Quranic verses into JSON.",
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                surahName: { type: Type.STRING, description: "Official English transliterated name of the Surah" },
+                surahNumber: { type: Type.INTEGER, description: "The surah index number" },
+                verseNumber: { type: Type.INTEGER, description: "The verse index number" },
+                fullVerseArabic: { type: Type.STRING, description: "The entire Arabic text of the verse with complete vocalization/tashkeel" },
+                fullVerseTranslation: { type: Type.STRING, description: "A high-quality English translation of the entire verse" },
+                words: {
+                  type: Type.ARRAY,
+                  description: "Array of parsed tokens in correct sequential order",
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      word: { type: Type.STRING, description: "The original Arabic word token with full harakat" },
+                      transliteration: { type: Type.STRING, description: "Romanized spelling of the token" },
+                      isIsmFail: { type: Type.BOOLEAN, description: "True if grammatical profile is Ism Fā'il (active participle)" },
+                      isHarf: { type: Type.BOOLEAN, description: "True if the word is a Harf / Particle" },
+                      wordType: { type: Type.STRING, description: "Categorized as 'Ism', 'Fi'l', or 'Harf'" },
+                      root: { type: Type.STRING, description: "3 or 4 letter Arabic root (e.g. 'س - ج - د') or 'None'" },
+                      meaning: { type: Type.STRING, description: "English context meaning of this term in the verse" },
+                      explanation: { type: Type.STRING, description: "Linguistic explanation of its form and pattern" }
+                    },
+                    required: ["word", "transliteration", "isIsmFail", "isHarf", "wordType", "root", "meaning", "explanation"]
+                  }
+                }
+              },
+              required: ["surahName", "surahNumber", "verseNumber", "fullVerseArabic", "fullVerseTranslation", "words"]
             }
-          },
-          required: ["surahName", "surahNumber", "verseNumber", "fullVerseArabic", "fullVerseTranslation", "words"]
-        }
+          }
+        });
+        break; // Success
+      } catch (e: any) {
+        retries--;
+        if (retries === 0) throw e;
+        await new Promise(r => setTimeout(r, delay));
+        delay *= 2; // exponential backoff
       }
-    });
+    }
 
-    const textContent = response.text || "{}";
+    const textContent = response?.text || "{}";
     const result = JSON.parse(textContent);
     res.json(result);
   } catch (error: any) {

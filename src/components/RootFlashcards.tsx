@@ -550,6 +550,26 @@ export default function RootFlashcards({ theme, onSelectWord }: RootFlashcardsPr
   // Keep track of session score
   const [streak, setStreak] = useState<number>(0);
 
+  // Sync state on cache import
+  useEffect(() => {
+    const handleDataImport = () => {
+      try {
+        const storedMastered = localStorage.getItem('quranic_arabic_master_flashcards');
+        if (storedMastered) setMasteredIds(JSON.parse(storedMastered));
+        
+        const storedReviewed = localStorage.getItem('quranic_arabic_reviewed_flashcards');
+        if (storedReviewed) setReviewedIds(JSON.parse(storedReviewed));
+      } catch (e) {
+        console.error('Failed to reload flashcard data after import:', e);
+      }
+    };
+    
+    window.addEventListener('quranic_arabic_data_imported', handleDataImport);
+    return () => {
+      window.removeEventListener('quranic_arabic_data_imported', handleDataImport);
+    };
+  }, []);
+
   // Sync Mastered card IDs to localStorage
   useEffect(() => {
     try {

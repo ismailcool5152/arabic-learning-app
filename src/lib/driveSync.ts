@@ -105,7 +105,7 @@ export const backupToDrive = async () => {
 
 export const restoreFromDrive = async () => {
     const confirmed = window.confirm(
-       `Are you sure you want to restore from Drive? This will overwrite existing locally cached translations with the backup data.`
+       `Are you sure you want to restore from Drive? This will safely merge all backed-up offline aayat, translations, maps, and flashcard progress to your local device.`
     );
     if (!confirmed) return false;
 

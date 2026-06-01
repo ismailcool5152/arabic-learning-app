@@ -264,16 +264,30 @@ export default function App() {
     }
   };
 
-  // Load saved mind maps on mount
+  // Load saved data and listen to cache import events
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('quranic_arabic_saved_maps');
-      if (stored) {
-        setSavedMaps(JSON.parse(stored));
+    const loadSavedData = () => {
+      try {
+        const storedMaps = localStorage.getItem('quranic_arabic_saved_maps');
+        if (storedMaps) {
+          setSavedMaps(JSON.parse(storedMaps));
+        }
+        
+        const storedSearches = localStorage.getItem('quranic_arabic_recent_searches');
+        if (storedSearches) {
+           setRecentSearches(JSON.parse(storedSearches));
+        }
+      } catch (e) {
+        console.error("Failed to load saved data from local storage:", e);
       }
-    } catch (e) {
-      console.error("Failed to load saved maps from local storage:", e);
-    }
+    };
+
+    loadSavedData();
+
+    window.addEventListener('quranic_arabic_data_imported', loadSavedData);
+    return () => {
+      window.removeEventListener('quranic_arabic_data_imported', loadSavedData);
+    };
   }, []);
 
   // Save map state whenever it changes

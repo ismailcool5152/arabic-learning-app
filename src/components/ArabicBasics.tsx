@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { LayoutTheme } from '../types';
 import { SURAH_DATABASE } from './surahData';
+import { AudioPlayButton } from './AudioPlayButton';
 import { 
   BookOpen, 
   Sparkles, 
@@ -813,6 +814,7 @@ export default function ArabicBasics({ theme }: ArabicBasicsProps) {
   // States for Surah Summary section
   const [selectedSurahId, setSelectedSurahId] = useState<string>('fatihah');
   const [selectedRootLetters, setSelectedRootLetters] = useState<string>('ح - م - د');
+  const [visibleVersesCount, setVisibleVersesCount] = useState<number>(3);
 
   const sandboxRoots = [
     { label: "ك - ت - ب (Prescribing / Writing)", letters: ['ك', 'ت', 'ب'], mean: "to write / prescribe" },
@@ -1102,9 +1104,12 @@ export default function ArabicBasics({ theme }: ArabicBasicsProps) {
                 <span className="text-[9px] font-mono font-bold uppercase opacity-65 block">Lexicon Instances:</span>
                 <div className="grid grid-cols-2 gap-2">
                   {part.examples.slice(0, 4).map((ex, idx) => (
-                    <div key={idx} className="text-right p-1.5 rounded bg-black/10 border border-current/5">
-                      <div className="text-sm font-serif font-black text-amber-500 overflow-hidden text-ellipsis whitespace-nowrap" dir="rtl">{ex.arabic}</div>
-                      <div className="text-[9px] font-mono text-left block opacity-60">{ex.transliteration}</div>
+                    <div key={idx} className="text-right p-1.5 rounded bg-black/10 border border-current/5 relative">
+                      <div className="absolute top-1 left-1">
+                        <AudioPlayButton text={ex.arabic} isParchment={isParchment} />
+                      </div>
+                      <div className="text-sm font-serif font-black text-amber-500 overflow-hidden text-ellipsis whitespace-nowrap pl-5 mt-3" dir="rtl">{ex.arabic}</div>
+                      <div className="text-[9px] font-mono text-left block opacity-60 mt-0.5">{ex.transliteration}</div>
                       <div className="text-[8.5px] text-left block font-sans font-medium opacity-80">{ex.english}</div>
                     </div>
                   ))}
@@ -1194,7 +1199,10 @@ export default function ArabicBasics({ theme }: ArabicBasicsProps) {
             </div>
 
             {/* Translation and Pronunciation */}
-            <div className="text-[11px] space-y-1 pl-2">
+            <div className="text-[11px] space-y-1 pl-2 relative">
+              <div className="absolute right-0 top-0">
+                <AudioPlayButton text={interactiveSentences[activeSentenceId].words.map(w => w.arabic).join(' ')} isParchment={isParchment} />
+              </div>
               <div className="flex items-center gap-2">
                 <span className="font-mono text-slate-500">Transliteration:</span>
                 <span className="font-mono font-bold text-yellow-500">{interactiveSentences[activeSentenceId].transliteration}</span>
@@ -1434,8 +1442,11 @@ export default function ArabicBasics({ theme }: ArabicBasicsProps) {
 
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
                     {/* Verse Quote */}
-                    <div className="md:col-span-8 space-y-3 text-right" style={{ direction: 'rtl' }}>
-                      <span className="text-2xl font-serif font-black text-current leading-relaxed block tracking-wide">
+                    <div className="md:col-span-8 space-y-3 text-right relative" style={{ direction: 'rtl' }}>
+                      <div className="absolute top-0 right-0 z-10" style={{ direction: 'ltr' }}>
+                        <AudioPlayButton text={nounDetail.quranicExample.verse.split(' — ')[1]} isParchment={isParchment} />
+                      </div>
+                      <span className="text-2xl font-serif font-black text-current leading-relaxed block tracking-wide pr-10">
                         {nounDetail.quranicExample.verse.split(' — ')[1]}
                       </span>
                       <div className="text-left font-mono text-[9px] text-slate-400 uppercase tracking-widest leading-relaxed mt-1" style={{ direction: 'ltr' }}>
@@ -1754,47 +1765,67 @@ export default function ArabicBasics({ theme }: ArabicBasicsProps) {
                   {/* Conjugation outputs */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
                     {/* PAST OUTPUT */}
-                    <div className={`p-3.5 rounded-xl border flex items-center justify-between gap-4 ${isParchment ? 'bg-white' : 'bg-black/25'} border-current/5`}>
-                      <div className="space-y-0.5">
+                    <div className={`p-3.5 rounded-xl border flex items-center justify-between gap-4 ${isParchment ? 'bg-white' : 'bg-black/25'} border-current/5 relative overflow-hidden`}>
+                      <div className="space-y-0.5 mt-4">
                         <span className="text-[8px] font-mono opacity-40 uppercase tracking-widest block font-bold">Past Tense (He ...)</span>
                         <span className="text-xs font-bold text-amber-500 block font-mono">{sandboxConjugation.pastTranslit}</span>
                       </div>
-                      <span className="text-2xl font-serif font-black tracking-wide text-current">
-                        {sandboxConjugation.past}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl font-serif font-black tracking-wide text-current">
+                          {sandboxConjugation.past}
+                        </span>
+                      </div>
+                      <div className="absolute top-0 right-0 opacity-80 scale-90">
+                        <AudioPlayButton text={sandboxConjugation.past} isParchment={isParchment} />
+                      </div>
                     </div>
 
                     {/* PRESENT OUTPUT */}
-                    <div className={`p-3.5 rounded-xl border flex items-center justify-between gap-4 ${isParchment ? 'bg-white' : 'bg-black/25'} border-current/5`}>
-                      <div className="space-y-0.5">
+                    <div className={`p-3.5 rounded-xl border flex items-center justify-between gap-4 ${isParchment ? 'bg-white' : 'bg-black/25'} border-current/5 relative overflow-hidden`}>
+                      <div className="space-y-0.5 mt-4">
                         <span className="text-[8px] font-mono opacity-40 uppercase tracking-widest block font-bold">Present Tense (He ...)</span>
                         <span className="text-xs font-bold text-amber-500 block font-mono">{sandboxConjugation.presentTranslit}</span>
                       </div>
-                      <span className="text-2xl font-serif font-black tracking-wide text-current">
-                        {sandboxConjugation.present}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl font-serif font-black tracking-wide text-current">
+                          {sandboxConjugation.present}
+                        </span>
+                      </div>
+                      <div className="absolute top-0 right-0 opacity-80 scale-90">
+                        <AudioPlayButton text={sandboxConjugation.present} isParchment={isParchment} />
+                      </div>
                     </div>
 
                     {/* ACT_PART OUTPUT */}
-                    <div className={`p-3.5 rounded-xl border flex items-center justify-between gap-4 ${isParchment ? 'bg-white' : 'bg-black/25'} border-current/5`}>
-                      <div className="space-y-0.5">
+                    <div className={`p-3.5 rounded-xl border flex items-center justify-between gap-4 ${isParchment ? 'bg-white' : 'bg-black/25'} border-current/5 relative overflow-hidden`}>
+                      <div className="space-y-0.5 mt-4">
                         <span className="text-[8px] font-mono opacity-40 uppercase tracking-widest block font-bold">Acting Agent (Ism Fa’il)</span>
                         <span className="text-xs font-bold text-emerald-500 block font-mono">{sandboxConjugation.participleTranslit}</span>
                       </div>
-                      <span className="text-2xl font-serif font-black tracking-wide text-amber-500">
-                        {sandboxConjugation.participle}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl font-serif font-black tracking-wide text-amber-500">
+                          {sandboxConjugation.participle}
+                        </span>
+                      </div>
+                      <div className="absolute top-0 right-0 opacity-80 scale-90">
+                        <AudioPlayButton text={sandboxConjugation.participle} isParchment={isParchment} />
+                      </div>
                     </div>
 
                     {/* MASDAR OUTPUT */}
-                    <div className={`p-3.5 rounded-xl border flex items-center justify-between gap-4 ${isParchment ? 'bg-white' : 'bg-black/25'} border-current/5`}>
-                      <div className="space-y-0.5">
+                    <div className={`p-3.5 rounded-xl border flex items-center justify-between gap-4 ${isParchment ? 'bg-white' : 'bg-black/25'} border-current/5 relative overflow-hidden`}>
+                      <div className="space-y-0.5 mt-4">
                         <span className="text-[8px] font-mono opacity-40 uppercase tracking-widest block font-bold">Verbal Noun (The Act of...)</span>
                         <span className="text-xs font-bold text-amber-500 block font-mono">{sandboxConjugation.masdarTranslit}</span>
                       </div>
-                      <span className="text-2xl font-serif font-black tracking-wide text-current">
-                        {sandboxConjugation.masdar}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl font-serif font-black tracking-wide text-current">
+                          {sandboxConjugation.masdar}
+                        </span>
+                      </div>
+                      <div className="absolute top-0 right-0 opacity-80 scale-90">
+                        <AudioPlayButton text={sandboxConjugation.masdar} isParchment={isParchment} />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1896,6 +1927,7 @@ export default function ArabicBasics({ theme }: ArabicBasicsProps) {
                       onClick={() => {
                         setSelectedSurahId(surah.id);
                         setSelectedRootLetters(surah.roots[0].letters); // Auto-focus first root on switch!
+                        setVisibleVersesCount(3); // Reset visible ayaat count
                       }}
                       className={`p-4 rounded-xl border text-left cursor-pointer transition-all ${
                         isSelected
@@ -1985,18 +2017,21 @@ export default function ArabicBasics({ theme }: ArabicBasicsProps) {
                 <span className="text-[10px] font-mono opacity-50 uppercase">RTL Contextual Layout</span>
               </div>
 
-              <div className="space-y-5 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
-                {currentSurah.verses.map((v) => (
+              <div className="space-y-5 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
+                {currentSurah.verses.slice(0, visibleVersesCount).map((v) => (
                   <div key={v.number} className="pb-4 border-b border-current/5 last:border-0 last:pb-0 space-y-2">
                     {/* Arabic verse right aligned - big beautiful typography */}
                     <div className="flex flex-row-reverse items-start gap-4">
-                      {/* Verse badge in circle */}
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full border border-current/10 shrink-0 text-amber-500 font-serif font-black text-sm text-center">
-                        {v.number}
+                      {/* Verse badge and Audio */}
+                      <div className="flex flex-col items-center gap-2 shrink-0">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full border border-current/10 text-amber-500 font-serif font-black text-sm text-center">
+                          {v.number}
+                        </div>
+                        <AudioPlayButton text={v.arabic} isParchment={isParchment} />
                       </div>
                       
                       {/* Arabic text */}
-                      <p className="text-2xl font-serif font-black text-current tracking-wide leading-loose select-all text-right w-full" style={{ direction: 'rtl' }}>
+                      <p className="text-2xl font-serif font-black text-current tracking-wide leading-loose select-all text-right w-full pt-1" style={{ direction: 'rtl' }}>
                         {v.arabic}
                       </p>
                     </div>
@@ -2012,6 +2047,23 @@ export default function ArabicBasics({ theme }: ArabicBasicsProps) {
                     </div>
                   </div>
                 ))}
+
+                {visibleVersesCount < currentSurah.verses.length && (
+                  <div className="pt-2 flex justify-center pb-2">
+                    <button
+                      onClick={() => setVisibleVersesCount(prev => prev + 5)}
+                      className={`px-4 py-2 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all ${
+                        isParchment 
+                          ? 'bg-[#ebd8c3]/40 border-[#8c6239] text-[#8c6239] hover:bg-[#ebd8c3]' 
+                          : isCosmic
+                            ? 'bg-indigo-950/40 border-indigo-500/50 text-indigo-300 hover:bg-indigo-900/60'
+                            : 'bg-emerald-950/30 border-emerald-500/50 text-emerald-400 hover:bg-emerald-900/50'
+                      }`}
+                    >
+                      Load More Aayat
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -2095,13 +2147,16 @@ export default function ArabicBasics({ theme }: ArabicBasicsProps) {
                               className={`p-4 rounded-xl border ${isParchment ? 'bg-white border-[#ebdcc3]' : 'bg-black/35 border-current/10'} space-y-3`}
                             >
                               <div className="flex items-center justify-between border-b border-current/5 pb-2">
-                                <div className="flex items-baseline gap-2">
-                                  <span className="text-2xl font-serif font-black text-emerald-500 tracking-wide">
-                                    {word.arabic}
-                                  </span>
-                                  <span className="text-xs font-mono font-bold text-amber-500">
-                                    / {word.transliteration} /
-                                  </span>
+                                <div className="flex items-center gap-3">
+                                  <div className="flex items-baseline gap-2">
+                                    <span className="text-2xl font-serif font-black text-emerald-500 tracking-wide">
+                                      {word.arabic}
+                                    </span>
+                                    <span className="text-xs font-mono font-bold text-amber-500 mt-1">
+                                      / {word.transliteration} /
+                                    </span>
+                                  </div>
+                                  <AudioPlayButton text={word.arabic} isParchment={isParchment} />
                                 </div>
 
                                 <span className={`px-2 py-0.5 rounded text-[8.5px] font-mono font-bold border ${badgeThemeBg}`}>
@@ -2153,13 +2208,16 @@ export default function ArabicBasics({ theme }: ArabicBasicsProps) {
                   >
                     <div className="space-y-2">
                       <div className="flex items-center justify-between border-b border-current/5 pb-2">
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-2xl font-serif font-black text-pink-500">
-                            {h.arabic}
-                          </span>
-                          <span className="text-xs font-mono font-bold text-slate-450">
-                            / {h.transliteration} /
-                          </span>
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-2xl font-serif font-black text-pink-500">
+                              {h.arabic}
+                            </span>
+                            <span className="text-xs font-mono font-bold text-slate-450 mt-1">
+                              / {h.transliteration} /
+                            </span>
+                          </div>
+                          <AudioPlayButton text={h.arabic} isParchment={isParchment} />
                         </div>
                         
                         <span className={`px-2 py-0.5 rounded text-[8.5px] font-mono font-bold border ${badgeThemeBg}`}>

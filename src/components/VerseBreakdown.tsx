@@ -335,6 +335,7 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
   const [selectedPresetId, setSelectedPresetId] = useState<string>('2:255');
   const [customSurah, setCustomSurah] = useState<string>('');
   const [customVerse, setCustomVerse] = useState<string>('');
+  const [customEndVerse, setCustomEndVerse] = useState<string>('');
   
   // Offline-saved custom verses from localStorage
   const [offlineSavedVerses, setOfflineSavedVerses] = useState<Record<string, VerseBreakdownData>>(() => {
@@ -346,6 +347,24 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
       return {};
     }
   });
+
+  useEffect(() => {
+    const handleDataImport = () => {
+      try {
+        const stored = localStorage.getItem('offline_saved_verses');
+        if (stored) {
+          setOfflineSavedVerses(JSON.parse(stored));
+        }
+      } catch (e) {
+        console.error('Failed to reload offline saved verses after import:', e);
+      }
+    };
+    
+    window.addEventListener('quranic_arabic_data_imported', handleDataImport);
+    return () => {
+      window.removeEventListener('quranic_arabic_data_imported', handleDataImport);
+    };
+  }, []);
 
   // App state
   const [isSearching, setIsSearching] = useState(false);
@@ -479,11 +498,28 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
       const currentVal = parseInt(customVerse, 10);
       if (isNaN(currentVal) || currentVal < 1 || currentVal > matchedSurah.totalVerses) {
         setCustomVerse('1'); // Automatically select Verse 1 as default safe step
+        setCustomEndVerse('1');
       }
     } else {
       setCustomVerse('');
+      setCustomEndVerse('');
     }
   }, [matchedSurah]);
+
+  // Keep customEndVerse in valid range (max 5 ayaat)
+  useEffect(() => {
+    const start = parseInt(customVerse, 10);
+    const end = parseInt(customEndVerse, 10);
+    if (!isNaN(start) && matchedSurah) {
+      if (isNaN(end) || end < start) {
+        setCustomEndVerse(start.toString());
+      } else if (end - start > 4) {
+        setCustomEndVerse((start + 4).toString());
+      } else if (end > matchedSurah.totalVerses) {
+        setCustomEndVerse(matchedSurah.totalVerses.toString());
+      }
+    }
+  }, [customVerse, customEndVerse, matchedSurah]);
 
   // Load preset or offline saved verse initially
   useEffect(() => {
@@ -502,8 +538,16 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
       setErrorMessage('Please type a valid Surah number or name (e.g. "112" or "Al-Ikhlas") first.');
       return;
     }
+    // LOCAL OFFLINE ADVANTAGE: Check if this is already cached in our offline registry!
     const sQuery = matchedSurah.number.toString();
-    const vQuery = customVerse.trim() || '1';
+    let vQuery = customVerse.trim() || '1';
+    
+    // Check if endVerse is different from startVerse
+    const startNum = parseInt(customVerse, 10);
+    const endNum = parseInt(customEndVerse, 10);
+    if (!isNaN(startNum) && !isNaN(endNum) && endNum > startNum) {
+      vQuery = `${startNum}-${endNum}`;
+    }
 
     const cacheKey = `${sQuery}:${vQuery}`;
 
@@ -706,38 +750,77 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
               </div>
 
               {/* Dynamic Ayat / Verse Dropdown Selector */}
-              <div>
-                <label className="block text-[10px] font-bold font-mono tracking-wider opacity-60 uppercase mb-1">
-                  Verse Selection (Ayat No.)
-                </label>
-                {matchedSurah ? (
-                  <select
-                    value={customVerse}
-                    onChange={(e) => setCustomVerse(e.target.value)}
-                    className={`w-full text-xs rounded-xl py-2 px-3 focus:outline-none border bg-black/5 ${colors.hoverPill}`}
-                    required
-                  >
-                    {Array.from({ length: matchedSurah.totalVerses }, (_, idx) => idx + 1).map((v) => (
-                      <option 
-                        key={v} 
-                        value={v.toString()}
-                        className={isParchment ? 'text-[#2c241e]' : 'text-slate-900'}
-                      >
-                        Ayat {v} of {matchedSurah.totalVerses}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <input
-                    type="text"
-                    disabled
-                    placeholder="Provide a valid Surah first..."
-                    className="w-full text-xs rounded-xl py-2 px-3 opacity-50 border bg-black/10 cursor-not-allowed"
-                  />
-                )}
-                <p className="text-[10px] opacity-45 mt-1">
-                   Allows selection only for valid verses in {matchedSurah ? matchedSurah.transliteration : 'selected Surah'}
-                </p>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[10px] font-bold font-mono tracking-wider opacity-60 uppercase mb-1 whitespace-nowrap">
+                    Start Verse
+                  </label>
+                  {matchedSurah ? (
+                    <select
+                      value={customVerse}
+                      onChange={(e) => {
+                        setCustomVerse(e.target.value);
+                        // Start verse changed, effect will fix end verse
+                      }}
+                      className={`w-full text-xs rounded-xl py-2 px-3 focus:outline-none border bg-black/5 ${colors.hoverPill}`}
+                      required
+                    >
+                      {Array.from({ length: matchedSurah.totalVerses }, (_, idx) => idx + 1).map((v) => (
+                        <option 
+                          key={v} 
+                          value={v.toString()}
+                          className={isParchment ? 'text-[#2c241e]' : 'text-slate-900'}
+                        >
+                          Ayat {v}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      disabled
+                      placeholder="Surah req..."
+                      className="w-full text-xs rounded-xl py-2 px-3 opacity-50 border bg-black/10 cursor-not-allowed"
+                    />
+                  )}
+                </div>
+                
+                <div>
+                  <label className="block text-[10px] font-bold font-mono tracking-wider opacity-60 uppercase mb-1">
+                    End Verse (Max +4)
+                  </label>
+                  {matchedSurah ? (
+                    <select
+                      value={customEndVerse}
+                      onChange={(e) => setCustomEndVerse(e.target.value)}
+                      className={`w-full text-xs rounded-xl py-2 px-3 focus:outline-none border bg-black/5 ${colors.hoverPill}`}
+                      required
+                    >
+                      {Array.from({ length: Math.min(5, matchedSurah.totalVerses - parseInt(customVerse || '1', 10) + 1) }, (_, idx) => parseInt(customVerse || '1', 10) + idx).map((v) => (
+                        <option 
+                          key={v} 
+                          value={v.toString()}
+                          className={isParchment ? 'text-[#2c241e]' : 'text-slate-900'}
+                        >
+                          Ayat {v}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      disabled
+                      placeholder="Surah req..."
+                      className="w-full text-xs rounded-xl py-2 px-3 opacity-50 border bg-black/10 cursor-not-allowed"
+                    />
+                  )}
+                </div>
+                
+                <div className="col-span-2">
+                  <p className="text-[10px] opacity-45 mt-0.5">
+                    Analyze up to 5 consecutive aayat for broader context.
+                  </p>
+                </div>
               </div>
 
             </div>
@@ -755,7 +838,7 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
               ) : (
                 <>
                   <Search className="w-3.5 h-3.5" />
-                  {allVersesMap[`${matchedSurah?.number}:${customVerse}`] 
+                  {allVersesMap[`${matchedSurah?.number}:${parseInt(customEndVerse, 10) > parseInt(customVerse, 10) ? `${customVerse}-${customEndVerse}` : customVerse}`] 
                     ? 'Load Instantly (Offline Cache Ready)' 
                     : 'Fetch & Save Offline by Default'}
                 </>
@@ -797,7 +880,7 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
                 Quranic Arabic Orthography & Grammatical Wave
               </span>
               <span className={`text-[10px] font-mono font-bold uppercase rounded p-1 px-2 border border-current/10 ${colors.accentText}`}>
-                Surah {activeVerseData.surahName} ({activeVerseData.surahNumber}:{activeVerseData.verseNumber})
+                Surah {activeVerseData.surahName} ({activeVerseData.surahNumber}:{selectedPresetId.includes(':') ? selectedPresetId.split(':')[1] : activeVerseData.verseNumber})
               </span>
             </div>
 
