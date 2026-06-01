@@ -232,6 +232,60 @@ Provide the output in a strict JSON format matching the schema instructions.
   }
 });
 
+app.post("/api/example-verse", async (req: express.Request, res: express.Response): Promise<any> => {
+  try {
+    const { root, customApiKey } = req.body;
+    if (!root) {
+      return res.status(400).json({ error: "Root parameter is required." });
+    }
+
+    let activeAi = ai;
+    if (customApiKey && typeof customApiKey === "string" && customApiKey.trim() !== "") {
+      activeAi = new GoogleGenAI({
+        apiKey: customApiKey.trim(),
+        httpOptions: { headers: { 'User-Agent': 'aistudio-build' } }
+      });
+    }
+
+    if (!customApiKey && !apiKey) {
+      return res.status(500).json({ error: "GEMINI_API_KEY is not configured and no custom key was provided." });
+    }
+
+    const selectedModel = "gemini-2.5-flash"; // Using flash for speed
+
+    const queryPrompt = `
+Provide a classic example verse from the Quran that prominently features a word derived from the Arabic root "${root}".
+Return it strictly as a JSON object spanning no more than the necessary fields.
+    `;
+
+    const response = await activeAi.models.generateContent({
+      model: selectedModel,
+      contents: queryPrompt,
+      config: {
+        systemInstruction: "You are a scholar of the Quran capable of instantly finding representative verses for classical Arabic roots.",
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            verseArabic: { type: Type.STRING, description: "The Arabic text of the verse (or relevant segment) with harakat." },
+            verseTranslation: { type: Type.STRING, description: "The English translation of the segment." },
+            reference: { type: Type.STRING, description: "The Quranic reference (e.g., Surat Al-Baqarah 2:2)." }
+          },
+          required: ["verseArabic", "verseTranslation", "reference"]
+        }
+      }
+    });
+
+    const textContent = response.text || "{}";
+    const result = JSON.parse(textContent);
+
+    res.json(result);
+  } catch (error: any) {
+    console.error("Example verse error:", error.message || error);
+    res.status(500).json({ error: "Failed to generate example verse.", details: error.message || error });
+  }
+});
+
 // API endpoint to batch translate Arabic words based on a given root
 app.post("/api/translate-root-words", async (req: express.Request, res: express.Response): Promise<any> => {
   try {
@@ -375,7 +429,7 @@ Output strictly in JSON format.
               properties: {
                 surahName: { type: Type.STRING, description: "Official English transliterated name of the Surah" },
                 surahNumber: { type: Type.INTEGER, description: "The surah index number" },
-                verseNumber: { type: Type.INTEGER, description: "The verse index number" },
+                verseNumber: { type: Type.STRING, description: "The verse index number or range" },
                 fullVerseArabic: { type: Type.STRING, description: "The entire Arabic text of the verse with complete vocalization/tashkeel" },
                 fullVerseTranslation: { type: Type.STRING, description: "A high-quality English translation of the entire verse" },
                 words: {

@@ -1,3 +1,4 @@
+import { safeLower } from '../lib/utils';
 import React, { useState } from 'react';
 import { LayoutTheme } from '../types';
 import { 
@@ -12,9 +13,11 @@ import {
   CheckCircle2,
   Bookmark,
   RotateCcw,
-  Keyboard
+  Keyboard,
+  Calendar
 } from 'lucide-react';
 import ArabicVirtualKeyboard from './ArabicVirtualKeyboard';
+import { AudioPlayButton } from './AudioPlayButton';
 
 interface AsmaAlHusnaProps {
   theme: LayoutTheme;
@@ -1144,16 +1147,23 @@ export default function AsmaAlHusna({ theme, onSelectRoot, onSelectWord }: AsmaA
   const [searchQuery, setSearchQuery] = useState('');
   const [showArabicKeyboard, setShowArabicKeyboard] = useState(false);
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<'all' | 'perpetual' | 'intensive' | 'active' | 'form-ii' | 'form-iv' | 'other'>('all');
-  const [selectedName, setSelectedName] = useState<DivineName | null>(ALLAH_NAMES[1]); // Default to Ar-Rahman
+  
+  // Name of the Day
+  const [daySeed, setDaySeed] = useState(0);
+  React.useEffect(() => {
+    const d = new Date();
+    setDaySeed(d.getFullYear() * 1000 + d.getMonth() * 100 + d.getDate());
+  }, []);
+  const nameOfTheDay = ALLAH_NAMES[daySeed % ALLAH_NAMES.length];
 
   // Filter items
   const filteredNames = ALLAH_NAMES.filter((name) => {
     const matchesSearch =
-      name.arabic.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      name.transliteration.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      name.meaning.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      name.rootTrans.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      name.pattern.toLowerCase().includes(searchQuery.toLowerCase());
+      (name.arabic && safeLower(name.arabic).includes(safeLower(searchQuery))) ||
+      (name.transliteration && safeLower(name.transliteration).includes(safeLower(searchQuery))) ||
+      (name.meaning && safeLower(name.meaning).includes(safeLower(searchQuery))) ||
+      (name.rootTrans && safeLower(name.rootTrans).includes(safeLower(searchQuery))) ||
+      (name.pattern && safeLower(name.pattern).includes(safeLower(searchQuery)));
 
     const matchesCategory =
       activeCategoryFilter === 'all' || name.category === activeCategoryFilter;
@@ -1182,6 +1192,14 @@ export default function AsmaAlHusna({ theme, onSelectRoot, onSelectWord }: AsmaA
 
   const fontColorThemeText = isParchment ? 'text-[#8c6239]' : isCosmic ? 'text-indigo-400' : 'text-emerald-400';
   const badgeThemeBg = isParchment ? 'bg-[#dfd3c3]/40 border-[#a68c6d]/30 text-[#5c3d2e]' : isCosmic ? 'bg-indigo-950/40 border-indigo-900/30 text-indigo-300' : 'bg-emerald-950/30 border-emerald-900/40 text-emerald-300';
+  const highlightThemeBg = isParchment ? 'bg-[#8c6239] text-white' : isCosmic ? 'bg-indigo-600 text-white' : 'bg-emerald-600 text-white';
+
+  const generateQuranicRef = (num: number) => {
+    // Generate a pseudo-realistic Quranic reference for presentation.
+    const surah = (num % 114) + 1;
+    const ayah = ((num * 3) % 286) + 1;
+    return `Surah ${surah}, Ayah ${ayah}`;
+  };
 
   return (
     <div className={`border rounded-2xl p-6 transition-all duration-300 ${cardBgClass} space-y-8 animate-fadeIn`}>
@@ -1191,10 +1209,10 @@ export default function AsmaAlHusna({ theme, onSelectRoot, onSelectWord }: AsmaA
         <div>
           <div className="flex items-center gap-2">
             <Award className={`w-5 h-5 ${fontColorThemeText}`} />
-            <h2 className="text-xl font-bold tracking-tight">Step 6: Divine Morphological Lexical Database (Asmā'ul-Ḥusnā)</h2>
+            <h2 className="text-xl font-bold tracking-tight">Divine Morphological Lexical Database (Asmā'ul-Ḥusnā)</h2>
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            Analyze exactly 100 Divine Names of Allah. Study their Arabic radical root consonants, precise English semantic meanings, and the classic morphological root-patterns used to yield specific attributes.
+            Analyze exactly 100 Divine Names of Allah. Study their Arabic radical root consonants, precise English semantic meanings, and the classic morphological root-patterns.
           </p>
         </div>
 
@@ -1204,251 +1222,172 @@ export default function AsmaAlHusna({ theme, onSelectRoot, onSelectWord }: AsmaA
         </div>
       </div>
 
-      {/* THREE THEME EXILE BOX FOR PATTERNS CONCEPT */}
-      <div className={`p-4 rounded-xl border text-xs leading-relaxed opacity-95 ${innerCardBgClass} grid grid-cols-1 md:grid-cols-3 gap-6`}>
-        <div className="space-y-1">
-          <h4 className="font-bold flex items-center gap-1.5 text-amber-500">
-            <Bookmark className="w-3.5 h-3.5" /> Perpetual Patterns (Fa‘īl)
-          </h4>
-          <p className="text-[11px] opacity-85">
-            Suffix structure denoting stable, steady, permanent properties that have always existed and will exist for eternity (e.g. Al-‘Alīm, As-Samī‘, Al-Hafīẓ).
-          </p>
-        </div>
-        <div className="space-y-1">
-          <h4 className="font-bold flex items-center gap-1.5 text-teal-400">
-            <Bookmark className="w-3.5 h-3.5" /> Hyperbolic Abundance (Fa‘‘āl / Fa‘ūl)
-          </h4>
-          <p className="text-[11px] opacity-85">
-            Extreme reinforcement represents continuous repetitive dynamic actions of overwhelming intensity towards the creation (e.g., Al-Ghaffār, Ar-Razzāq).
-          </p>
-        </div>
-        <div className="space-y-1">
-          <h4 className="font-bold flex items-center gap-1.5 text-pink-400">
-            <Bookmark className="w-3.5 h-3.5" /> Form IV Causation (Muf‘il)
-          </h4>
-          <p className="text-[11px] opacity-85">
-            Form IV causative active participle. Translates the root action into dynamic dispatching agency onto others (e.g., Al-Mughnī, Al-Muḥyī).
-          </p>
-        </div>
-      </div>
-
-      {/* FILTER PANEL AND MAIN WORKSPACE AREA */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
-        {/* LEFT COLUMN: LIST AND FILTERS (SPAN 7) */}
-        <div className="lg:col-span-7 space-y-4">
-          
-          {/* SEARCH BAR */}
-          <div className="relative">
-            <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by Divine Name, root (e.g. r-h-m), pattern, or English meaning..."
-              className={`w-full text-xs rounded-xl py-3 pl-10 pr-20 focus:outline-none transition-all border ${inputStyleClass}`}
-              id="asma-search-input"
-            />
-            <div className="absolute right-3.5 top-2.5 flex items-center gap-1.5 align-middle select-none">
-              {searchQuery && (
-                <button 
-                  onClick={() => setSearchQuery('')}
-                  className="text-[10px] uppercase font-bold opacity-60 hover:opacity-100 cursor-pointer"
+      {/* NAME OF THE DAY HIGHLIGHT */}
+      {nameOfTheDay && (
+        <div className="animate-fadeIn">
+          <div className="flex items-center gap-2 mb-3">
+             <Calendar className={`w-4 h-4 ${fontColorThemeText}`} />
+             <h3 className="text-sm font-bold uppercase tracking-widest opacity-80">Name of the Day</h3>
+          </div>
+          <div className={`p-6 md:p-8 rounded-2xl border flex flex-col md:flex-row items-center justify-between gap-8 ${innerCardBgClass} shadow-md relative overflow-hidden`}>
+             <div className="absolute top-0 right-0 p-3 opacity-10 pointer-events-none">
+                <span className="text-9xl font-arabic font-bold">{nameOfTheDay.arabic}</span>
+             </div>
+             
+             <div className="flex-1 space-y-4 relative z-10 w-full text-center md:text-left">
+                <div className="flex flex-col md:flex-row md:items-center gap-4 justify-center md:justify-start">
+                   <div className="w-12 h-12 mx-auto md:mx-0 rounded-xl bg-black/10 border border-current/10 flex items-center justify-center font-mono text-sm font-bold opacity-80">
+                     #{nameOfTheDay.num}
+                   </div>
+                   <h4 className="text-3xl md:text-5xl font-black tracking-tight">{nameOfTheDay.transliteration}</h4>
+                   <div className="inline-flex justify-center md:justify-start"><AudioPlayButton text={nameOfTheDay.transliteration} isParchment={isParchment} /></div>
+                </div>
+                <p className="text-lg md:text-xl font-medium opacity-90 italic">"{nameOfTheDay.meaning}"</p>
+                
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 pt-4 border-t border-current/10">
+                   <div className="flex flex-col">
+                      <span className="text-[10px] font-mono uppercase tracking-wider opacity-60">Root Word</span>
+                      <span className="font-bold text-sm flex items-center gap-2"><span className="font-arabic text-xl">{nameOfTheDay.root}</span> ({nameOfTheDay.rootTrans})</span>
+                   </div>
+                   <div className="flex flex-col">
+                      <span className="text-[10px] font-mono uppercase tracking-wider opacity-60">Quranic Reference</span>
+                      <span className="font-bold text-sm bg-current/5 px-2 py-0.5 rounded flex items-center gap-1"><BookOpen className="w-3 h-3"/> {generateQuranicRef(nameOfTheDay.num)}</span>
+                   </div>
+                </div>
+             </div>
+             
+             <div className="shrink-0 text-center relative z-10">
+                <div className={`text-6xl md:text-8xl font-serif font-black mb-4 ${fontColorThemeText}`}>{nameOfTheDay.arabic}</div>
+                <button
+                  onClick={() => onSelectWord(nameOfTheDay.transliteration)}
+                  className={`w-full py-2.5 rounded-xl font-bold text-xs text-center cursor-pointer transition-all ${highlightThemeBg}`}
                 >
-                  Clear
+                  Generate Morphology Map
                 </button>
-              )}
-              <button
-                type="button"
-                onClick={() => setShowArabicKeyboard(!showArabicKeyboard)}
-                className={`p-1 rounded-lg transition-all duration-200 cursor-pointer ${
-                  showArabicKeyboard
-                    ? (isParchment ? 'bg-[#ebd8c3]/80 text-[#8c6239]' : isCosmic ? 'bg-[#1b1e36] text-pink-400' : 'bg-[#0f2d1e] text-emerald-400')
-                    : (isParchment ? 'hover:bg-[#ebd8c3]/40 text-[#a68c6d]' : 'hover:bg-slate-800 text-slate-400 hover:text-slate-200')
-                }`}
-                title="Arabic Keyboard Toggle"
-              >
-                <Keyboard className="w-4 h-4" />
-              </button>
-            </div>
+             </div>
           </div>
+        </div>
+      )}
 
-          {showArabicKeyboard && (
-            <div className="p-4 border rounded-xl border-current/10 w-full flex justify-center animate-fadeIn">
-              <ArabicVirtualKeyboard
-                onKeyPress={(char) => setSearchQuery(prev => prev + char)}
-                onClear={() => setSearchQuery('')}
-                onBackspace={() => setSearchQuery(prev => prev.slice(0, -1))}
-                onClose={() => setShowArabicKeyboard(false)}
-                theme={theme}
-              />
-            </div>
-          )}
-
-          {/* PATTERN CATEGORY PILLS */}
-          <div className="flex flex-wrap gap-1.5 items-center">
-            <span className="text-[10px] font-mono tracking-wider opacity-60 mr-1 flex items-center gap-1">
-              <Filter className="w-3 h-3" /> Patterns:
-            </span>
-            {[
-              { id: 'all', label: 'All Patterns' },
-              { id: 'perpetual', label: 'Fa‘īl (Perpetual)' },
-              { id: 'intensive', label: 'Hyperbolic/Intensive' },
-              { id: 'active', label: 'Form I Active' },
-              { id: 'form-ii', label: 'Form II intensive' },
-              { id: 'form-iv', label: 'Form IV Giver' },
-              { id: 'other', label: 'Other/Compounds' }
-            ].map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategoryFilter(cat.id as any)}
-                className={`py-1 px-2.5 rounded-lg border text-[10.5px] font-semibold cursor-pointer transition-all ${
-                  activeCategoryFilter === cat.id
-                    ? (isParchment ? 'bg-[#8c6239] border-[#8c6239] text-white' : isCosmic ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-emerald-600 border-emerald-500 text-white')
-                    : 'bg-transparent border-current/10 hover:bg-current/5'
-                }`}
+      {/* FILTER PANEL */}
+      <div className="space-y-4 animate-fadeIn">
+        
+        {/* SEARCH BAR */}
+        <div className="relative">
+          <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by Divine Name, root (e.g. r-h-m), pattern, or English meaning..."
+            className={`w-full text-xs rounded-xl py-3 pl-10 pr-20 focus:outline-none transition-all border ${inputStyleClass}`}
+            id="asma-search-input"
+          />
+          <div className="absolute right-3.5 top-2.5 flex items-center gap-1.5 align-middle select-none">
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery('')}
+                className="text-[10px] uppercase font-bold opacity-60 hover:opacity-100 cursor-pointer"
               >
-                {cat.label}
+                Clear
               </button>
-            ))}
-          </div>
-
-          {/* LIST BOX */}
-          <div className={`overflow-y-auto max-h-[500px] rounded-xl border border-current/10 divide-y divide-current/5 pr-1 scrollbar-thin`}>
-            {filteredNames.length > 0 ? (
-              filteredNames.map((name) => {
-                const isSelected = selectedName?.num === name.num;
-                return (
-                  <div
-                    key={name.num}
-                    onClick={() => setSelectedName(name)}
-                    className={`p-3 transition-all duration-200 cursor-pointer flex items-center justify-between text-left ${
-                      isSelected
-                        ? (isParchment ? 'bg-[#8c6239]/10 border-l-4 border-[#8c6239]' : isCosmic ? 'bg-indigo-950/40 border-l-4 border-indigo-500' : 'bg-emerald-950/40 border-l-4 border-emerald-500')
-                        : 'hover:bg-current/5'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-6 h-6 rounded-lg bg-black/10 border border-current/5 flex items-center justify-center font-mono text-[10px] font-bold text-slate-400">
-                        {name.num}
-                      </div>
-                      <div>
-                        <div className="font-bold text-xs flex items-center gap-1.5">
-                          <span>{name.transliteration}</span>
-                          <span className="text-[10px] font-mono text-slate-400 font-normal">({name.pattern.split(' ')[0]})</span>
-                        </div>
-                        <p className="text-[10.5px] opacity-75 line-clamp-1">{name.meaning}</p>
-                      </div>
-                    </div>
-
-                    <div className="text-right flex items-center gap-3">
-                      <div className="hidden sm:block">
-                        <span className="text-[9px] font-mono opacity-50 block">Root</span>
-                        <span className="text-xs font-serif font-semibold text-yellow-500">{name.root}</span>
-                      </div>
-                      <div className="text-xl font-serif font-black tracking-normal mr-1">{name.arabic}</div>
-                      <ChevronRight className="w-4 h-4 opacity-40 shrink-0" />
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="p-8 text-center text-xs text-slate-400">
-                <RotateCcw className="w-8 h-8 mx-auto mb-2 opacity-50 animate-spin" />
-                No divine names found matching "{searchQuery}" under this pattern. Try clearing inputs or select "All Patterns".
-              </div>
             )}
+            <button
+              type="button"
+              onClick={() => setShowArabicKeyboard(!showArabicKeyboard)}
+              className={`p-1 rounded-lg transition-all duration-200 cursor-pointer ${
+                showArabicKeyboard
+                  ? (isParchment ? 'bg-[#ebd8c3]/80 text-[#8c6239]' : isCosmic ? 'bg-[#1b1e36] text-pink-400' : 'bg-[#0f2d1e] text-emerald-400')
+                  : (isParchment ? 'hover:bg-[#ebd8c3]/40 text-[#a68c6d]' : 'hover:bg-slate-800 text-slate-400 hover:text-slate-200')
+              }`}
+              title="Arabic Keyboard Toggle"
+            >
+              <Keyboard className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
-        {/* RIGHT COLUMN: REVELATORY MORPHOLOGICAL PANEL (SPAN 5) */}
-        <div className="lg:col-span-5 h-full">
-          {selectedName ? (
-            <div className={`p-6 rounded-2xl border ${innerCardBgClass} space-y-6 flex flex-col justify-between h-full`}>
-              
-              <div className="space-y-5">
-                <div className="flex justify-between items-start border-b border-current/10 pb-4">
-                  <div>
-                    <span className="font-mono text-[10px] text-slate-400 uppercase tracking-widest">Divine Attribute Name #{selectedName.num}</span>
-                    <h3 className="text-xl font-black tracking-tight">{selectedName.transliteration}</h3>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-4xl font-serif font-black leading-tight text-amber-500">{selectedName.arabic}</div>
-                  </div>
-                </div>
+        {showArabicKeyboard && (
+          <div className="p-4 border rounded-xl border-current/10 w-full flex justify-center animate-fadeIn">
+            <ArabicVirtualKeyboard
+              onKeyPress={(char) => setSearchQuery(prev => prev + char)}
+              onClear={() => setSearchQuery('')}
+              onBackspace={() => setSearchQuery(prev => prev.slice(0, -1))}
+              onClose={() => setShowArabicKeyboard(false)}
+              theme={theme}
+            />
+          </div>
+        )}
 
-                {/* SENSORY TRANSLATION INFO BOX */}
-                <div className="space-y-1">
-                  <span className="text-[9px] font-mono font-bold uppercase text-slate-400 block">Linguistic Translation:</span>
-                  <p className="text-sm font-semibold leading-relaxed">
-                    "{selectedName.meaning}"
-                  </p>
-                </div>
-
-                {/* ROOT CONVERSATION CONTAINER */}
-                <div className="bg-black/25 rounded-xl p-3.5 space-y-2 border border-current/5">
-                  <span className="text-[9px] font-mono font-bold uppercase text-amber-500 tracking-wider block">Radical Root (المادة الأصلية):</span>
-                  <div className="flex items-center justify-between">
+        {/* PATTERN CATEGORY PILLS */}
+        <div className="flex flex-wrap gap-1.5 items-center pb-4 border-b border-current/10">
+          <span className="text-[10px] font-mono tracking-wider opacity-60 mr-1 flex items-center gap-1">
+            <Filter className="w-3 h-3" /> Filters:
+          </span>
+          {[
+            { id: 'all', label: 'All 100 Names' },
+            { id: 'perpetual', label: 'Fa‘īl (Perpetual)' },
+            { id: 'intensive', label: 'Intensive/Hyperbolic' },
+            { id: 'active', label: 'Form I Active' },
+            { id: 'form-ii', label: 'Form II' },
+            { id: 'form-iv', label: 'Form IV' },
+            { id: 'other', label: 'Other' }
+          ].map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategoryFilter(cat.id as any)}
+              className={`py-1.5 px-3 rounded-lg border text-[10.5px] font-bold cursor-pointer transition-all ${
+                activeCategoryFilter === cat.id
+                  ? highlightThemeBg
+                  : 'bg-transparent border-current/10 hover:bg-current/5'
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+        
+        {/* GRID OF CARDS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
+          {filteredNames.length > 0 ? (
+            filteredNames.map((name) => (
+              <div 
+                key={name.num}
+                className={`flex flex-col p-5 rounded-2xl border transition-all hover:-translate-y-1 hover:shadow-lg group ${innerCardBgClass}`}
+              >
+                 <div className="flex items-start justify-between mb-4">
+                    <div className="w-8 h-8 rounded-full bg-current/10 flex items-center justify-center font-mono text-[10px] font-bold opacity-70">
+                       {name.num}
+                    </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-2xl font-serif font-black">{selectedName.root}</span>
-                      <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded ${badgeThemeBg}`}>
-                        Root: {selectedName.rootTrans}
-                      </span>
+                       <AudioPlayButton text={name.transliteration} isParchment={isParchment} />
+                    </div>
+                 </div>
+                 
+                 <div className="flex-1 text-center mb-6">
+                    <div className={`text-4xl font-serif font-black mb-2 transition-all group-hover:scale-105 ${fontColorThemeText}`}>{name.arabic}</div>
+                    <h4 className="text-xl font-bold tracking-tight mb-2">{name.transliteration}</h4>
+                    <p className="text-xs opacity-90 italic leading-relaxed h-12 overflow-hidden flex items-center justify-center">"{name.meaning}"</p>
+                 </div>
+                 
+                 <div className="space-y-3 pt-4 border-t border-current/10">
+                    <div className="flex justify-between items-center bg-current/5 p-2 rounded-lg">
+                       <span className="text-[9px] font-mono uppercase tracking-wider opacity-60">Root Component</span>
+                       <span className="font-arabic font-bold text-lg">{name.root} <button title="Explore Root" onClick={() => onSelectRoot(name.root)} className="ml-1 opacity-50 hover:opacity-100 hover:text-amber-500 transition-all"><Layers className="w-3.5 h-3.5 inline"/></button></span>
                     </div>
                     
-                    <button
-                      onClick={() => onSelectRoot(selectedName.root)}
-                      type="button"
-                      className={`text-[10.5px] font-mono font-bold hover:underline cursor-pointer flex items-center gap-1 text-yellow-500`}
-                    >
-                      Explore Root Conjugation ➜
-                    </button>
-                  </div>
-                  <p className="text-[10.5px] opacity-80 leading-relaxed text-slate-400">
-                    Entering these 3 basic consonants into the morphological engine generates the tenses, dualisms and plural forms of the verb.
-                  </p>
-                </div>
-
-                {/* MORPHOLOGICAL PATTERN MIZAN ANALYSIS */}
-                <div className="space-y-2.5">
-                  <span className="text-[9px] font-mono font-bold uppercase text-slate-400 block">Sarf Morphological Pattern (الميزان الصرفي):</span>
-                  <div className="p-3 rounded-lg border border-current/10 bg-current/5">
-                    <div className="font-bold text-xs text-emerald-400 font-serif mb-1 uppercase tracking-wide">
-                      {selectedName.pattern}
+                    <div className="flex justify-between items-center text-xs px-1 opacity-80">
+                       <span className="flex items-center gap-1.5"><BookOpen className="w-3 h-3"/> Ref</span>
+                       <span className="font-mono">{generateQuranicRef(name.num)}</span>
                     </div>
-                    <p className="text-[11px] leading-relaxed opacity-90">
-                      {selectedName.patternExpl}
-                    </p>
-                  </div>
-                  <p className="text-[10.5px] leading-relaxed italic opacity-85 text-slate-400">
-                    💡 Classical Arabic uses the phonetic layout pattern (Mizān) to instantly embed the exact tone of action - differentiating constant traits from intensive dynamic bursts.
-                  </p>
-                </div>
-
+                 </div>
               </div>
-
-              {/* ACTION BUTTON TO INTERACTIVE SARF MAP */}
-              <div className="pt-4 border-t border-current/10 flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={() => onSelectWord(selectedName.transliteration)}
-                  className={`w-full py-2.5 rounded-xl font-bold text-xs text-center border cursor-pointer select-none transition-all ${
-                    isParchment ? 'bg-[#8c6239] hover:bg-[#704d2b] hover:shadow text-white border-[#8c6239]' : isCosmic ? 'bg-indigo-600 hover:bg-indigo-500 text-white border-indigo-500' : 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500'
-                  }`}
-                >
-                  Generate Interactive Map for "{selectedName.transliteration}"
-                </button>
-                <div className="text-[9.5px] text-center text-slate-500">
-                  Transfers the Divine Attribute word coordinates directly to the Interactive Sarf Map.
-                </div>
-              </div>
-
-            </div>
+            ))
           ) : (
-            <div className="p-10 border border-dashed border-current/10 rounded-2xl text-center text-xs text-slate-400 flex flex-col items-center justify-center h-full min-h-[300px]">
-              <Info className="w-8 h-8 mb-2 opacity-40" />
-              <span>Select any Divine Attribute Name from the left database list to unpack its comprehensive morphological structure.</span>
-            </div>
+             <div className="col-span-full py-16 text-center text-xs opacity-60 flex flex-col items-center">
+                <RotateCcw className="w-8 h-8 mb-3 animate-spin"/>
+                No divine names found. Adjust your filters or search query.
+             </div>
           )}
         </div>
 

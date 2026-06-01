@@ -1,3 +1,4 @@
+import { safeLower } from '../lib/utils';
 import React, { useState, useEffect, useRef } from 'react';
 import { Volume2, VolumeX, Settings2 } from 'lucide-react';
 
@@ -50,7 +51,7 @@ export function AudioPlayButton({ text, isParchment }: AudioPlayButtonProps) {
     
     const voices = window.speechSynthesis.getVoices();
     // Try to find an Arabic voice
-    const arabicVoice = voices.find(v => v.lang.startsWith('ar')) || voices.find(v => v.name.toLowerCase().includes('arabic'));
+    const arabicVoice = voices.find(v => v.lang.startsWith('ar')) || voices.find(v => safeLower(v.name).includes('arabic'));
 
     setIsPlaying(true);
     

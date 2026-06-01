@@ -64,6 +64,16 @@ export interface RecentSearch {
   timestamp: string;
 }
 
+export interface SRSRecord {
+  id: string; // usually the root or word itself
+  wordArabic: string;
+  wordEnglish: string; // transliteration or meaning
+  repetition: number;
+  interval: number;
+  easiness: number;
+  nextReviewDate: string; // ISO timestamp
+}
+
 export type LayoutTheme = 'emerald' | 'cosmic' | 'parchment';
 export type LayoutMode = 'vertical' | 'horizontal' | 'mix';
 

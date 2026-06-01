@@ -44,6 +44,7 @@ export const exportCacheForBackup = (): string => {
     quranic_arabic_reviewed_flashcards: JSON.parse(localStorage.getItem('quranic_arabic_reviewed_flashcards') || "[]"),
     quranic_arabic_saved_maps: JSON.parse(localStorage.getItem('quranic_arabic_saved_maps') || "[]"),
     quranic_arabic_recent_searches: JSON.parse(localStorage.getItem('quranic_arabic_recent_searches') || "[]"),
+    quranic_arabic_wotd_history: JSON.parse(localStorage.getItem('quranic_arabic_wotd_history') || "{}"),
   };
   return JSON.stringify(data);
 };
@@ -53,7 +54,7 @@ export const importCacheFromBackup = (backupData: string) => {
     const parsed = JSON.parse(backupData);
     if (typeof parsed === "object" && parsed !== null) {
       // Check if it's the new multi-key format
-      if (parsed.quranic_ai_translations || parsed.offline_saved_verses || parsed.quranic_arabic_master_flashcards || parsed.quranic_arabic_saved_maps) {
+      if (parsed.quranic_ai_translations || parsed.offline_saved_verses || parsed.quranic_arabic_master_flashcards || parsed.quranic_arabic_saved_maps || parsed.quranic_arabic_wotd_history) {
         
         // 1. Translations (additive dictionary)
         if (parsed.quranic_ai_translations) {
@@ -105,6 +106,14 @@ export const importCacheFromBackup = (backupData: string) => {
             const toAdd = parsed.quranic_arabic_recent_searches.filter((s: any) => s.id && !existingIds.has(s.id));
             const merged = [...existing, ...toAdd];
             localStorage.setItem('quranic_arabic_recent_searches', JSON.stringify(merged));
+        }
+
+        // 7. WOTD History (additive dictionary)
+        if (parsed.quranic_arabic_wotd_history) {
+            const raw = localStorage.getItem('quranic_arabic_wotd_history');
+            const existing = raw ? JSON.parse(raw) : {};
+            const merged = { ...existing, ...parsed.quranic_arabic_wotd_history };
+            localStorage.setItem('quranic_arabic_wotd_history', JSON.stringify(merged));
         }
 
       } else {

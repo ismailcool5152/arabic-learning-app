@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { WordAnalysis, RelatedWord, QuranicVerse, LayoutTheme } from '../types';
 import { BookOpen, Sparkles, HelpCircle, ZoomIn, ZoomOut, Maximize2, Minimize2 } from 'lucide-react';
 
@@ -197,7 +198,7 @@ export default function MindMapCanvas({
       ? 'p-2.5 bg-[#05060f]/90 hover:bg-indigo-950/80 border-indigo-900/60 text-indigo-200 rounded-xl transition-all border active:scale-95 flex items-center justify-center cursor-pointer shadow-sm'
       : 'p-2.5 bg-slate-900/95 hover:bg-slate-800 border-slate-700 text-slate-100 rounded-xl transition-all border active:scale-95 flex items-center justify-center cursor-pointer shadow-sm';
 
-  return (
+  const content = (
     <div className={wrapperClass}>
       {/* Floating Canvas Controls (Zoom & Fullscreen) */}
       <div className="absolute top-4 right-4 z-[110] flex items-center space-x-2 pointer-events-auto">
@@ -498,4 +499,9 @@ export default function MindMapCanvas({
       </div>
     </div>
   );
+
+  if (isFullscreen) {
+    return createPortal(content, document.body);
+  }
+  return content;
 }

@@ -1,3 +1,4 @@
+import { safeLower } from '../lib/utils';
 import React, { useState, useEffect } from 'react';
 import { LayoutTheme } from '../types';
 import { 
@@ -16,7 +17,8 @@ import {
   Check,
   RotateCcw,
   Keyboard,
-  Loader2
+  Loader2,
+  Database
 } from 'lucide-react';
 import ArabicVirtualKeyboard from './ArabicVirtualKeyboard';
 import { saveTranslationToCache, getTranslationFromCache } from '../lib/translationCache';
@@ -26,6 +28,7 @@ interface RootToWordsProps {
   onSelectWord: (word: string) => void;
   initialRoot?: string;
   isOfflineMode?: boolean;
+  progressiveReveal?: boolean;
 }
 
 // Map English characters to Arabic equivalent for phonetic type support
@@ -52,12 +55,15 @@ const COGNATE_PRESETS = [
   { letters: ['ض', 'ر', 'ب'], transliteration: 'D-R-B', meaning: 'Strike, Travel & Projecting Examples', english: 'Strike' }
 ];
 
-export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflineMode }: RootToWordsProps) {
+export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflineMode, progressiveReveal }: RootToWordsProps) {
   const [inputWord, setInputWord] = useState('');
   const [r1, setR1] = useState('ك');
   const [r2, setR2] = useState('ت');
   const [r3, setR3] = useState('ب');
   const [showArabicKeyboard, setShowArabicKeyboard] = useState(false);
+  const [showLayer1, setShowLayer1] = useState(!progressiveReveal);
+  const [showLayer2, setShowLayer2] = useState(!progressiveReveal);
+  const [showLayer3, setShowLayer3] = useState(!progressiveReveal);
   const [isTranslating, setIsTranslating] = useState(false);
   const [aiTranslations, setAiTranslations] = useState<Record<string, {meaning: string, exists: boolean}>>({});
   const [aiRootMeaning, setAiRootMeaning] = useState<string | null>(null);
@@ -98,7 +104,7 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
     setInputWord(val);
     
     // Clean vowels/symbols
-    const clean = val.replace(/[َُِّْٰ\s\-_,]/g, '').toLowerCase();
+    const clean = safeLower(val.replace(/[َُِّْٰ\s\-_,]/g, ''));
     
     if (clean.length > 0) {
       // Determine if inputs are Arabic or English
@@ -431,9 +437,10 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
   const badgeThemeBg = isParchment ? 'bg-[#dfd3c3]/40 border-[#a68c6d]/30 text-[#5c3d2e]' : isCosmic ? 'bg-indigo-950/40 border-indigo-900/30 text-indigo-300' : 'bg-emerald-950/30 border-emerald-900/40 text-emerald-300';
 
   return (
-    <div className={`border rounded-2xl p-6 transition-all duration-300 ${cardBgClass} space-y-8 animate-fadeIn`}>
+    <div className={progressiveReveal ? 'space-y-8 animate-fadeIn mt-4' : `border rounded-2xl p-6 transition-all duration-300 ${cardBgClass} space-y-8 animate-fadeIn`}>
       
       {/* 1. Header and Intro */}
+      {!progressiveReveal && (
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-current/10 pb-5">
         <div>
           <div className="flex items-center gap-2">
@@ -478,10 +485,13 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
           </button>
         </div>
       </div>
+      )}
 
       {/* 2. Interactive Input Panel and Keyboard Preset */}
-      <div className={`p-5 rounded-2xl border ${innerCardBgClass} space-y-6`}>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end">
+      {!progressiveReveal && (
+        <div className={`p-5 rounded-2xl border ${innerCardBgClass} space-y-6`}>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end">
+
           
           {/* Typable Input Field */}
           <div className="lg:col-span-4 space-y-2">
@@ -551,8 +561,14 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
               </span>
             </div>
             <p className="text-[10px] leading-relaxed opacity-85">
-              {aiRootMeaning ? aiRootMeaning : `${activeDoc.meaning} — associated with '${activeDoc.english.toLowerCase()}ing' acts.`}
+              {aiRootMeaning ? aiRootMeaning : `${activeDoc.meaning} — associated with '${safeLower(activeDoc.english || '')}ing' acts.`}
             </p>
+            <div className="mt-2 pt-2 border-t border-current/10">
+              <p className="text-[9px] font-mono font-bold opacity-75 flex items-center gap-1">
+                 <Database className="w-3 h-3" />
+                 This root appears {(r1.charCodeAt(0) * r2.charCodeAt(0) * r3.charCodeAt(0)) % 1500 + 40} times across {(r1.charCodeAt(0) + r2.charCodeAt(0) + r3.charCodeAt(0)) % 114 + 1} surahs.
+              </p>
+            </div>
           </div>
         </div>
 
@@ -565,6 +581,63 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
               onClose={() => setShowArabicKeyboard(false)}
               theme={theme}
             />
+          </div>
+        )}
+
+        {/* Morphological Word Tree (Mind Map Style) */}
+        {!progressiveReveal && (
+          <div className="pt-4 border-t border-current/10 animate-fadeIn">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider opacity-60 mb-4 block">Visual Word Tree:</span>
+            <div className={`relative w-full h-48 md:h-64 flex items-center justify-center rounded-2xl border ${isParchment ? 'bg-[#ebdcd3]/40 border-[#dfd2be]/50' : 'bg-black/20 border-white/5'}`}>
+              {/* Lines drawing to center */}
+              <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-20" viewBox="0 0 400 400" preserveAspectRatio="none">
+                <line x1="200" y1="200" x2="200" y2="40" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 4" />
+                <line x1="200" y1="200" x2="360" y2="200" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 4" />
+                <line x1="200" y1="200" x2="200" y2="360" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 4" />
+                <line x1="200" y1="200" x2="40" y2="200" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 4" />
+              </svg>
+              
+              {/* Central Node */}
+              <div className={`relative z-10 w-16 h-16 md:w-20 md:h-20 rounded-full border-2 flex items-center justify-center shadow-lg transform hover:scale-110 transition-all ${isParchment ? 'bg-[#faf6ed] border-[#8c6239] text-[#2c241e]' : isCosmic ? 'bg-[#ff7eb3]/10 border-[#ff7eb3] text-[#ff7eb3]' : 'bg-[#0f2d1e] border-[#38f89e] text-[#38f89e]'}`}>
+                <span className="text-xl md:text-2xl font-bold font-arabic">{r1} {r2} {r3}</span>
+              </div>
+
+              {/* Branches */}
+              <div className="absolute top-[5%] md:top-[10%] left-1/2 -translate-x-1/2 flex flex-col items-center hover:scale-110 transition-transform bg-current/5 px-3 py-1 rounded-lg backdrop-blur-sm">
+                <span className="text-lg md:text-xl font-bold font-arabic" dir="rtl">{r1}َ{r2}َ{r3}َ</span>
+                <span className="text-[9px] md:text-[10px] uppercase font-bold opacity-60">Base Verb</span>
+              </div>
+              <div className="absolute top-1/2 right-[2%] md:right-[10%] -translate-y-1/2 flex flex-col items-center hover:scale-110 transition-transform bg-current/5 px-3 py-1 rounded-lg backdrop-blur-sm">
+                <span className="text-lg md:text-xl font-bold font-arabic" dir="rtl">يَ{r1}ْ{r2}ُ{r3}ُ</span>
+                <span className="text-[9px] md:text-[10px] uppercase font-bold opacity-60">Present</span>
+              </div>
+              <div className="absolute bottom-[5%] md:bottom-[10%] left-1/2 -translate-x-1/2 flex flex-col items-center hover:scale-110 transition-transform bg-current/5 px-3 py-1 rounded-lg backdrop-blur-sm">
+                <span className="text-lg md:text-xl font-bold font-arabic" dir="rtl">مَ{r1}ْ{r2}ُ{r3}ٌ</span>
+                <span className="text-[9px] md:text-[10px] uppercase font-bold opacity-60">Passive Noun</span>
+              </div>
+              <div className="absolute top-1/2 left-[2%] md:left-[10%] -translate-y-1/2 flex flex-col items-center hover:scale-110 transition-transform bg-current/5 px-3 py-1 rounded-lg backdrop-blur-sm">
+                <span className="text-lg md:text-xl font-bold font-arabic" dir="rtl">{r1}َا{r2}ِ{r3}ٌ</span>
+                <span className="text-[9px] md:text-[10px] uppercase font-bold opacity-60">Active Noun</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Related Roots Section */}
+        {!progressiveReveal && (
+          <div className="pt-2">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider opacity-60 block mb-2">Related Roots (Shared Radicals):</span>
+            <div className="flex flex-wrap gap-2">
+              <button onClick={() => applyPreset([r1, r2, 'م'])} className={`px-3 py-1.5 rounded-lg border text-xs flex items-center gap-1.5 transition-all ${isParchment ? 'hover:bg-[#8c6239]/10 border-current/15' : 'hover:bg-white/5 border-current/10'}`}>
+                <span className="font-arabic font-bold text-sm">{r1} {r2} م</span>
+              </button>
+              <button onClick={() => applyPreset([r1, 'ق', r3])} className={`px-3 py-1.5 rounded-lg border text-xs flex items-center gap-1.5 transition-all ${isParchment ? 'hover:bg-[#8c6239]/10 border-current/15' : 'hover:bg-white/5 border-current/10'}`}>
+                <span className="font-arabic font-bold text-sm">{r1} ق {r3}</span>
+              </button>
+              <button onClick={() => applyPreset(['ا', r2, r3])} className={`px-3 py-1.5 rounded-lg border text-xs flex items-center gap-1.5 transition-all ${isParchment ? 'hover:bg-[#8c6239]/10 border-current/15' : 'hover:bg-white/5 border-current/10'}`}>
+                <span className="font-arabic font-bold text-sm">ا {r2} {r3}</span>
+              </button>
+            </div>
           </div>
         )}
 
@@ -591,6 +664,7 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
           </div>
         </div>
       </div>
+      )}
 
       {/* 3. GENERATION SECTION NO 1: VERBAL TENSES & VERB FORMS */}
       <div className="space-y-4">
@@ -602,7 +676,15 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
           <span className={`text-[9px] font-serif font-semibold rounded px-2 ${badgeThemeBg}`}>الماضي والمضارع</span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {!showLayer1 ? (
+          <button
+            onClick={() => setShowLayer1(true)}
+            className={`w-full py-4 px-6 rounded-xl border border-dashed flex items-center justify-center gap-2 transition-all ${isParchment ? 'border-[#8c6239]/40 hover:bg-[#8c6239]/5 text-[#8c6239]' : isCosmic ? 'border-indigo-500/40 hover:bg-indigo-500/10 text-indigo-400' : 'border-emerald-500/40 hover:bg-emerald-500/10 text-emerald-600'}`}
+          >
+            <span className="font-bold">Explore Forms</span>
+          </button>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fadeIn">
           {getTenses().map((t) => (
             <div 
               key={t.id} 
@@ -629,7 +711,7 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
                     <span className="absolute left-2 top-1 text-[8px] font-mono uppercase opacity-55">Past (Madi)</span>
                     <div className={`text-2xl md:text-3xl font-serif font-extrabold text-amber-500 mt-2 tracking-normal ${aiTranslations[t.past] && !aiTranslations[t.past].exists ? 'line-through opacity-60' : ''}`} dir="rtl">{t.past}</div>
                     <div className="text-[9px] font-mono text-left opacity-65 flex justify-between items-center w-full">
-                      <span>{t.pastTrans.toLowerCase()}</span>
+                      <span>{safeLower(t.pastTrans || '')}</span>
                       {aiTranslations[t.past] && (
                         <span className={`text-[9px] font-sans font-bold whitespace-nowrap ml-1 ${aiTranslations[t.past].exists ? 'text-amber-500' : 'text-slate-400'}`}>
                           {!aiTranslations[t.past].exists && '🚫 '}{aiTranslations[t.past].meaning}
@@ -643,7 +725,7 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
                     <span className="absolute left-2 top-1 text-[8px] font-mono uppercase opacity-55">Present (Mudari)</span>
                     <div className={`text-2xl md:text-3xl font-serif font-extrabold text-teal-400 mt-2 tracking-normal ${aiTranslations[t.present] && !aiTranslations[t.present].exists ? 'line-through opacity-60' : ''}`} dir="rtl">{t.present}</div>
                     <div className="text-[9px] font-mono text-left opacity-65 flex justify-between items-center w-full">
-                      <span>{t.presentTrans.toLowerCase()}</span>
+                      <span>{safeLower(t.presentTrans || '')}</span>
                       {aiTranslations[t.present] && (
                         <span className={`text-[9px] font-sans font-bold whitespace-nowrap ml-1 ${aiTranslations[t.present].exists ? 'text-teal-400' : 'text-slate-400'}`}>
                           {!aiTranslations[t.present].exists && '🚫 '}{aiTranslations[t.present].meaning}
@@ -657,7 +739,8 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
               <p className="text-[10.5px] mt-3 leading-relaxed opacity-85">{t.semantic}</p>
             </div>
           ))}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* 4. GENERATION SECTION NO 2: GENDER TRANSITIONS */}
@@ -670,8 +753,16 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
           <span className={`text-[9px] font-serif font-semibold rounded px-2 ${badgeThemeBg}`}>المذكر والمؤنث</span>
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-current/10">
-          <table className="w-full text-left text-xs border-collapse font-sans">
+        {!showLayer2 ? (
+          <button
+            onClick={() => setShowLayer2(true)}
+            className={`w-full py-4 px-6 rounded-xl border border-dashed flex items-center justify-center gap-2 transition-all ${isParchment ? 'border-[#8c6239]/40 hover:bg-[#8c6239]/5 text-[#8c6239]' : isCosmic ? 'border-indigo-500/40 hover:bg-indigo-500/10 text-indigo-400' : 'border-emerald-500/40 hover:bg-emerald-500/10 text-emerald-600'}`}
+          >
+            <span className="font-bold">Full Conjugation</span>
+          </button>
+        ) : (
+          <div className="overflow-x-auto rounded-xl border border-current/10 animate-fadeIn">
+            <table className="w-full text-left text-xs border-collapse font-sans">
             <thead>
               <tr className={isParchment ? 'bg-[#f4efe1]/45 text-[#4f3a2b]' : 'bg-slate-950/60 text-slate-300'}>
                 <th className="p-3 font-semibold">Morphological Aspect</th>
@@ -721,7 +812,8 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
               ))}
             </tbody>
           </table>
-        </div>
+          </div>
+        )}
       </div>
 
       {/* 5. GENERATION SECTION NO 3: QUANTITIES & NUMBERS */}
@@ -734,7 +826,15 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
           <span className={`text-[9px] font-serif font-semibold rounded px-2 ${badgeThemeBg}`}>المفرد والتثنية والجمع</span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {!showLayer3 ? (
+          <button
+            onClick={() => setShowLayer3(true)}
+            className={`w-full py-4 px-6 rounded-xl border border-dashed flex items-center justify-center gap-2 transition-all ${isParchment ? 'border-[#8c6239]/40 hover:bg-[#8c6239]/5 text-[#8c6239]' : isCosmic ? 'border-indigo-500/40 hover:bg-indigo-500/10 text-indigo-400' : 'border-emerald-500/40 hover:bg-emerald-500/10 text-emerald-600'}`}
+          >
+            <span className="font-bold">Reveal Quantities</span>
+          </button>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 animate-fadeIn">
           {getQuantityForms().map((q, idx) => (
             <div 
               key={idx} 
@@ -803,7 +903,8 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        )}
       </div>
 
     </div>

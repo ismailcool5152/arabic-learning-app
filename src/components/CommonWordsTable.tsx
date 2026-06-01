@@ -1,3 +1,4 @@
+import { safeLower } from '../lib/utils';
 import React, { useState, useMemo } from 'react';
 import { COMMON_WORDS_500, QuranicCommonWord } from '../data/commonWords500';
 import { Search, ChevronLeft, ChevronRight, Hash, Eye, Tag, Library, RefreshCw, ArrowUpDown } from 'lucide-react';
@@ -65,13 +66,13 @@ export default function CommonWordsTable({ theme, onSelectWord }: CommonWordsTab
   // Filter word bank
   const filteredWords = useMemo(() => {
     return COMMON_WORDS_500.filter((w) => {
-      const q = search.toLowerCase().trim();
+      const q = safeLower(search).trim();
       const matchesSearch =
         w.word.includes(q) ||
-        w.transliteration.toLowerCase().includes(q) ||
-        w.meaning.toLowerCase().includes(q) ||
-        w.root.toLowerCase().includes(q) ||
-        w.pattern.toLowerCase().includes(q);
+        (w.transliteration && safeLower(w.transliteration).includes(q)) ||
+        (w.meaning && safeLower(w.meaning).includes(q)) ||
+        (w.root && safeLower(w.root).includes(q)) ||
+        (w.pattern && safeLower(w.pattern).includes(q));
 
       const matchesType = typeFilter === 'All' || w.wordType === typeFilter;
 

@@ -1,3 +1,4 @@
+import { safeLower } from './lib/utils';
 import React, { useState, useEffect } from 'react';
 import { WordAnalysis, SavedWordMap, RecentSearch, LayoutTheme, LayoutMode } from './types';
 import MindMapCanvas from './components/MindMapCanvas';
@@ -15,6 +16,9 @@ import HurufulHija from './components/HurufulHija';
 import CommonWordsTable from './components/CommonWordsTable';
 import VerseBreakdown from './components/VerseBreakdown';
 import RootFlashcards from './components/RootFlashcards';
+import SRSPractice from './components/SRSPractice';
+import { useSRS } from './hooks/useSRS';
+import WordOfTheDayWidget from './components/WordOfTheDayWidget';
 import { findOfflineFallback, generateDynamicOfflineFallback } from './offlineData';
 import { 
   BookOpen, 
@@ -44,7 +48,9 @@ import {
   Edit2,
   Check,
   X,
-  FileText
+  FileText,
+  Settings,
+  ArrowRight
 } from 'lucide-react';
 import { QURANIC_SUGGESTIONS } from './components/SavedMapsSidebar';
 import ProductDoc from './components/ProductDoc';
@@ -55,8 +61,65 @@ export default function App() {
   const [showArabicKeyboard, setShowArabicKeyboard] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeMainTab, setActiveMainTab] = useState<'hija' | 'basics' | 'huruf' | 'database' | 'root' | 'map' | 'names' | 'lexicon' | 'doc' | 'vocab' | 'verse' | 'flashcards'>('hija');
+  const [activeMainTab, setActiveMainTab] = useState<'hija' | 'basics' | 'huruf' | 'database' | 'root' | 'map' | 'names' | 'lexicon' | 'doc' | 'vocab' | 'verse' | 'flashcards' | 'srs'>('hija');
+  const [activeTabGroup, setActiveTabGroup] = useState<'Home' | 'Learn' | 'Explore' | 'Practice'>('Home');
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [selectedRoot, setSelectedRoot] = useState<string>('');
+
+  // SRS Spaced Repetition
+  const { dueCountBadge, addWordToReview } = useSRS();
+
+  const TAB_GROUPS: Record<string, Array<{id: string, title: string, icon: React.ReactNode, desc: string}>> = {
+    Learn: [
+      { id: 'hija', title: 'Hurūf-ul-Hijā (Makhārij)', icon: <Sparkles className="w-4 h-4 text-yellow-500 animate-pulse" />, desc: "Master the origins and attributes of Arabic pronunciation." },
+      { id: 'basics', title: 'Arabic Basics', icon: <Compass className="w-4 h-4 text-amber-500 animate-pulse" />, desc: "Interactive grammar breakdown of Nouns, Verbs, and Particles." },
+      { id: 'huruf', title: 'Hurūf & Particles', icon: <BookOpen className="w-4 h-4" />, desc: "Explore grammatical functions of prepositions and conjunctions." }
+    ],
+    Explore: [
+      { id: 'database', title: 'Patterns Codex & DB', icon: <Database className="w-4 h-4" />, desc: "Discover all Arabic verb forms (Wazans) and noun patterns." },
+      { id: 'root', title: 'Root-to-Words Gen', icon: <GitBranch className="w-4 h-4" />, desc: "Dynamically generate words from 3-letter semantic roots." },
+      { id: 'names', title: '100 Names of Allah', icon: <Award className="w-4 h-4 text-yellow-500 animate-pulse" />, desc: "Deep dive into Asma ul Husna morphological derivations." },
+      { id: 'verse', title: 'Ayat Segmenter', icon: <Sparkles className="w-4 h-4 text-emerald-500 animate-pulse" />, desc: "Word-by-word breakdown of selected Quranic verses." },
+      { id: 'lexicon', title: 'Lexicon Dictionary', icon: <BookOpen className="w-4 h-4" />, desc: "Search thousands of classical definitions in lane's style." }
+    ],
+    Practice: [
+      { id: 'vocab', title: '500 Core Words Codex', icon: <Database className="w-4 h-4 text-amber-500" />, desc: "Master the most frequently used words in the entire Quran." },
+      { id: 'flashcards', title: 'Root Flashcards', icon: <Award className="w-4 h-4 text-emerald-400 animate-pulse" />, desc: "Interactive vocabulary drills across diverse root groups." },
+      { 
+        id: 'srs', 
+        title: 'Review SRS', 
+        icon: (
+          <div className="relative">
+            <TrendingUp className="w-4 h-4 text-pink-500 animate-pulse" />
+            {dueCountBadge > 0 && (
+              <span className="absolute -top-3 -right-3 bg-red-500 text-white text-[10px] font-bold px-1.5 py-[1px] rounded-full shadow-sm animate-pulse">
+                {dueCountBadge}
+              </span>
+            )}
+          </div>
+        ),
+        desc: "Spaced Repetition System logic optimized for long-term retention."
+      },
+      { id: 'map', title: 'Word Search & Analysis', icon: <Search className="w-4 h-4" />, desc: "Visualize the entire morphological tree for any searched root." }
+    ]
+  };
+  
+  // Tour State
+  const [showTour, setShowTour] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('quranic_arabic_tour_completed') !== 'true';
+    } catch {
+      return true;
+    }
+  });
+  const [tourStep, setTourStep] = useState(0);
+
+  const completeTour = () => {
+    setShowTour(false);
+    try {
+      localStorage.setItem('quranic_arabic_tour_completed', 'true');
+    } catch (e) {}
+  };
   
   // Layout Arrangement Mode selection
   const [layoutMode, setLayoutMode] = useState<LayoutMode>(() => {
@@ -255,6 +318,13 @@ export default function App() {
     }
   };
 
+  const handleLayoutChange = (mode: LayoutMode) => {
+    setLayoutMode(mode);
+    try {
+      localStorage.setItem('quranic_arabic_layout_mode', mode);
+    } catch (e) {}
+  };
+
   const handleLayoutModeChange = (newLayout: LayoutMode) => {
     setLayoutMode(newLayout);
     try {
@@ -389,7 +459,7 @@ export default function App() {
 
   // Toggle saving current mind map to user notebook
   const isCurrentMapSaved = analysis 
-    ? savedMaps.some(map => map.searchedWord.toLowerCase() === analysis.word.toLowerCase() || map.analysis.root === analysis.root) 
+    ? savedMaps.some(map => (map.searchedWord && analysis.word && safeLower(map.searchedWord) === safeLower(analysis.word)) || map.analysis.root === analysis.root) 
     : false;
 
   const handleSaveCurrentMap = () => {
@@ -484,281 +554,154 @@ export default function App() {
 
   const renderWorkspace = () => (
     <div className="space-y-6 flex-1 w-full">
-      {/* Main Visualizer vs Pattern Codex Tab Switcher */}
-      <div className="w-full overflow-x-auto pb-1 scrollbar-none">
-        <div className="flex bg-current/5 border border-current/10 p-1.5 rounded-2xl w-max min-w-full gap-1 items-center">
-          
-          {/* STEP 1: Hurūf-ul-Hijā */}
-          <button
-            onClick={() => setActiveMainTab('hija')}
-            type="button"
-            className={`shrink-0 flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-              activeMainTab === 'hija'
-                ? (isParchment
-                    ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
-                    : isCosmic
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
-                      : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
-                : (isParchment
-                    ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5')
-            }`}
-          >
-            <Sparkles className="w-4 h-4 text-yellow-500 animate-pulse" />
-            <span className="flex items-center gap-1">
-              <span className="opacity-50 font-mono text-[10px]">1.</span> Hurūf-ul-Hijā (Makhārij)
-            </span>
-          </button>
-
-          <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
-
-          {/* STEP 2: Arabic Basics */}
-          <button
-            onClick={() => setActiveMainTab('basics')}
-            type="button"
-            className={`shrink-0 flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-              activeMainTab === 'basics'
-                ? (isParchment
-                    ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
-                    : isCosmic
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
-                      : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
-                : (isParchment
-                    ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5')
-            }`}
-          >
-            <Compass className="w-4 h-4 text-amber-500 animate-pulse" />
-            <span className="flex items-center gap-1">
-              <span className="opacity-50 font-mono text-[10px]">2.</span> Arabic Basics
-            </span>
-          </button>
-
-          <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
-
-          {/* STEP 3: Hurūf Library */}
-          <button
-            onClick={() => setActiveMainTab('huruf')}
-            type="button"
-            className={`shrink-0 flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-              activeMainTab === 'huruf'
-                ? (isParchment
-                    ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
-                    : isCosmic
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
-                      : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
-                : (isParchment
-                    ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5')
-            }`}
-          >
-            <BookOpen className="w-4 h-4" />
-            <span className="flex items-center gap-1">
-              <span className="opacity-50 font-mono text-[10px]">3.</span> Hurūf & Particles
-            </span>
-          </button>
-
-          <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
-
-          {/* STEP 4: Pattern DB */}
-          <button
-            onClick={() => setActiveMainTab('database')}
-            type="button"
-            className={`shrink-0 flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-              activeMainTab === 'database'
-                ? (isParchment
-                    ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
-                    : isCosmic
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
-                      : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
-                : (isParchment
-                    ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5')
-            }`}
-          >
-            <Database className="w-4 h-4" />
-            <span className="flex items-center gap-1">
-              <span className="opacity-50 font-mono text-[10px]">4.</span> Patterns Codex & DB
-            </span>
-          </button>
-
-          <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
-
-          {/* STEP 5: Root Synthesizer */}
-          <button
-            onClick={() => setActiveMainTab('root')}
-            type="button"
-            className={`shrink-0 flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-              activeMainTab === 'root'
-                ? (isParchment
-                    ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
-                    : isCosmic
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
-                      : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
-                : (isParchment
-                    ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5')
-            }`}
-          >
-            <GitBranch className="w-4 h-4" />
-            <span className="flex items-center gap-1">
-              <span className="opacity-50 font-mono text-[10px]">5.</span> Root-to-Words Gen
-            </span>
-          </button>
-
-          <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
-
-          {/* STEP 6: Names of Allah */}
-          <button
-            onClick={() => setActiveMainTab('names')}
-            type="button"
-            className={`shrink-0 flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-              activeMainTab === 'names'
-                ? (isParchment
-                    ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
-                    : isCosmic
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
-                      : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
-                : (isParchment
-                    ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5')
-            }`}
-          >
-            <Award className="w-4 h-4 text-yellow-500 animate-pulse" />
-            <span className="flex items-center gap-1">
-              <span className="opacity-50 font-mono text-[10px]">6.</span> 100 Names of Allah
-            </span>
-          </button>
-
-          <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
-
-          {/* STEP 7: Offline Lexicon */}
-          <button
-            onClick={() => setActiveMainTab('lexicon')}
-            type="button"
-            className={`shrink-0 flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-              activeMainTab === 'lexicon'
-                ? (isParchment
-                    ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
-                    : isCosmic
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
-                      : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
-                : (isParchment
-                    ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5')
-            }`}
-          >
-            <BookOpen className="w-4 h-4" />
-            <span className="flex items-center gap-1">
-              <span className="opacity-50 font-mono text-[10px]">7.</span> Lexicon Dictionary
-            </span>
-          </button>
-
-          <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
-
-          {/* STEP 8: Verse Breakdown */}
-          <button
-            onClick={() => setActiveMainTab('verse')}
-            type="button"
-            className={`shrink-0 flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-              activeMainTab === 'verse'
-                ? (isParchment
-                    ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
-                    : isCosmic
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
-                      : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
-                : (isParchment
-                    ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5')
-            }`}
-          >
-            <Sparkles className="w-4 h-4 text-emerald-500 animate-pulse" />
-            <span className="flex items-center gap-1">
-              <span className="opacity-50 font-mono text-[10px]">8.</span> Ayat Segmenter
-            </span>
-          </button>
-
-          <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
-
-          {/* STEP 9: 500 Codex */}
-          <button
-            onClick={() => setActiveMainTab('vocab')}
-            type="button"
-            className={`shrink-0 flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-              activeMainTab === 'vocab'
-                ? (isParchment
-                    ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
-                    : isCosmic
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
-                      : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
-                : (isParchment
-                    ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5')
-            }`}
-          >
-            <Database className="w-4 h-4 text-amber-500" />
-            <span className="flex items-center gap-1">
-              <span className="opacity-50 font-mono text-[10px]">9.</span> 500 Core Words Codex
-            </span>
-          </button>
-
-          <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
-
-          {/* STEP 10: Root Flashcards */}
-          <button
-            onClick={() => setActiveMainTab('flashcards')}
-            type="button"
-            className={`shrink-0 flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-              activeMainTab === 'flashcards'
-                ? (isParchment
-                    ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
-                    : isCosmic
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
-                      : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
-                : (isParchment
-                    ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5')
-            }`}
-          >
-            <Award className="w-4 h-4 text-emerald-400 animate-pulse" />
-            <span className="flex items-center gap-1">
-              <span className="opacity-50 font-mono text-[10px]">10.</span> Root Flashcards
-            </span>
-          </button>
-
-          {!isOfflineMode && (
-            <>
-              <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
-
-              {/* STEP 11: Word Search & Analysis */}
-              <button
-                onClick={() => setActiveMainTab('map')}
-                type="button"
-                className={`shrink-0 flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-                  activeMainTab === 'map'
-                    ? (isParchment
-                        ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
-                        : isCosmic
-                          ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
-                          : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
-                    : (isParchment
-                        ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
-                        : 'text-slate-400 hover:text-white hover:bg-white/5')
-                }`}
-              >
-                <Search className="w-4 h-4" />
-                <span className="flex items-center gap-1">
-                  <span className="opacity-50 font-mono text-[10px]/['8px']">11.</span> Word Search & Analysis
+      
+      {/* Grouped Tabbed Interface */}
+      <div className="w-full space-y-3 pb-1">
+        
+        {/* Top Level Groups */}
+        <div className="flex gap-2 p-1.5 bg-current/5 border border-current/10 rounded-2xl w-max overflow-x-auto scrollbar-none">
+          {[
+            { id: 'Home', label: 'Home', icon: '🏠', count: 0 },
+            { id: 'Learn', label: 'Learn', icon: '📖', count: 3 },
+            { id: 'Explore', label: 'Explore', icon: '🔍', count: 5 },
+            { id: 'Practice', label: 'Practice', icon: '✍️', count: 4 }
+          ].map((group) => (
+            <button
+              key={group.id}
+              onClick={() => {
+                setActiveTabGroup(group.id as any);
+                // Switch to the first tab in the group automatically
+                if (group.id === 'Learn') setActiveMainTab('hija');
+                if (group.id === 'Explore') setActiveMainTab('database');
+                if (group.id === 'Practice') setActiveMainTab('vocab');
+              }}
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${
+                activeTabGroup === group.id
+                  ? (isParchment ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm' : isCosmic ? 'bg-indigo-600 text-white shadow-md' : 'bg-emerald-600 text-white shadow-md')
+                  : 'text-current/60 hover:bg-current/10'
+              }`}
+            >
+              <span className="text-base">{group.icon}</span>
+              <span>{group.label}</span>
+              {group.count > 0 && (
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] bg-current/10 opacity-80 ${activeTabGroup === group.id && 'bg-white/20 text-white opacity-100'}`}>
+                  {group.count}
                 </span>
-              </button>
-            </>
-          )}
+              )}
+            </button>
+          ))}
         </div>
+
+        {/* Sub Navigation Tabs */}
+        {activeTabGroup !== 'Home' && (() => {
+          return (
+            <div className="w-full overflow-x-auto scrollbar-none">
+              <div className="flex bg-current/5 border border-current/10 p-1.5 rounded-2xl w-max min-w-full gap-1 items-center">
+                {TAB_GROUPS[activeTabGroup]?.filter((t: any) => !isOfflineMode || (t.id !== 'wotd' && t.id !== 'map')).map((tab: any, i: number, arr: any[]) => (
+                  <React.Fragment key={tab.id}>
+                    <button
+                      onClick={() => setActiveMainTab(tab.id as any)}
+                      type="button"
+                      className={`shrink-0 flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                        activeMainTab === tab.id
+                          ? (isParchment
+                              ? 'bg-[#8c6239] text-[#faf6ed] shadow-sm'
+                              : isCosmic
+                                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40'
+                                : 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40')
+                          : (isParchment
+                              ? 'text-[#705e52] hover:bg-[#ebd8c3]/30'
+                              : 'text-slate-400 hover:text-white hover:bg-white/5')
+                      }`}
+                    >
+                      {tab.icon}
+                      <span className="flex items-center gap-1">
+                        {tab.title}
+                      </span>
+                    </button>
+                    {i < arr.length - 1 && (
+                      <span className="text-slate-600 font-mono text-[11px] select-none shrink-0 px-0.5">➜</span>
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Render activeMainTab panel */}
       <div style={{ zoom: uiScale }}>
-      {activeMainTab === 'hija' ? (
+      {activeTabGroup === 'Home' ? (
+          <div className="w-full max-w-7xl mx-auto space-y-12 animate-fadeIn pb-12">
+            {!isOfflineMode && (
+              <div className="w-full">
+                <WordOfTheDayWidget
+                  theme={theme}
+                  isOfflineMode={isOfflineMode}
+                  onSelectWord={(word) => {
+                    setSearchTerm(word);
+                    setActiveTabGroup('Explore');
+                    setActiveMainTab('map');
+                    handleSearch(word);
+                  }}
+                  onWordSeen={(wordArabic, wordEnglish) => addWordToReview(wordArabic, wordArabic, wordEnglish)}
+                  onStartQuiz={() => { setActiveTabGroup('Practice'); setActiveMainTab('srs'); }}
+                />
+              </div>
+            )}
+            <div className="text-center space-y-4 max-w-2xl mx-auto pb-4">
+              <h2 className={`text-3xl font-bold font-serif opacity-90 ${isParchment ? 'text-[#8c6239]' : isCosmic ? 'text-indigo-400' : 'text-emerald-500'}`}>Journey into Quranic Arabic</h2>
+              <p className="text-sm opacity-70 leading-relaxed">
+                Baseer Bayan organizes classical Arabic morphology into three logic steps: learning the foundational building blocks, exploring the derivations of 3-letter roots, and drilling vocabulary retention.
+              </p>
+            </div>
+
+            <div className="space-y-10">
+              {['Learn', 'Explore', 'Practice'].map(groupKey => (
+                <div key={groupKey} className="space-y-4">
+                  <h3 className="text-lg flex justify-between items-center pb-2 border-b border-current/10 opacity-90 font-bold">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">
+                        {groupKey === 'Learn' ? '📖' : groupKey === 'Explore' ? '🔍' : '✍️'}
+                      </span>
+                      <span>Phase {groupKey === 'Learn' ? '1' : groupKey === 'Explore' ? '2' : '3'}: {groupKey}</span>
+                    </div>
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {TAB_GROUPS[groupKey].map((tab: any) => (
+                      <button
+                        key={tab.id}
+                        onClick={() => {
+                          setActiveTabGroup(groupKey as any);
+                          setActiveMainTab(tab.id as any);
+                        }}
+                        className={`text-left p-5 rounded-2xl border transition-all cursor-pointer group flex flex-col justify-between ${
+                          isParchment 
+                            ? 'bg-[#f4efe8] hover:bg-[#ebd8c3]/80 border-[#dccbae] hover:border-[#8c6239]/50 shadow-sm'
+                            : isCosmic
+                              ? 'bg-indigo-950/20 hover:bg-indigo-900/40 border-indigo-900/40 hover:border-indigo-500/50'
+                              : 'bg-white hover:bg-slate-50 border-slate-200 shadow-sm hover:border-emerald-500/50'
+                        }`}
+                      >
+                        <div>
+                          <div className={`p-2.5 w-max rounded-xl mb-3 shadow-sm ${isParchment ? 'bg-[#ebd8c3] text-[#8c6239] border border-[#dccbae]' : isCosmic ? 'bg-[#0f1225] border border-white/5 text-indigo-400' : 'bg-slate-50 border border-slate-100 text-emerald-600'}`}>
+                            {tab.icon}
+                          </div>
+                          <h4 className="font-bold text-base mb-1.5 opacity-90 group-hover:text-amber-600 transition-colors">{tab.title}</h4>
+                          <p className="text-xs opacity-65 leading-relaxed">{tab.desc}</p>
+                        </div>
+                        <div className={`mt-4 flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold transition-opacity ${isParchment ? 'text-[#8c6239]' : isCosmic ? 'text-indigo-400' : 'text-emerald-500'} opacity-0 group-hover:opacity-100`}>
+                          Launch Module <ArrowRight className="w-3 h-3"/>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+      ) : activeMainTab === 'hija' ? (
         <div className="animate-fadeIn">
           <HurufulHija theme={theme} />
         </div>
@@ -857,7 +800,14 @@ export default function App() {
               setActiveMainTab('map');
               handleSearch(word);
             }}
+            onWordSeen={(root, meaning) => {
+              addWordToReview(root, root, meaning);
+            }}
           />
+        </div>
+      ) : activeMainTab === 'srs' ? (
+        <div className="animate-fadeIn">
+          <SRSPractice theme={theme} />
         </div>
       ) : activeMainTab === 'doc' ? (
         <div className="animate-fadeIn">
@@ -1220,9 +1170,22 @@ export default function App() {
               <div className={`p-2.5 rounded-xl border transition-all duration-300 ${logoIconBgClass}`}>
                 <BookOpen className="w-6 h-6" />
               </div>
-              <h1 className={`text-base font-bold tracking-tight ${isParchment ? 'text-[#2c241e]' : 'text-white'}`}>
-                Baseer <span className={isParchment ? 'text-[#8c6239] font-semibold' : isCosmic ? 'text-indigo-400' : 'text-emerald-400'}>Bayan</span>
-              </h1>
+              <div className="flex flex-col">
+                <h1 className={`text-base font-bold tracking-tight leading-tight ${isParchment ? 'text-[#2c241e]' : 'text-white'}`}>
+                  Baseer <span className={isParchment ? 'text-[#8c6239] font-semibold' : isCosmic ? 'text-indigo-400' : 'text-emerald-400'}>Bayan</span>
+                </h1>
+                <div className="flex items-center text-[10px] font-mono tracking-wider mt-0.5">
+                   <button onClick={() => { setActiveTabGroup('Home'); setActiveMainTab('hija'); }} className="opacity-60 hover:opacity-100 hover:underline transition-opacity cursor-pointer select-none">Home</button>
+                   {activeTabGroup !== 'Home' && (
+                     <>
+                       <span className="mx-1.5 opacity-40">/</span>
+                       <span className="opacity-60">{activeTabGroup}</span>
+                       <span className="mx-1.5 opacity-40">/</span>
+                       <span className="capitalize opacity-80 font-semibold text-[11px]">{activeMainTab === 'hija' ? 'Huruf-ul-Hija' : activeMainTab}</span>
+                     </>
+                   )}
+                </div>
+              </div>
             </div>
 
             {/* Top-Right Corner Utilities */}
@@ -1239,247 +1202,22 @@ export default function App() {
                 <FileText className="w-3.5 h-3.5" />
                 <span>Architecture Doc</span>
               </button>
+              <button
+                onClick={() => setShowSettingsModal(true)}
+                className={`flex items-center justify-center p-2 rounded-xl border transition-all cursor-pointer ${
+                  isParchment ? 'bg-[#ebd8c3]/35 border-[#dfd2be]/80 text-[#2c241e] hover:bg-[#ebd8c3]/60' : isCosmic ? 'bg-indigo-950/35 border-indigo-950/80 text-indigo-100 hover:bg-indigo-900/50' : 'bg-slate-900/60 border-slate-800/80 text-slate-100 hover:bg-slate-800/60'
+                }`}
+                title="Settings"
+              >
+                <Settings className="w-4 h-4 opacity-75" />
+              </button>
 
               {/* Personal Study Circle widget connected to Drive Sync */}
               <DriveSettings theme={theme} />
             </div>
           </div>
 
-          {/* Row 2: Allign these things into one horizontal line Theme, Layout, engine and AI Model */}
-          <div className={`flex flex-col md:flex-row md:items-center justify-between gap-3 w-full border-t pt-3 rounded-xl ${
-            isParchment ? 'border-[#dfd2be]/40' : (isCosmic ? 'border-indigo-950/80' : 'border-slate-800/40')
-          }`}>
-            
-            {/* Left aligned widgets: Theme & Layout */}
-            <div className="flex flex-wrap items-center gap-3">
-              {/* Theme Selector Widget */}
-              <div className={`flex items-center space-x-1.5 p-1 rounded-xl border transition-all duration-300 ${
-                isParchment 
-                  ? 'bg-[#ebd8c3]/30 border-[#dfd2be]/80' 
-                  : isCosmic 
-                    ? 'bg-indigo-950/30 border-indigo-950/80' 
-                    : 'bg-slate-900/60 border-slate-800/80'
-              }`}>
-                <span className={`text-[9px] font-mono font-bold uppercase px-1.5 select-none ${isParchment ? 'text-[#8c6239]' : 'text-slate-500'}`}>
-                  Theme:
-                </span>
-                <div className="flex items-center gap-0.5">
-                  <button
-                    onClick={() => handleThemeChange('emerald')}
-                    type="button"
-                    className={`text-[11px] px-2 py-1 rounded-lg font-medium transition-all flex items-center space-x-1 cursor-pointer ${
-                      theme === 'emerald'
-                        ? 'bg-emerald-600/35 border border-emerald-500/50 text-emerald-300 shadow-sm'
-                        : 'bg-transparent border border-transparent text-slate-500 hover:text-slate-300'
-                    }`}
-                    title="Emerald Sanctuary"
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                    <span>Emerald</span>
-                  </button>
-                  <button
-                    onClick={() => handleThemeChange('cosmic')}
-                    type="button"
-                    className={`text-[11px] px-2 py-1 rounded-lg font-medium transition-all flex items-center space-x-1 cursor-pointer ${
-                      theme === 'cosmic'
-                        ? 'bg-indigo-600/30 border border-indigo-500/50 text-indigo-300 shadow-sm'
-                        : 'bg-transparent border border-transparent text-slate-500 hover:text-slate-300'
-                    }`}
-                    title="Cosmic Midnight"
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                    <span>Cosmic</span>
-                  </button>
-                  <button
-                    onClick={() => handleThemeChange('parchment')}
-                    type="button"
-                    className={`text-[11px] px-2 py-1 rounded-lg font-semibold transition-all flex items-center space-x-1 cursor-pointer ${
-                      theme === 'parchment'
-                        ? 'bg-[#dfdcce] border border-[#a68c6d]/50 text-[#5c3d2e] shadow-xs'
-                        : 'bg-transparent border border-transparent text-[#705e52] hover:text-[#2c241e]'
-                    }`}
-                    title="Sandalwood Parchment"
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#8c6239]" />
-                    <span>Parchment</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Layout Selector Widget */}
-              <div className={`flex items-center space-x-1.5 p-1 rounded-xl border transition-all duration-300 ${
-                isParchment 
-                  ? 'bg-[#ebd8c3]/30 border-[#dfd2be]/80' 
-                  : isCosmic 
-                    ? 'bg-indigo-950/30 border-indigo-950/80' 
-                    : 'bg-slate-900/60 border-slate-800/80'
-              }`}>
-                <span className={`text-[9px] font-mono font-bold uppercase px-1.5 select-none ${isParchment ? 'text-[#8c6239]' : 'text-slate-500'}`}>
-                  Layout:
-                </span>
-                <div className="flex items-center gap-0.5">
-                  <button
-                    onClick={() => handleLayoutModeChange('vertical')}
-                    type="button"
-                    className={`text-[11px] px-2.5 py-1 rounded-lg font-medium transition-all flex items-center space-x-1 cursor-pointer ${
-                      layoutMode === 'vertical'
-                        ? (isParchment ? 'bg-[#dfdcce] border border-[#a68c6d]/50 text-[#5c3d2e] shadow-xs' : isCosmic ? 'bg-[#1a1c36] border border-indigo-500/50 text-indigo-300' : 'bg-emerald-600/35 border border-emerald-500/50 text-emerald-300')
-                        : 'bg-transparent border border-transparent text-slate-500 hover:text-slate-300 hover:bg-current/5'
-                    }`}
-                    title="Vertical Split"
-                  >
-                    <Columns className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Vertical</span>
-                  </button>
-                  <button
-                    onClick={() => handleLayoutModeChange('horizontal')}
-                    type="button"
-                    className={`text-[11px] px-2.5 py-1 rounded-lg font-medium transition-all flex items-center space-x-1 cursor-pointer ${
-                      layoutMode === 'horizontal'
-                        ? (isParchment ? 'bg-[#dfdcce] border border-[#a68c6d]/50 text-[#5c3d2e] shadow-xs' : isCosmic ? 'bg-[#1a1c36] border border-indigo-500/50 text-indigo-300' : 'bg-emerald-600/35 border border-emerald-500/50 text-emerald-300')
-                        : 'bg-transparent border border-transparent text-slate-500 hover:text-slate-300 hover:bg-current/5'
-                    }`}
-                    title="Horizontal Layout"
-                  >
-                    <Rows className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Horizontal</span>
-                  </button>
-                  <button
-                    onClick={() => handleLayoutModeChange('mix')}
-                    type="button"
-                    className={`text-[11px] px-2.5 py-1 rounded-lg font-medium transition-all flex items-center space-x-1 cursor-pointer ${
-                      layoutMode === 'mix'
-                        ? (isParchment ? 'bg-[#dfdcce] border border-[#a68c6d]/50 text-[#5c3d2e] shadow-xs' : isCosmic ? 'bg-[#1a1c36] border border-indigo-500/50 text-indigo-300' : 'bg-emerald-600/35 border border-emerald-500/50 text-emerald-300')
-                        : 'bg-transparent border border-transparent text-slate-500 hover:text-slate-300 hover:bg-current/5'
-                    }`}
-                    title="Mix Grid"
-                  >
-                    <Layout className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Mix Grid</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Right aligned widgets: Engine & AI Model */}
-            <div className="flex flex-wrap items-center gap-3">
-              {/* Engine Selector Widget */}
-              <div className={`flex items-center space-x-1.5 p-1 rounded-xl border transition-all duration-300 ${
-                isParchment 
-                  ? 'bg-[#ebd8c3]/30 border-[#dfd2be]/80' 
-                  : isCosmic 
-                    ? 'bg-indigo-950/30 border-indigo-950/80' 
-                    : 'bg-slate-900/60 border-slate-800/80'
-              }`}>
-                <span className={`text-[9px] font-mono font-bold uppercase px-1.5 select-none ${isParchment ? 'text-[#8c6239]' : 'text-slate-500'}`}>
-                  Engine:
-                </span>
-                <div className="flex items-center gap-0.5">
-                  <button
-                    onClick={() => handleModeChange(false)}
-                    type="button"
-                    className={`text-[11px] px-2.5 py-1 rounded-lg font-medium transition-all flex items-center space-x-1 cursor-pointer ${
-                      !isOfflineMode
-                        ? (isParchment 
-                            ? 'bg-[#ebd8c3] border border-[#a68c6d]/50 text-[#8c6239] shadow-sm font-semibold' 
-                            : isCosmic 
-                              ? 'bg-[#1a1c36] border border-indigo-500/50 text-cyan-300 font-semibold' 
-                              : 'bg-emerald-600/35 border border-emerald-500/50 text-emerald-300 font-semibold')
-                        : 'bg-transparent border border-transparent text-slate-500 hover:text-slate-300 hover:bg-current/5'
-                    }`}
-                    title="Online Mode: Live Gemini AI API calls"
-                  >
-                    <Wifi className="w-3.5 h-3.5 text-current" />
-                    <span>Online</span>
-                  </button>
-                  <button
-                    onClick={() => handleModeChange(true)}
-                    type="button"
-                    className={`text-[11px] px-2.5 py-1 rounded-lg font-medium transition-all flex items-center space-x-1 cursor-pointer ${
-                      isOfflineMode
-                        ? (isParchment 
-                            ? 'bg-[#ebd8c3] border border-[#a68c6d]/50 text-[#8c6239] shadow-sm font-semibold' 
-                            : isCosmic 
-                              ? 'bg-[#1a1c36] border border-indigo-500/50 text-indigo-300 font-semibold' 
-                              : 'bg-amber-600/25 border border-amber-500/40 text-amber-300 font-semibold')
-                        : 'bg-transparent border border-transparent text-slate-500 hover:text-slate-300 hover:bg-current/5'
-                    }`}
-                    title="Offline Mode: Precompiled classical data"
-                  >
-                    <WifiOff className="w-3.5 h-3.5 text-current" />
-                    <span>Offline</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Custom API Key Widget */}
-              <div className={`flex items-center space-x-1.5 p-1 rounded-xl border transition-all duration-300 ${
-                isParchment 
-                  ? 'bg-[#ebd8c3]/30 border-[#dfd2be]/80' 
-                  : isCosmic 
-                    ? 'bg-indigo-950/30 border-indigo-950/80' 
-                    : 'bg-slate-900/60 border-slate-800/80'
-              }`}>
-                <span className={`text-[9px] font-mono font-bold uppercase px-1.5 select-none ${isParchment ? 'text-[#8c6239]' : 'text-slate-500'}`}>
-                  API Key:
-                </span>
-                <input
-                  type="password"
-                  value={customApiKey}
-                  onChange={(e) => handleCustomApiKeyChange(e.target.value)}
-                  placeholder="Optional Gemini Key"
-                  className={`text-[11px] font-semibold bg-transparent border-0 focus:ring-0 outline-none w-30 placeholder-current/30 px-1 py-0.5 ${
-                    isParchment ? 'text-[#2c241e]' : isCosmic ? 'text-indigo-200' : 'text-emerald-300'
-                  }`}
-                />
-              </div>
-
-              {/* View Settings Widget: Width & Zoom */}
-              <div className={`flex items-center space-x-1.5 p-1 rounded-xl border transition-all duration-300 ${
-                isParchment 
-                  ? 'bg-[#ebd8c3]/30 border-[#dfd2be]/80' 
-                  : isCosmic 
-                    ? 'bg-indigo-950/30 border-indigo-950/80' 
-                    : 'bg-slate-900/60 border-slate-800/80'
-              }`}>
-                <span className={`text-[9px] font-mono font-bold uppercase px-1.5 select-none ${isParchment ? 'text-[#8c6239]' : 'text-slate-500'}`}>
-                  View:
-                </span>
-                <div className="flex items-center gap-1">
-                  <select
-                    value={containerWidth}
-                    onChange={(e) => handleContainerWidthChange(e.target.value as any)}
-                    className={`text-[11px] font-semibold bg-transparent border-0 focus:ring-0 cursor-pointer outline-none transition-all pr-1 py-0.5 ${
-                      isParchment ? 'text-[#2c241e]' : isCosmic ? 'text-indigo-200' : 'text-emerald-300'
-                    }`}
-                    style={{ colorScheme: isParchment ? 'light' : 'dark' }}
-                  >
-                    <option value="standard" className={isParchment ? 'bg-[#faf6ed] text-[#2c241e]' : 'bg-slate-950 text-slate-100'}>Standard</option>
-                    <option value="wide" className={isParchment ? 'bg-[#faf6ed] text-[#2c241e]' : 'bg-slate-950 text-slate-100'}>Wide</option>
-                    <option value="full" className={isParchment ? 'bg-[#faf6ed] text-[#2c241e]' : 'bg-slate-950 text-slate-100'}>Full</option>
-                  </select>
-                  <span className="opacity-30">|</span>
-                  <select
-                    value={uiScale.toString()}
-                    onChange={(e) => handleUiScaleChange(parseFloat(e.target.value))}
-                    className={`text-[11px] font-semibold bg-transparent border-0 focus:ring-0 cursor-pointer outline-none transition-all pr-1 py-0.5 ${
-                      isParchment ? 'text-[#2c241e]' : isCosmic ? 'text-indigo-200' : 'text-emerald-300'
-                    }`}
-                    style={{ colorScheme: isParchment ? 'light' : 'dark' }}
-                  >
-                    <option value="0.9" className={isParchment ? 'bg-[#faf6ed] text-[#2c241e]' : 'bg-slate-950 text-slate-100'}>Small</option>
-                    <option value="1" className={isParchment ? 'bg-[#faf6ed] text-[#2c241e]' : 'bg-slate-950 text-slate-100'}>100%</option>
-                    <option value="1.15" className={isParchment ? 'bg-[#faf6ed] text-[#2c241e]' : 'bg-slate-950 text-slate-100'}>115%</option>
-                    <option value="1.3" className={isParchment ? 'bg-[#faf6ed] text-[#2c241e]' : 'bg-slate-950 text-slate-100'}>130%</option>
-                    <option value="1.5" className={isParchment ? 'bg-[#faf6ed] text-[#2c241e]' : 'bg-slate-950 text-slate-100'}>150%</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
           </div>
-
-        </div>
 
         {/* Collapsible Arabic Keyboard Panel inside Sticky Header */}
         {showArabicKeyboard && (
@@ -1497,30 +1235,30 @@ export default function App() {
 
       {/* Main Container Layout - Customizable Arranged Layout Flows */}
       {layoutMode === 'vertical' ? (
-        <main className={`flex-1 ${maxWidthClass} w-full mx-auto py-4 md:py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start animate-fadeIn`}>
+        <main className={`flex-1 ${maxWidthClass} w-full mx-auto py-8 md:py-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-fadeIn`}>
           {/* Left Hand Column: Personalized Sidebar (Size 3/12 on large screens) */}
-          <aside className="lg:col-span-3 space-y-6 w-full h-full">
+          <aside className="lg:col-span-3 space-y-8 w-full h-full">
             {renderSidebar()}
           </aside>
           {/* Right Hand Column: Interactive Academic Workspace (Size 9/12 on large screens) */}
-          <section className="lg:col-span-9 w-full space-y-6">
+          <section className="lg:col-span-9 w-full space-y-8">
             {renderWorkspace()}
           </section>
         </main>
       ) : layoutMode === 'horizontal' ? (
-        <main className={`flex-1 ${maxWidthClass} w-full mx-auto py-4 md:py-6 space-y-12 animate-fadeIn`}>
+        <main className={`flex-1 ${maxWidthClass} w-full mx-auto py-8 md:py-10 space-y-16 animate-fadeIn`}>
           {/* Active Workspace Centered focus at top fold */}
           <section className="w-full">
             {renderWorkspace()}
           </section>
           {/* Combined Horizontal Shelf at bottom fold */}
-          <aside className="w-full border-t border-current/5 pt-8">
+          <aside className="w-full border-t border-current/5 pt-12">
             {renderSidebar()}
           </aside>
         </main>
       ) : (
         /* Mix Workstation layout */
-        <main className={`flex-1 ${maxWidthClass} w-full mx-auto py-4 md:py-6 space-y-10 animate-fadeIn`}>
+        <main className={`flex-1 ${maxWidthClass} w-full mx-auto py-8 md:py-10 space-y-12 animate-fadeIn`}>
           {/* Top shelf of parameters */}
           <section className="w-full">
             {renderSidebar()}
@@ -1540,12 +1278,168 @@ export default function App() {
             ? 'border-indigo-950 text-indigo-300/40' 
             : 'border-slate-900 text-slate-500'
       }`}>
-        <div className="font-medium">Baseer Bayan Quranic Arabic Vocabulary System</div>
+        <div className="font-medium flex items-center justify-center gap-2">
+          <span>Baseer Bayan Quranic Arabic Vocabulary System</span>
+          <span className="font-mono opacity-80 text-[10px] bg-black/10 px-1.5 py-0.5 rounded">v1.1.0</span>
+        </div>
         <div className={`text-[10px] font-mono ${isParchment ? 'text-[#a68c6d]' : isCosmic ? 'text-indigo-200/35' : 'text-slate-600'}`}>
           Powered by Gemini 2.5 Flash | Classical Arabic Morphology (Sarf) Analysis Engine
         </div>
       </footer>
 
+
+      {/* Tour Modal */}
+      {showTour && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn" onClick={completeTour}>
+          <div 
+            className={`relative w-full max-w-md p-8 rounded-3xl border shadow-2xl space-y-6 flex flex-col items-center text-center ${isParchment ? 'bg-[#faf6ed] border-[#dfd2be]/80 text-[#2c241e]' : isCosmic ? 'bg-[#05060f] border-indigo-500/30 text-slate-100' : 'bg-slate-900 border-slate-700/80 text-slate-100'}`}
+            onClick={e => e.stopPropagation()}
+          >
+            {tourStep === 0 && (
+              <>
+                <div className={`p-4 rounded-full mb-2 ${isParchment ? 'bg-[#ebd8c3]/40' : 'bg-current/10'}`}>
+                  <Compass className={`w-10 h-10 ${isParchment ? 'text-[#8c6239]' : isCosmic ? 'text-indigo-400' : 'text-emerald-400'}`} />
+                </div>
+                <h2 className="text-2xl font-bold font-serif">Welcome Scholar</h2>
+                <p className={`text-sm leading-relaxed mb-4 ${isParchment ? 'text-[#705e52]' : 'text-slate-400'}`}>
+                  Baseer Bayan is a classical Arabic morphology engine. This brief walkthrough will show you how to study Quranic roots effectively.
+                </p>
+                <div className="flex w-full mt-4 gap-3">
+                  <button onClick={completeTour} className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold border transition-all ${isParchment ? 'border-[#dfd2be] text-[#705e52] hover:bg-[#ebdcc3]/30' : 'border-current/20 hover:bg-current/10'}`}>Skip Tour</button>
+                  <button onClick={() => setTourStep(1)} className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold shadow-md transition-all ${isParchment ? 'bg-[#8c6239] text-[#faf6ed] hover:bg-[#7a5431]' : isCosmic ? 'bg-indigo-600 text-white hover:bg-indigo-500' : 'bg-emerald-600 text-white hover:bg-emerald-500'}`}>Begin</button>
+                </div>
+              </>
+            )}
+            
+            {tourStep === 1 && (
+              <>
+                <div className={`p-4 rounded-full mb-2 ${isParchment ? 'bg-[#ebd8c3]/40' : 'bg-current/10'}`}>
+                  <Database className={`w-10 h-10 ${isParchment ? 'text-[#8c6239]' : isCosmic ? 'text-indigo-400' : 'text-emerald-400'}`} />
+                </div>
+                <h2 className="text-xl font-bold">Module Navigation</h2>
+                <p className={`text-sm leading-relaxed mb-4 ${isParchment ? 'text-[#705e52]' : 'text-slate-400'}`}>
+                  Use the top "Learn", "Explore", and "Practice" tabs to switch between the 10+ academic study tools like the Root Dictionary, Verse Segmenter, and Mind Maps.
+                </p>
+                <div className="flex w-full mt-4 gap-3">
+                  <button onClick={() => setTourStep(0)} className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold border transition-all ${isParchment ? 'border-[#dfd2be] text-[#705e52] hover:bg-[#ebdcc3]/30' : 'border-current/20 hover:bg-current/10'}`}>Back</button>
+                  <button onClick={() => setTourStep(2)} className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold shadow-md transition-all ${isParchment ? 'bg-[#8c6239] text-[#faf6ed] hover:bg-[#7a5431]' : isCosmic ? 'bg-indigo-600 text-white hover:bg-indigo-500' : 'bg-emerald-600 text-white hover:bg-emerald-500'}`}>Next</button>
+                </div>
+              </>
+            )}
+
+            {tourStep === 2 && (
+              <>
+                <div className={`p-4 rounded-full mb-2 ${isParchment ? 'bg-[#ebd8c3]/40' : 'bg-current/10'}`}>
+                  <Search className={`w-10 h-10 ${isParchment ? 'text-[#8c6239]' : isCosmic ? 'text-indigo-400' : 'text-emerald-400'}`} />
+                </div>
+                <h2 className="text-xl font-bold">Interactive Verses</h2>
+                <p className={`text-sm leading-relaxed mb-4 ${isParchment ? 'text-[#705e52]' : 'text-slate-400'}`}>
+                  In the <strong>Ayat Segmenter</strong> module, select a Surah and click on any Arabic text. It will instantly reveal its root, translation, and grammatical states.
+                </p>
+                <div className="flex w-full mt-4 gap-3">
+                  <button onClick={() => setTourStep(1)} className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold border transition-all ${isParchment ? 'border-[#dfd2be] text-[#705e52] hover:bg-[#ebdcc3]/30' : 'border-current/20 hover:bg-current/10'}`}>Back</button>
+                  <button onClick={() => setTourStep(3)} className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold shadow-md transition-all ${isParchment ? 'bg-[#8c6239] text-[#faf6ed] hover:bg-[#7a5431]' : isCosmic ? 'bg-indigo-600 text-white hover:bg-indigo-500' : 'bg-emerald-600 text-white hover:bg-emerald-500'}`}>Next</button>
+                </div>
+              </>
+            )}
+
+            {tourStep === 3 && (
+              <>
+                <div className={`p-4 rounded-full mb-2 ${isParchment ? 'bg-[#ebd8c3]/40' : 'bg-current/10'}`}>
+                  <GitBranch className={`w-10 h-10 ${isParchment ? 'text-[#8c6239]' : isCosmic ? 'text-indigo-400' : 'text-emerald-400'}`} />
+                </div>
+                <h2 className="text-xl font-bold">Mind Mapping</h2>
+                <p className={`text-sm leading-relaxed mb-4 ${isParchment ? 'text-[#705e52]' : 'text-slate-400'}`}>
+                  Search any word or select from Trending lists. The system will build a visual academic network graph of its derivatives and morphological roots.
+                </p>
+                <div className="flex w-full mt-4 gap-3">
+                  <button onClick={() => setTourStep(2)} className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold border transition-all ${isParchment ? 'border-[#dfd2be] text-[#705e52] hover:bg-[#ebdcc3]/30' : 'border-current/20 hover:bg-current/10'}`}>Back</button>
+                  <button onClick={completeTour} className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold shadow-md transition-all ${isParchment ? 'bg-[#8c6239] text-[#faf6ed] hover:bg-[#7a5431]' : isCosmic ? 'bg-indigo-600 text-white hover:bg-indigo-500' : 'bg-emerald-600 text-white hover:bg-emerald-500'}`}>Finish</button>
+                </div>
+              </>
+            )}
+
+            {/* Pagination dots */}
+            <div className="flex gap-2 mt-2 opacity-50 justify-center">
+              {[0, 1, 2, 3].map(i => (
+                <div key={i} className={`w-2 h-2 rounded-full ${tourStep === i ? (isParchment ? 'bg-[#8c6239]' : isCosmic ? 'bg-indigo-400' : 'bg-emerald-500') : 'bg-current/30'}`} />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Settings Modal */}
+      {showSettingsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm animate-fadeIn" onClick={() => setShowSettingsModal(false)}>
+          <div 
+            className={`relative w-full max-w-md p-6 rounded-2xl border shadow-2xl space-y-6 ${isParchment ? 'bg-[#faf6ed] border-[#dfd2be]/80 text-[#2c241e]' : isCosmic ? 'bg-[#05060f] border-indigo-500/30 text-slate-100' : 'bg-slate-900 border-slate-700/80 text-slate-100'}`}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center border-b pb-3 border-current/10">
+              <h2 className="text-lg font-bold flex items-center gap-2"><Settings className="w-5 h-5"/> Advanced Settings</h2>
+              <button onClick={() => setShowSettingsModal(false)} className="opacity-50 hover:opacity-100"><X className="w-5 h-5"/></button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider opacity-60 mb-1.5 block">Theme</label>
+                <div className="flex gap-2">
+                  {['emerald', 'cosmic', 'parchment'].map(t => (
+                    <button key={t} onClick={() => handleThemeChange(t as 'emerald' | 'cosmic' | 'parchment')} className={`px-3 py-1.5 rounded-lg text-sm capitalize border ${theme === t ? (isParchment ? 'bg-[#dfdcce] border-[#a68c6d]/50' : 'bg-current/20 border-current/30') : 'border-transparent opacity-60 hover:opacity-100'}`}>{t}</button>
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider opacity-60 mb-1.5 block">Layout Flow</label>
+                <div className="flex gap-2">
+                  <button onClick={() => handleLayoutChange('vertical')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm border ${layoutMode === 'vertical' ? (isParchment ? 'bg-[#dfdcce] border-[#a68c6d]/50' : 'bg-current/20 border-current/30') : 'border-transparent opacity-60 hover:opacity-100'} cursor-pointer`}><Columns className="w-4 h-4"/> Stacked</button>
+                  <button onClick={() => handleLayoutChange('mix')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm border ${layoutMode === 'mix' ? (isParchment ? 'bg-[#dfdcce] border-[#a68c6d]/50' : 'bg-current/20 border-current/30') : 'border-transparent opacity-60 hover:opacity-100'} cursor-pointer`}><Layout className="w-4 h-4"/> Flow</button>
+                  <button onClick={() => handleLayoutChange('horizontal')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm border ${layoutMode === 'horizontal' ? (isParchment ? 'bg-[#dfdcce] border-[#a68c6d]/50' : 'bg-current/20 border-current/30') : 'border-transparent opacity-60 hover:opacity-100'} cursor-pointer`}><Rows className="w-4 h-4"/> Full Spread</button>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider opacity-60 mb-1.5 block">Engine Mode</label>
+                <div className="flex gap-2">
+                  <button onClick={() => handleModeChange(false)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm border ${!isOfflineMode ? (isParchment ? 'bg-[#dfdcce] border-[#a68c6d]/50' : 'bg-current/20 border-current/30') : 'border-transparent opacity-60 hover:opacity-100'}`}><Wifi className="w-4 h-4"/> Online (Gemini AI)</button>
+                  <button onClick={() => handleModeChange(true)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm border ${isOfflineMode ? (isParchment ? 'bg-[#dfdcce] border-[#a68c6d]/50' : 'bg-current/20 border-current/30') : 'border-transparent opacity-60 hover:opacity-100'}`}><WifiOff className="w-4 h-4"/> Offline (Classical)</button>
+                </div>
+              </div>
+              
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider opacity-60 mb-1.5 block">UI Scale / Viewport Width</label>
+                <div className="flex gap-2">
+                  <select value={uiScale.toString()} onChange={e => handleUiScaleChange(parseFloat(e.target.value))} className="bg-current/5 border border-current/10 rounded-lg px-2 py-1.5 text-sm outline-none">
+                    <option value="0.9">Small</option>
+                    <option value="1">100%</option>
+                    <option value="1.15">115%</option>
+                    <option value="1.3">130%</option>
+                    <option value="1.5">150%</option>
+                  </select>
+                  <select value={containerWidth} onChange={e => handleContainerWidthChange(e.target.value)} className="bg-current/5 border border-current/10 rounded-lg px-2 py-1.5 text-sm outline-none">
+                    <option value="standard">Standard</option>
+                    <option value="wide">Wide</option>
+                    <option value="full">Full</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider opacity-60 mb-1.5 block">Custom API Key</label>
+                <input
+                  type="password"
+                  value={customApiKey}
+                  onChange={(e) => handleCustomApiKeyChange(e.target.value)}
+                  placeholder="Optional Gemini API Key"
+                  className={`w-full text-sm font-mono bg-current/5 border border-current/10 rounded-lg px-3 py-2 outline-none focus:ring-1 ring-current/30 ${isParchment ? 'text-[#2c241e]' : 'text-slate-100'}`}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

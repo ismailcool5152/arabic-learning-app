@@ -1,3 +1,4 @@
+import { safeLower } from '../lib/utils';
 import React, { useState } from 'react';
 import { LayoutTheme, WordAnalysis, SavedWordMap } from '../types';
 import { 
@@ -450,9 +451,9 @@ export default function PatternDatabase({
       if (currentAnalysis.wazan) {
         encountered.add(currentAnalysis.wazan.trim());
       }
-      const morph = currentAnalysis.morphologyForm?.toLowerCase() || '';
+      const morph = safeLower(currentAnalysis.morphologyForm || '');
       PREDEFINED_PATTERNS.forEach(p => {
-        if (morph.includes(p.wazanTransliteration.toLowerCase()) || morph.includes(p.englishName.toLowerCase())) {
+        if ((p.wazanTransliteration && morph.includes(safeLower(p.wazanTransliteration))) || (p.englishName && morph.includes(safeLower(p.englishName)))) {
           encountered.add(p.wazan);
         }
       });
@@ -463,9 +464,9 @@ export default function PatternDatabase({
       if (item.analysis.wazan) {
         encountered.add(item.analysis.wazan.trim());
       }
-      const morph = item.analysis.morphologyForm?.toLowerCase() || '';
+      const morph = safeLower(item.analysis.morphologyForm || '');
       PREDEFINED_PATTERNS.forEach(p => {
-        if (morph.includes(p.wazanTransliteration.toLowerCase()) || morph.includes(p.englishName.toLowerCase())) {
+        if ((p.wazanTransliteration && morph.includes(safeLower(p.wazanTransliteration))) || (p.englishName && morph.includes(safeLower(p.englishName)))) {
           encountered.add(p.wazan);
         }
       });
@@ -480,10 +481,10 @@ export default function PatternDatabase({
   const filteredPatterns = PREDEFINED_PATTERNS.filter(p => {
     const matchesFilter = filter === 'all' || p.category === filter;
     const matchesSearch = 
-      p.englishName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.wazanTransliteration.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (p.englishName && safeLower(p.englishName).includes(safeLower(searchQuery))) ||
+      (p.wazanTransliteration && safeLower(p.wazanTransliteration).includes(safeLower(searchQuery))) ||
       p.wazan.includes(searchQuery) ||
-      p.semanticEffect.toLowerCase().includes(searchQuery.toLowerCase());
+      (p.semanticEffect && safeLower(p.semanticEffect).includes(safeLower(searchQuery)));
     return matchesFilter && matchesSearch;
   });
 

@@ -44,6 +44,7 @@ interface RootDeck {
 interface RootFlashcardsProps {
   theme: LayoutTheme;
   onSelectWord?: (word: string) => void;
+  onWordSeen?: (root: string, meaning: string) => void;
 }
 
 const ROOT_DECKS: RootDeck[] = [
@@ -521,7 +522,7 @@ const ROOT_DECKS: RootDeck[] = [
   }
 ];
 
-export default function RootFlashcards({ theme, onSelectWord }: RootFlashcardsProps) {
+export default function RootFlashcards({ theme, onSelectWord, onWordSeen }: RootFlashcardsProps) {
   // Navigation / Filter States
   const [selectedDeckIndex, setSelectedDeckIndex] = useState<number>(0);
   const [currentCardIndex, setCurrentCardIndex] = useState<number>(0);
@@ -613,6 +614,10 @@ export default function RootFlashcards({ theme, onSelectWord }: RootFlashcardsPr
     setSelectedDeckIndex(idx);
     setCurrentCardIndex(0);
     setIsFlipped(false);
+    
+    if (onWordSeen) {
+      onWordSeen(ROOT_DECKS[idx].rootName, ROOT_DECKS[idx].coreMeaning);
+    }
   };
 
   // Switch to next card

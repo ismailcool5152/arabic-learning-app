@@ -1,3 +1,4 @@
+import { safeLower } from '../lib/utils';
 export interface QuranicCommonWord {
   id: number;
   word: string;
@@ -180,28 +181,28 @@ const generateLinguisticDefinitions = (): QuranicCommonWord[] => {
       // Pattern rule generator (Sarf generator)
       if (pat.trans === "Fā'il") {
         wordArabic = `${r1}َا${r2}ِ${r3}ٌ`;
-        wordTrans = `${r1.toUpperCase()}ā${r2.toLowerCase()}i${r3.toLowerCase()}un`;
+        wordTrans = `${r1.toUpperCase()}ā${safeLower(r2)}i${safeLower(r3)}un`;
         wordMeaning = `One who is actively ${rootObj.meaning}`;
       } else if (pat.trans === "Maf'ūl") {
         wordArabic = `مَ${r1}ْ${r2}ُوَ${r3}ٌ`;
-        wordTrans = `ma${r1.toLowerCase()}${r2.toLowerCase()}ū${r3.toLowerCase()}un`;
+        wordTrans = `ma${safeLower(r1)}${safeLower(r2)}ū${safeLower(r3)}un`;
         wordMeaning = `An entity that is subject to being ${rootObj.meaning}`;
       } else if (pat.trans === "Fa'īl") {
         wordArabic = `${r1}َ${r2}ِي${r3}ٌ`;
-        wordTrans = `${r1.toUpperCase()}a${r2.toLowerCase()}ī${r3.toLowerCase()}un`;
+        wordTrans = `${r1.toUpperCase()}a${safeLower(r2)}ī${safeLower(r3)}un`;
         wordMeaning = `Possessing the constant, enduring state of ${rootObj.meaning}`;
       } else if (pat.trans === "Fa'ūl") {
         wordArabic = `${r1}َ${r2}ُو${r3}ٌ`;
-        wordTrans = `${r1.toUpperCase()}a${r2.toLowerCase()}ū${r3.toLowerCase()}un`;
+        wordTrans = `${r1.toUpperCase()}a${safeLower(r2)}ū${safeLower(r3)}un`;
         wordMeaning = `Exceedingly or continuously custom to ${rootObj.meaning}`;
       } else if (pat.trans === "Maf'al") {
         wordArabic = `مَ${r1}ْ${r2}َ${r3}ٌ`;
-        wordTrans = `ma${r1.toLowerCase()}${r2.toLowerCase()}a${r3.toLowerCase()}un`;
+        wordTrans = `ma${safeLower(r1)}${safeLower(r2)}a${safeLower(r3)}un`;
         wordMeaning = `The designated space or moment associated with ${rootObj.meaning}`;
       } else {
         // Fallback simple verbal noun representations
         wordArabic = `تَ${r1}ْ${r2}ِي${r3}ٌ`;
-        wordTrans = `ta${r1.toLowerCase()}${r2.toLowerCase()}ī${r3.toLowerCase()}un`;
+        wordTrans = `ta${safeLower(r1)}${safeLower(r2)}ī${safeLower(r3)}un`;
         wordMeaning = `Undergoing the process of ${rootObj.meaning}`;
       }
 

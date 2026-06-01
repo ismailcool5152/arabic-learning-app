@@ -12,7 +12,7 @@ export interface VerseWordBreakdown {
 export interface VerseBreakdownData {
   surahName: string;
   surahNumber: number;
-  verseNumber: number;
+  verseNumber: string | number;
   fullVerseArabic: string;
   fullVerseTranslation: string;
   words: VerseWordBreakdown[];

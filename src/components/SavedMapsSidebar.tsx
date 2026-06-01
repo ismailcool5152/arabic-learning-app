@@ -193,11 +193,28 @@ export default function SavedMapsSidebar({
                   ? 'border-[#dfd2be] bg-[#fdfbf7]/50' 
                   : 'border-slate-800 bg-slate-950/20'
               }`}>
-                <Bookmark className={`w-7 h-7 mb-2 opacity-50 ${isParchment ? 'text-[#8c6239]' : isCosmic ? 'text-indigo-400' : 'text-emerald-500'}`} />
-                <h3 className={`text-xs font-semibold ${isParchment ? 'text-[#705e52]' : 'text-slate-400'}`}>No Saved Maps</h3>
-                <p className="text-[10px] mt-1 max-w-[160px] mx-auto leading-relaxed text-slate-500">
-                  Click 'Save to Notebook' to persist customized visual root networks here!
+                <div className="relative mb-3 flex items-center justify-center">
+                  <div className={`absolute border rounded-full inset-0 animate-ping opacity-20 ${isParchment ? 'border-[#8c6239]' : isCosmic ? 'border-indigo-400' : 'border-emerald-500'}`} style={{ animationDuration: '3s' }} />
+                  <div className={`p-4 rounded-full border border-dashed relative z-10 ${isParchment ? 'bg-[#ebd8c3]/40 border-[#dfd2be]' : isCosmic ? 'bg-indigo-950/40 border-indigo-900/60' : 'bg-slate-900/40 border-slate-700'}`}>
+                    <Bookmark className={`w-8 h-8 ${isParchment ? 'text-[#8c6239]' : isCosmic ? 'text-indigo-400' : 'text-emerald-500'}`} />
+                  </div>
+                </div>
+                <h3 className={`text-sm font-bold ${isParchment ? 'text-[#705e52]' : 'text-slate-200'}`}>Map Your First Root</h3>
+                <p className="text-xs mt-1 max-w-[200px] mx-auto leading-relaxed text-slate-500 mb-4">
+                  Build visual maps of Quranic words. Your saved diagrams will appear here.
                 </p>
+                <button 
+                  onClick={() => onSuggestionClick('سَلَام')}
+                  className={`px-4 py-2 mt-1 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 ${
+                    isParchment 
+                      ? 'bg-[#8c6239] text-[#faf6ed] hover:bg-[#7a5431]' 
+                      : isCosmic 
+                        ? 'bg-indigo-600 text-white hover:bg-indigo-500' 
+                        : 'bg-emerald-600 text-white hover:bg-emerald-500'
+                  }`}
+                >
+                  Map 'Salām' (Peace)
+                </button>
               </div>
             ) : (
               <div className="overflow-y-auto space-y-2 max-h-[300px] pr-1">

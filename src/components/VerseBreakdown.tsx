@@ -1,4 +1,6 @@
+import { safeLower } from '../lib/utils';
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { OFFLINE_VERSES_MAP, VerseBreakdownData, VerseWordBreakdown } from '../data/offlineVerses';
 import { SURAH_MAPPING_LIST, SurahDefinition } from '../data/surahMapping';
 import { Search, Loader2, Sparkles, BookOpen, AlertTriangle, ArrowRight, HelpCircle, FileText, Check, Trash2, X, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -224,8 +226,8 @@ function getDetailedWordMeanings(w: VerseWordBreakdown): WordMeaningSplit {
 }
 
 function parseWordGrammar(w: VerseWordBreakdown): WordGrammarDetails {
-  const explanation = w.explanation.toLowerCase();
-  const meaning = w.meaning.toLowerCase();
+  const explanation = safeLower(w.explanation || '');
+  const meaning = safeLower(w.meaning || '');
   const wordType = w.wordType; // "Ism" | "Fi'l" | "Harf"
 
   let tense = "N/A";
@@ -332,10 +334,9 @@ function parseWordGrammar(w: VerseWordBreakdown): WordGrammarDetails {
 
 export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: VerseBreakdownProps) {
   // Input Selection
-  const [selectedPresetId, setSelectedPresetId] = useState<string>('2:255');
+  const [selectedPresetId, setSelectedPresetId] = useState<string>('');
   const [customSurah, setCustomSurah] = useState<string>('');
   const [customVerse, setCustomVerse] = useState<string>('');
-  const [customEndVerse, setCustomEndVerse] = useState<string>('');
   
   // Offline-saved custom verses from localStorage
   const [offlineSavedVerses, setOfflineSavedVerses] = useState<Record<string, VerseBreakdownData>>(() => {
@@ -390,6 +391,47 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
     }
   };
 
+  // Swipe gesture logic
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchEndX - touchStartX;
+
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) {
+        // Swiped right -> mentally move 'back/right' towards start of text -> prev word
+        handlePrevWord();
+      } else {
+        // Swiped left -> mentally move 'forward/left' in text -> next word
+        handleNextWord();
+      }
+    }
+    setTouchStartX(null);
+  };
+
+  // Keyboard Navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!activeVerseData || selectedWordToken === null) return;
+      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
+
+      if (e.key === 'ArrowRight') {
+        handlePrevWord();
+      }
+      if (e.key === 'ArrowLeft') {
+        handleNextWord();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeVerseData, selectedWordToken, currentWordIndex]);
+
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [apiSuccessTriggered, setApiSuccessTriggered] = useState(false);
 
@@ -426,6 +468,9 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
         textIsm: 'text-amber-700 hover:text-amber-850',
         textFil: 'text-emerald-700 hover:text-emerald-850',
         textHarf: 'text-stone-500 hover:text-stone-650',
+        dotIsm: 'bg-amber-600',
+        dotFil: 'bg-emerald-600',
+        dotHarf: 'bg-stone-500',
       };
     }
     if (isCosmic) {
@@ -448,6 +493,9 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
         textIsm: 'text-pink-400 hover:text-pink-300 drop-shadow-[0_0_8px_rgba(236,72,153,0.3)]',
         textFil: 'text-violet-400 hover:text-violet-300 drop-shadow-[0_0_8px_rgba(139,92,246,0.3)]',
         textHarf: 'text-cyan-400 hover:text-cyan-300 drop-shadow-[0_0_8px_rgba(6,182,212,0.3)]',
+        dotIsm: 'bg-pink-400',
+        dotFil: 'bg-violet-400',
+        dotHarf: 'bg-cyan-400',
       };
     }
     return {
@@ -469,12 +517,15 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
       textIsm: 'text-amber-400 hover:text-amber-300 drop-shadow-[0_0_6px_rgba(245,158,11,0.2)]',
       textFil: 'text-emerald-400 hover:text-emerald-300 drop-shadow-[0_0_6px_rgba(16,185,129,0.2)]',
       textHarf: 'text-sky-400 hover:text-sky-300 drop-shadow-[0_0_6px_rgba(56,189,248,0.2)]',
+      dotIsm: 'bg-amber-400',
+      dotFil: 'bg-emerald-400',
+      dotHarf: 'bg-sky-400',
     };
   }, [isParchment, isCosmic]);
 
   // Real-time matched Surah based on text typed (either number or partial transliterated/Arabic name)
   const matchedSurah = useMemo<SurahDefinition | null>(() => {
-    const query = customSurah.trim().toLowerCase();
+    const query = safeLower(customSurah.trim());
     if (!query) return null;
 
     const surahNum = parseInt(query, 10);
@@ -485,9 +536,9 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
     // Try finding by name, stripping common phonetic prefixes like Al-, Ar-
     const cleanQuery = query.replace(/^(al|ar|an|ash|at|ad|az|as|aj|ad)-?/i, '');
     return SURAH_MAPPING_LIST.find(s => {
-      const cleanTrans = s.transliteration.toLowerCase().replace(/^(al|ar|an|ash|at|ad|az|as|aj|ad)-?/i, '');
+      const cleanTrans = safeLower(s.transliteration).replace(/^(al|ar|an|ash|at|ad|az|as|aj|ad)-?/i, '');
       return cleanTrans.includes(cleanQuery) || 
-             s.transliteration.toLowerCase().includes(query) || 
+             safeLower(s.transliteration).includes(query) || 
              s.name.includes(query);
     }) || null;
   }, [customSurah]);
@@ -498,28 +549,11 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
       const currentVal = parseInt(customVerse, 10);
       if (isNaN(currentVal) || currentVal < 1 || currentVal > matchedSurah.totalVerses) {
         setCustomVerse('1'); // Automatically select Verse 1 as default safe step
-        setCustomEndVerse('1');
       }
     } else {
       setCustomVerse('');
-      setCustomEndVerse('');
     }
   }, [matchedSurah]);
-
-  // Keep customEndVerse in valid range (max 5 ayaat)
-  useEffect(() => {
-    const start = parseInt(customVerse, 10);
-    const end = parseInt(customEndVerse, 10);
-    if (!isNaN(start) && matchedSurah) {
-      if (isNaN(end) || end < start) {
-        setCustomEndVerse(start.toString());
-      } else if (end - start > 4) {
-        setCustomEndVerse((start + 4).toString());
-      } else if (end > matchedSurah.totalVerses) {
-        setCustomEndVerse(matchedSurah.totalVerses.toString());
-      }
-    }
-  }, [customVerse, customEndVerse, matchedSurah]);
 
   // Load preset or offline saved verse initially
   useEffect(() => {
@@ -540,15 +574,8 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
     }
     // LOCAL OFFLINE ADVANTAGE: Check if this is already cached in our offline registry!
     const sQuery = matchedSurah.number.toString();
-    let vQuery = customVerse.trim() || '1';
+    const vQuery = customVerse.trim() || '1';
     
-    // Check if endVerse is different from startVerse
-    const startNum = parseInt(customVerse, 10);
-    const endNum = parseInt(customEndVerse, 10);
-    if (!isNaN(startNum) && !isNaN(endNum) && endNum > startNum) {
-      vQuery = `${startNum}-${endNum}`;
-    }
-
     const cacheKey = `${sQuery}:${vQuery}`;
 
     // LOCAL OFFLINE ADVANTAGE: Check if this is already cached in our offline registry!
@@ -588,7 +615,7 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
         // Guarantee clean, accurate names from local map
         freshVerseData.surahName = matchedSurah.transliteration;
         freshVerseData.surahNumber = matchedSurah.number;
-        freshVerseData.verseNumber = parseInt(vQuery, 10) || 1;
+        freshVerseData.verseNumber = vQuery;
 
         // Auto-save offline by default: update local storage cache immediately!
         const updatedOffline = {
@@ -631,10 +658,10 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
     <div className="space-y-6">
       
       {/* Search Input Widget */}
-      <div className={`border rounded-2xl p-5 ${colors.cardBg} transition-all duration-300 shadow-sm animate-fadeIn`}>
-        <div className="flex flex-col xl:flex-row items-stretch xl:items-start justify-between gap-6">
-          
-          {/* Preset Select Controls and Cache */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fadeIn">
+        
+        {/* Preset Select Controls and Cache */}
+        <div className={`border rounded-2xl p-6 ${colors.cardBg} transition-all duration-300 shadow-sm flex flex-col h-full`}>
           <div className="flex-1 space-y-4">
             <div>
               <h3 className="text-xs font-bold opacity-85 flex items-center gap-1.5 mb-2 font-mono uppercase tracking-wider">
@@ -704,11 +731,11 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
               </div>
             )}
           </div>
+        </div>
 
-          <div className="h-px xl:h-28 w-full xl:w-px bg-current opacity-10 shrink-0"></div>
-
-          {/* Custom Search Form with real-time Lookups */}
-          <form onSubmit={handleLiveQuery} className="flex-1 flex flex-col gap-4">
+        {/* Custom Search Form with real-time Lookups */}
+        <div className={`border rounded-2xl p-6 ${colors.cardBg} transition-all duration-300 shadow-sm flex flex-col h-full`}>
+          <form onSubmit={handleLiveQuery} className="flex-1 flex flex-col gap-5 justify-between">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               
               {/* Surah text/number field */}
@@ -750,10 +777,10 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
               </div>
 
               {/* Dynamic Ayat / Verse Dropdown Selector */}
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2">
                 <div>
                   <label className="block text-[10px] font-bold font-mono tracking-wider opacity-60 uppercase mb-1 whitespace-nowrap">
-                    Start Verse
+                    Verse Selection
                   </label>
                   {matchedSurah ? (
                     <select
@@ -784,43 +811,6 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
                     />
                   )}
                 </div>
-                
-                <div>
-                  <label className="block text-[10px] font-bold font-mono tracking-wider opacity-60 uppercase mb-1">
-                    End Verse (Max +4)
-                  </label>
-                  {matchedSurah ? (
-                    <select
-                      value={customEndVerse}
-                      onChange={(e) => setCustomEndVerse(e.target.value)}
-                      className={`w-full text-xs rounded-xl py-2 px-3 focus:outline-none border bg-black/5 ${colors.hoverPill}`}
-                      required
-                    >
-                      {Array.from({ length: Math.min(5, matchedSurah.totalVerses - parseInt(customVerse || '1', 10) + 1) }, (_, idx) => parseInt(customVerse || '1', 10) + idx).map((v) => (
-                        <option 
-                          key={v} 
-                          value={v.toString()}
-                          className={isParchment ? 'text-[#2c241e]' : 'text-slate-900'}
-                        >
-                          Ayat {v}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input
-                      type="text"
-                      disabled
-                      placeholder="Surah req..."
-                      className="w-full text-xs rounded-xl py-2 px-3 opacity-50 border bg-black/10 cursor-not-allowed"
-                    />
-                  )}
-                </div>
-                
-                <div className="col-span-2">
-                  <p className="text-[10px] opacity-45 mt-0.5">
-                    Analyze up to 5 consecutive aayat for broader context.
-                  </p>
-                </div>
               </div>
 
             </div>
@@ -838,7 +828,7 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
               ) : (
                 <>
                   <Search className="w-3.5 h-3.5" />
-                  {allVersesMap[`${matchedSurah?.number}:${parseInt(customEndVerse, 10) > parseInt(customVerse, 10) ? `${customVerse}-${customEndVerse}` : customVerse}`] 
+                  {allVersesMap[`${matchedSurah?.number}:${customVerse}`] 
                     ? 'Load Instantly (Offline Cache Ready)' 
                     : 'Fetch & Save Offline by Default'}
                 </>
@@ -846,6 +836,7 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
             </button>
           </form>
         </div>
+      </div>
 
         {/* Informational Alert for Search state handling */}
         {errorMessage && (
@@ -867,11 +858,14 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
             <span className="font-semibold">Verse segment analysis matched successfully. Copy saved dynamically offline by default!</span>
           </div>
         )}
-      </div>
 
       {/* Main Structural Display Panel */}
-      {activeVerseData && (
-        <div className="max-w-4xl mx-auto space-y-6">
+      {activeVerseData ? (
+        <div 
+          className="max-w-4xl mx-auto space-y-8"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           
           {/* The Verse display card */}
           <div className={`border rounded-2xl p-6 md:p-8 flex flex-col items-center justify-center text-center transition-all ${colors.cardBg} shadow-sm`}>
@@ -920,28 +914,29 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
             <div className="w-full mt-3 mb-5 py-2.5 px-4 bg-current/5 rounded-xl border border-current/10 flex flex-wrap items-center justify-center gap-6 text-xs font-mono">
               <span className="opacity-60 text-[10px] uppercase font-bold tracking-wider">Parts of Speech Coloring:</span>
               <div className="flex items-center gap-1.5">
-                <span className={`w-3 h-3 rounded-full ${colors.bgIsmBadge.split(' ')[0]} border border-current/10 shrink-0`}></span>
+                <span className={`w-3 h-3 rounded-full ${colors.dotIsm} border border-current/10 shrink-0`}></span>
                 <span className="font-bold opacity-85">Ism (Noun)</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className={`w-3 h-3 rounded-full ${colors.bgFilBadge.split(' ')[0]} border border-current/10 shrink-0`}></span>
+                <span className={`w-3 h-3 rounded-full ${colors.dotFil} border border-current/10 shrink-0`}></span>
                 <span className="font-bold opacity-85">Fi'l (Verb)</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className={`w-3 h-3 rounded-full ${colors.bgHarfBadge.split(' ')[0]} border border-current/10 shrink-0`}></span>
+                <span className={`w-3 h-3 rounded-full ${colors.dotHarf} border border-current/10 shrink-0`}></span>
                 <span className="font-bold opacity-85">Harf (Particle)</span>
               </div>
             </div>
 
-            {/* English Translation */}
-            <div className="mt-2 border-t border-current/5 pt-4 w-full">
-              <p className="text-[10px] font-mono opacity-40 uppercase tracking-wider mb-1.5">
-                Universal English Translation
-              </p>
-              <p className="text-sm italic opacity-85 leading-relaxed font-serif text-current/90">
-                "{activeVerseData.fullVerseTranslation}"
-              </p>
-            </div>
+                      </div>
+
+          {/* English Translation Card */}
+          <div className={`border rounded-2xl p-6 text-center transition-all ${colors.cardBg} shadow-sm`}>
+            <p className="text-[10px] font-mono opacity-40 uppercase tracking-wider mb-2 font-bold">
+              Universal English Translation
+            </p>
+            <p className="text-[15px] md:text-base italic opacity-95 leading-relaxed font-serif text-current">
+              "{activeVerseData.fullVerseTranslation}"
+            </p>
           </div>
 
           <p className="text-center text-xs opacity-50 italic py-2">
@@ -949,7 +944,9 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
           </p>
 
           {/* Hover Screen / Detached Modal for Word-by-Word details */}
-          {selectedWordToken && (() => {
+          {selectedWordToken && createPortal((() => {
+            const currentWordIndex = activeVerseData.words.findIndex(w => w.word === selectedWordToken.word);
+            
             const parsedDetails = getDetailedWordMeanings(selectedWordToken);
             const info = parseWordGrammar(selectedWordToken);
             
@@ -961,17 +958,23 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
                   ? "Action Verb (Represents a dynamic event bound to a past, present, or future timeline)"
                   : "Particle (Preposition/Conjunction. Yields semantic vectors only when linked to other words)";
 
+            const typeColorClass = selectedWordToken.wordType === "Ism" 
+              ? colors.textIsm 
+              : selectedWordToken.wordType === "Fi'l" 
+                ? colors.textFil 
+                : colors.textHarf;
+
             return (
               <div 
-                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md animate-fadeIn"
+                className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md animate-fadeIn transition-colors ${theme === 'parchment' ? 'text-[#2c241e]' : theme === 'cosmic' ? 'text-slate-100' : 'text-slate-100'}`}
                 onClick={() => setSelectedWordToken(null)}
               >
                 <div 
-                  className={`relative w-full max-w-2xl rounded-2xl border p-5 md:p-7 shadow-2xl transition-all transform scale-100 max-h-[92vh] overflow-y-auto ${colors.cardBg} border-current/15`}
+                  className={`relative w-full max-w-2xl max-h-full flex flex-col rounded-2xl border shadow-2xl transition-all transform scale-100 overflow-hidden ${colors.cardBg} border-current/15`}
                   onClick={(e) => e.stopPropagation()} // Prevent close on card click
                 >
                   {/* Top Header Row with Close Button */}
-                  <div className="flex items-center justify-between border-b border-current/10 pb-3.5 mb-4 font-mono">
+                  <div className="flex items-center justify-between shrink-0 border-b border-current/10 p-4 md:p-5 font-mono">
                     <div className="flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-emerald-500 animate-pulse animate-duration-1000" />
                       <span className="text-[11px] font-mono opacity-65 uppercase tracking-wider font-semibold">
@@ -987,7 +990,7 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
                     </button>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="overflow-y-auto p-4 md:p-5 space-y-4">
                     {/* Orthography, Transliteration, and Word Type */}
                     <div className={`p-4 md:p-6 rounded-2xl text-center border relative overflow-hidden flex flex-col items-center justify-center ${colors.innerBg} border-current/5 shadow-inner`}>
                       <div className="absolute top-2 right-3 text-[8px] font-mono opacity-40 uppercase tracking-widest">
@@ -1003,7 +1006,7 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
 
                       {/* Part of Speech Mini-card */}
                       <div className="mt-3.5 px-3 py-1.5 rounded-xl bg-current/5 border border-current/10 text-[11px] text-current/80 max-w-md w-full">
-                        <span className="font-bold uppercase text-[10px] tracking-wider text-emerald-500 block mb-0.5">
+                        <span className={`font-bold uppercase text-[10px] tracking-wider block mb-0.5 ${typeColorClass.split(' ')[0]}`}>
                           Part of Speech: {selectedWordToken.wordType}
                         </span>
                         <span className="opacity-75 block text-center leading-normal">
@@ -1148,7 +1151,7 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
                   </div>
 
                   {/* Prev & Next Word Buttons Row */}
-                  <div className="mt-5 pt-3.5 border-t border-current/10 flex items-center justify-between gap-4">
+                  <div className="shrink-0 p-4 md:p-5 border-t border-current/10 bg-current/5 flex items-center justify-between gap-4">
                     {/* Previous Button */}
                     <button
                       onClick={handlePrevWord}
@@ -1178,9 +1181,16 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
                 </div>
               </div>
             );
-          })()}
+          })(), document.body)}
 
         </div>
+      ) : (
+         <div className={`mt-8 border rounded-2xl p-12 text-center flex flex-col items-center justify-center transition-all min-h-[400px] ${colors.cardBg} shadow-sm animate-fadeIn`}>
+            <h2 className={`text-4xl md:text-5xl lg:text-6xl font-serif mb-6 opacity-85 leading-relaxed font-bold text-transparent bg-clip-text drop-shadow-sm ${
+              isParchment ? 'bg-gradient-to-r from-[#8c6239] to-[#b38554]' : isCosmic ? 'bg-gradient-to-r from-indigo-400 to-pink-500' : 'bg-gradient-to-r from-emerald-500 to-teal-600'
+            }`} dir="rtl">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</h2>
+            <p className="text-sm opacity-60 font-medium font-mono uppercase tracking-widest">Select a Surah above to begin your exploration</p>
+         </div>
       )}
 
     </div>

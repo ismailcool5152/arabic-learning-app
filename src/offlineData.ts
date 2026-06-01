@@ -1,3 +1,4 @@
+import { safeLower } from './lib/utils';
 /**
  * Offline pre-compiled high-quality Quranic Arabic morphological profiles.
  * This ensures that if the Gemini API is rate-limited (e.g., 429 quota exhaustion),
@@ -1168,7 +1169,7 @@ export const OFFLINE_PROFILES: Record<string, WordAnalysis> = {
  */
 export function findOfflineFallback(query: string): WordAnalysis | null {
   if (!query) return null;
-  const qClean = query.trim().toLowerCase();
+  const qClean = safeLower(query.trim());
   
   // Direct matches
   if (OFFLINE_PROFILES[qClean]) {
@@ -1333,14 +1334,14 @@ const ARABIC_TO_LATIN_MAP: Record<string, string> = {
  */
 export function generateDynamicOfflineFallback(word: string): WordAnalysis {
   const cleanWord = word.trim();
-  const lowerWord = cleanWord.toLowerCase();
-  
+  const lowerWord = safeLower(cleanWord);
+
   // Try to find matching word within the 118 high-frequency offline words database
   const directLexiconMatch = LEXICON_WORDS.find(
     item => 
       item.word === cleanWord || 
-      item.transliteration.toLowerCase() === lowerWord ||
-      item.meaning.toLowerCase().includes(lowerWord)
+      (item.transliteration && safeLower(item.transliteration) === lowerWord) ||
+      (item.meaning && safeLower(item.meaning).includes(lowerWord))
   );
 
   let rootStr = "ع - ل - م";
@@ -1375,7 +1376,7 @@ export function generateDynamicOfflineFallback(word: string): WordAnalysis {
         rootTrans = `${l1}-${l2}-${l3}`;
       }
     } else if (cleanWord.length >= 3) {
-      const consonants = cleanWord.toLowerCase().replace(/[aeiou]/g, '').split('');
+      const consonants = safeLower(cleanWord).replace(/[aeiou]/g, '').split('');
       if (consonants.length >= 3) {
         rootStr = consonants.slice(0, 3).join(' - ').toUpperCase();
         rootTrans = consonants.slice(0, 3).join('-').toUpperCase();
@@ -1405,36 +1406,36 @@ export function generateDynamicOfflineFallback(word: string): WordAnalysis {
     },
     { 
       word: `${r1}َ${r2}َ${r3}َ`, 
-      transliteration: `${t1.toLowerCase()}a${t2.toLowerCase()}a${t3.toLowerCase()}a`, 
-      meaning: `To act and embody the concept of ${meaning.toLowerCase()}`, 
+      transliteration: `${safeLower(t1)}a${safeLower(t2)}a${safeLower(t3)}a`, 
+      meaning: `To act and embody the concept of ${safeLower(meaning)}`, 
       morphology: "Form I Past Perfect Active Verb (فَعَلَ)",
-      quranicExample: `Core default action: He performed/realized ${meaning.toLowerCase()}.`
+      quranicExample: `Core default action: He performed/realized ${safeLower(meaning)}.`
     },
     { 
       word: `يَ${r1}ْ${r2}ُ${r3}ُ`, 
-      transliteration: `ya${t1.toLowerCase()}${t2.toLowerCase()}u${t3.toLowerCase()}u`, 
-      meaning: `To continuously express or realize ${meaning.toLowerCase()}`, 
+      transliteration: `ya${safeLower(t1)}${safeLower(t2)}u${safeLower(t3)}u`, 
+      meaning: `To continuously express or realize ${safeLower(meaning)}`, 
       morphology: "Form I Present Active Verb (يَفْعُلُ)",
       quranicExample: "Expressive continuous active participle event."
     },
     { 
       word: `${r1}َا${r2}ِ${r3}ٌ`, 
       transliteration: `${t1}ā${t2}i${t3}un`, 
-      meaning: `One who performs or embodies ${meaning.toLowerCase()}`, 
+      meaning: `One who performs or embodies ${safeLower(meaning)}`, 
       morphology: "Active Participle / Agent of action (فَاعِل)",
       quranicExample: "The absolute human actor performing this root action."
     },
     { 
       word: `مَ${r1}ْ${r2}ُ${r3}ٌ`, 
-      transliteration: `ma${t1.toLowerCase()}${t2.toLowerCase()}ū${t3.toLowerCase()}un`, 
-      meaning: `The direct recipient or resulting outcome of ${meaning.toLowerCase()}`, 
+      transliteration: `ma${safeLower(t1)}${safeLower(t2)}ū${safeLower(t3)}un`, 
+      meaning: `The direct recipient or resulting outcome of ${safeLower(meaning)}`, 
       morphology: "Passive Participle / Event Objective (مَفْعُول)",
       quranicExample: "The direct object receiving the root action's results."
     },
     { 
       word: `مَ${r1}ْ${r2}َ${r3}ٌ`, 
-      transliteration: `ma${t1.toLowerCase()}${t2.toLowerCase()}a${t3.toLowerCase()}un`, 
-      meaning: `The designated coordinate, place, or focus of ${meaning.toLowerCase()}`, 
+      transliteration: `ma${safeLower(t1)}${safeLower(t2)}a${safeLower(t3)}un`, 
+      meaning: `The designated coordinate, place, or focus of ${safeLower(meaning)}`, 
       morphology: "Noun of Place and Space context (مَفْعَل)",
       quranicExample: "The spatial coordinate where this root concept manifests."
     }
@@ -1447,7 +1448,7 @@ export function generateDynamicOfflineFallback(word: string): WordAnalysis {
     meaning: meaning,
     root: rootStr,
     rootTransliteration: rootTrans,
-    rootMeaning: `Core thematic, spiritual, or active concept related to the root ${rootTrans} representing ${meaning.toLowerCase()}.`,
+    rootMeaning: `Core thematic, spiritual, or active concept related to the root ${rootTrans} representing ${safeLower(meaning)}.`,
     derivationExplanation: isFromLexicon
       ? `Successfully extracted "${wordArabic}" from our integrated offline Quranic Lexicon! It originates from the authentic triliteral root ${rootStr} (${rootTrans}). Using classical Arabic morphological transformations (Sarf), applying specific vowelling and structural coordinates elevates this root into its analyzed configuration.`
       : `Linguistic analysis executed via the Resident Offline Morphological Engine because the Gemini API rate limit or validation threshold was reached. Programmatic estimation parsed the root as ${rootStr} (${rootTrans}) to complete your study session without disruption.`,

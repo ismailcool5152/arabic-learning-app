@@ -1,3 +1,4 @@
+import { safeLower } from '../lib/utils';
 import React, { useState } from 'react';
 import { LayoutTheme } from '../types';
 import { BookOpen, Search, Info, HelpCircle, Link2, Sparkles, ChevronRight, Keyboard } from 'lucide-react';
@@ -516,9 +517,9 @@ export default function HurufLibrary({ theme }: HurufLibraryProps) {
     const matchesAttachment = selectedAttachmentFilter === 'all' || h.attachmentType === selectedAttachmentFilter;
     const matchesSearch = 
       h.arabic.includes(searchQuery) ||
-      h.transliteration.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      h.englishMeaning.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      h.grammaticalEffect.toLowerCase().includes(searchQuery.toLowerCase());
+      (h.transliteration && safeLower(h.transliteration).includes(safeLower(searchQuery))) ||
+      (h.englishMeaning && safeLower(h.englishMeaning).includes(safeLower(searchQuery))) ||
+      (h.grammaticalEffect && safeLower(h.grammaticalEffect).includes(safeLower(searchQuery)));
     return matchesCategory && matchesAttachment && matchesSearch;
   });
 

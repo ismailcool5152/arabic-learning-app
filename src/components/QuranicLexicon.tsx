@@ -1,3 +1,4 @@
+import { safeLower } from '../lib/utils';
 import React, { useState } from 'react';
 import { LayoutTheme } from '../types';
 import { BookOpen, Search, ArrowRight, Keyboard } from 'lucide-react';
@@ -37,13 +38,13 @@ export default function QuranicLexicon({ theme, onSearch }: QuranicLexiconProps)
 
   const filterLexicon = () => {
     if (!searchQuery) return GROUPED_LEXICON;
-    const q = searchQuery.toLowerCase();
+    const q = safeLower(searchQuery);
     const filtered: Record<string, typeof LEXICON_WORDS> = {};
     for (const [letter, words] of Object.entries(GROUPED_LEXICON)) {
       const matchWords = words.filter(w => 
         w.word.includes(q) || 
-        w.transliteration.toLowerCase().includes(q) || 
-        w.meaning.toLowerCase().includes(q)
+        (w.transliteration && safeLower(w.transliteration).includes(q)) || 
+        (w.meaning && safeLower(w.meaning).includes(q))
       );
       if (matchWords.length > 0) {
         filtered[letter] = matchWords;
