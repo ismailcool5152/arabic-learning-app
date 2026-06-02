@@ -1,0 +1,184 @@
+{
+  "surahName": "Al-Ikhlas",
+  "surahNumber": 112,
+  "verses": {
+    "1": {
+      "verseNumber": "1",
+      "fullVerseArabic": "قُلْ هُوَ اللَّهُ أَحَدٌ",
+      "fullVerseTranslation": "Say, 'He is Allah, [who is] One,'",
+      "words": [
+        {
+          "word": "قُلْ",
+          "transliteration": "qul",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ق و ل",
+          "meaning": "Say",
+          "explanation": "Imperative verb (Command)."
+        },
+        {
+          "word": "هُوَ",
+          "transliteration": "huwa",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "He",
+          "explanation": "Third person masculine singular pronoun."
+        },
+        {
+          "word": "اللَّهُ",
+          "transliteration": "Allahu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ء ل ه",
+          "meaning": "Allah",
+          "explanation": "Proper name of the Creator."
+        },
+        {
+          "word": "أَحَدٌ",
+          "transliteration": "ahadun",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "و ح د",
+          "meaning": "One",
+          "explanation": "Nominative noun, denoting unique oneness."
+        }
+      ]
+    },
+    "2": {
+      "verseNumber": "2",
+      "fullVerseArabic": "اللَّهُ الصَّمَدُ",
+      "fullVerseTranslation": "Allah, the Eternal Refuge.",
+      "words": [
+        {
+          "word": "اللَّهُ",
+          "transliteration": "Allahu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ء ل ه",
+          "meaning": "Allah",
+          "explanation": "Proper name."
+        },
+        {
+          "word": "الصَّمَدُ",
+          "transliteration": "as-samadu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ص م د",
+          "meaning": "the Eternal Refuge",
+          "explanation": "Definite noun, meaning the one depended upon by all."
+        }
+      ]
+    },
+    "3": {
+      "verseNumber": "3",
+      "fullVerseArabic": "لَمْ يَلِدْ وَلَمْ يُولَدْ",
+      "fullVerseTranslation": "He neither begets nor is born,",
+      "words": [
+        {
+          "word": "لَمْ",
+          "transliteration": "lam",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "did not",
+          "explanation": "Particle of negation for the past."
+        },
+        {
+          "word": "يَلِدْ",
+          "transliteration": "yalid",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "و ل د",
+          "meaning": "beget",
+          "explanation": "Present verb in jussive state due to 'lam'."
+        },
+        {
+          "word": "وَلَمْ",
+          "transliteration": "wa-lam",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "and did not",
+          "explanation": "Conjunction 'wa' + negative particle."
+        },
+        {
+          "word": "يُولَدْ",
+          "transliteration": "yoolad",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "و ل د",
+          "meaning": "was He begotten",
+          "explanation": "Passive present verb in jussive state."
+        }
+      ]
+    },
+    "4": {
+      "verseNumber": "4",
+      "fullVerseArabic": "وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ",
+      "fullVerseTranslation": "Nor is there to Him any equivalent.",
+      "words": [
+        {
+          "word": "وَلَمْ",
+          "transliteration": "wa-lam",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "and not",
+          "explanation": "Conjunction + negative particle."
+        },
+        {
+          "word": "يَكُن",
+          "transliteration": "yakun",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ك و ن",
+          "meaning": "is",
+          "explanation": "Present verb (kana), jussive state."
+        },
+        {
+          "word": "لَّهُ",
+          "transliteration": "lahu",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "to Him",
+          "explanation": "Preposition 'li' + third person pronoun."
+        },
+        {
+          "word": "كُفُوًا",
+          "transliteration": "kufuwan",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ك ف ء",
+          "meaning": "equivalent",
+          "explanation": "Accusative noun."
+        },
+        {
+          "word": "أَحَدٌ",
+          "transliteration": "ahadun",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "و ح د",
+          "meaning": "anyone",
+          "explanation": "Nominative noun."
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "surahName": "Al-'Ankabut",
+  "surahNumber": 29,
+  "verses": {
+    "1": {
+      "verseNumber": "1",
+      "fullVerseArabic": "الم",
+      "fullVerseTranslation": "Alif, Lam, Meem.",
+      "words": [
+        {
+          "word": "الم",
+          "transliteration": "Alif-Lam-Meem",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "Alif, Lam, Meem",
+          "explanation": "Disjointed letters (Huroof Muqatta'at)."
+        }
+      ]
+    },
+    "2": {
+      "verseNumber": "2",
+      "fullVerseArabic": "أَحَسِبَ النَّاسُ أَن يُتْرَكُوا أَن يَقُولُوا آمَنَّا وَهُمْ لَا يُفْتَنُونَ",
+      "fullVerseTranslation": "Do the people think that they will be left to say, 'We believe' and they will not be tried?",
+      "words": [
+        {
+          "word": "أَحَسِبَ",
+          "transliteration": "ahasiba",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ح س ب",
+          "meaning": "Do think",
+          "explanation": "Interrogative particle 'a' + past tense verb (Form I)."
+        },
+        {
+          "word": "النَّاسُ",
+          "transliteration": "an-nasu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ن و س",
+          "meaning": "the people",
+          "explanation": "Definite noun representing mankind/people."
+        },
+        {
+          "word": "أَن",
+          "transliteration": "an",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "that",
+          "explanation": "Particle of nasb (makes following present verb subjunctive)."
+        },
+        {
+          "word": "يُتْرَكُوا",
+          "transliteration": "yutrakoo",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ت ر ك",
+          "meaning": "they will be left",
+          "explanation": "Passive present verb (Form I), third person plural."
+        },
+        {
+          "word": "أَن",
+          "transliteration": "an",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "that",
+          "explanation": "Particle of nasb (that / to)."
+        },
+        {
+          "word": "يَقُولُوا",
+          "transliteration": "yaqooloo",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ق و ل",
+          "meaning": "they say",
+          "explanation": "Present tense verb (Form I) in subjunctive mood."
+        },
+        {
+          "word": "آمَنَّا",
+          "transliteration": "amanna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ء م ن",
+          "meaning": "We believe",
+          "explanation": "Past tense verb (Form IV) with first person plural subject 'na'."
+        },
+        {
+          "word": "وَهُمْ",
+          "transliteration": "wa-hum",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "while they",
+          "explanation": "Circumstantial 'wa' + third person plural pronoun."
+        },
+        {
+          "word": "لَا",
+          "transliteration": "la",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "not",
+          "explanation": "Particle of negation."
+        },
+        {
+          "word": "يُفْتَنُونَ",
+          "transliteration": "yuftanoona",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ف ت ن",
+          "meaning": "will be tried",
+          "explanation": "Passive present verb (Form I), third person plural masculine."
+        }
+      ]
+    }
+  }
+}

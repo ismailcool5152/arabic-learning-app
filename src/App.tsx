@@ -15,8 +15,11 @@ import AsmaAlHusna from './components/AsmaAlHusna';
 import HurufulHija from './components/HurufulHija';
 import CommonWordsTable from './components/CommonWordsTable';
 import VerseBreakdown from './components/VerseBreakdown';
+import SurahVocabularyMaps from './components/SurahVocabularyMaps';
 import RootFlashcards from './components/RootFlashcards';
 import SRSPractice from './components/SRSPractice';
+import BalaghahTasters from './components/BalaghahTasters';
+import MisunderstoodRoots from './components/MisunderstoodRoots';
 import { useSRS } from './hooks/useSRS';
 import WordOfTheDayWidget from './components/WordOfTheDayWidget';
 import { findOfflineFallback, generateDynamicOfflineFallback } from './offlineData';
@@ -50,7 +53,9 @@ import {
   X,
   FileText,
   Settings,
-  ArrowRight
+  ArrowRight,
+  Map,
+  Mic
 } from 'lucide-react';
 import { QURANIC_SUGGESTIONS } from './components/SavedMapsSidebar';
 import ProductDoc from './components/ProductDoc';
@@ -73,13 +78,16 @@ export default function App() {
     Learn: [
       { id: 'hija', title: 'Hurūf-ul-Hijā (Makhārij)', icon: <Sparkles className="w-4 h-4 text-yellow-500 animate-pulse" />, desc: "Master the origins and attributes of Arabic pronunciation." },
       { id: 'basics', title: 'Arabic Basics', icon: <Compass className="w-4 h-4 text-amber-500 animate-pulse" />, desc: "Interactive grammar breakdown of Nouns, Verbs, and Particles." },
-      { id: 'huruf', title: 'Hurūf & Particles', icon: <BookOpen className="w-4 h-4" />, desc: "Explore grammatical functions of prepositions and conjunctions." }
+      { id: 'huruf', title: 'Hurūf & Particles', icon: <BookOpen className="w-4 h-4" />, desc: "Explore grammatical functions of prepositions and conjunctions." },
+      { id: 'balaghah', title: 'Balāghah Tasters', icon: <Mic className="w-4 h-4" />, desc: "Basic rhetorical devices mapping root meanings to morphology." }
     ],
     Explore: [
       { id: 'database', title: 'Patterns Codex & DB', icon: <Database className="w-4 h-4" />, desc: "Discover all Arabic verb forms (Wazans) and noun patterns." },
       { id: 'root', title: 'Root-to-Words Gen', icon: <GitBranch className="w-4 h-4" />, desc: "Dynamically generate words from 3-letter semantic roots." },
       { id: 'names', title: '100 Names of Allah', icon: <Award className="w-4 h-4 text-yellow-500 animate-pulse" />, desc: "Deep dive into Asma ul Husna morphological derivations." },
       { id: 'verse', title: 'Ayat Segmenter', icon: <Sparkles className="w-4 h-4 text-emerald-500 animate-pulse" />, desc: "Word-by-word breakdown of selected Quranic verses." },
+      { id: 'surahmaps', title: 'Surah Vocab Maps', icon: <Map className="w-4 h-4 text-indigo-500" />, desc: "Surah root inventories to unlock vocabulary before reading." },
+      { id: 'misunderstood', title: 'Misunderstood Roots', icon: <AlertCircle className="w-4 h-4 text-rose-500" />, desc: "Frequently mistranslated or confused roots in English." },
       { id: 'lexicon', title: 'Lexicon Dictionary', icon: <BookOpen className="w-4 h-4" />, desc: "Search thousands of classical definitions in lane's style." }
     ],
     Practice: [
@@ -779,6 +787,18 @@ export default function App() {
               handleSearch(word);
             }}
           />
+        </div>
+      ) : activeMainTab === 'balaghah' ? (
+        <div className="animate-fadeIn">
+          <BalaghahTasters theme={theme} />
+        </div>
+      ) : activeMainTab === 'surahmaps' ? (
+        <div className="animate-fadeIn">
+          <SurahVocabularyMaps theme={theme} />
+        </div>
+      ) : activeMainTab === 'misunderstood' ? (
+        <div className="animate-fadeIn">
+          <MisunderstoodRoots theme={theme} />
         </div>
       ) : activeMainTab === 'vocab' ? (
         <div className="animate-fadeIn">

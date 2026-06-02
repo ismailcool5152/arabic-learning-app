@@ -12,6 +12,7 @@ interface CommonWordsTableProps {
 export default function CommonWordsTable({ theme, onSelectWord }: CommonWordsTableProps) {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<'All' | 'Ism' | "Fi'l" | 'Harf'>('All');
+  const [themeFilter, setThemeFilter] = useState<'All' | 'Belief' | 'Creation' | 'Action' | 'Reward'>('All');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
 
@@ -67,6 +68,7 @@ export default function CommonWordsTable({ theme, onSelectWord }: CommonWordsTab
   const filteredWords = useMemo(() => {
     return COMMON_WORDS_500.filter((w) => {
       const q = safeLower(search).trim();
+      const textMatches = w.word + " " + safeLower(w.transliteration) + " " + safeLower(w.meaning) + " " + safeLower(w.root);
       const matchesSearch =
         w.word.includes(q) ||
         (w.transliteration && safeLower(w.transliteration).includes(q)) ||
@@ -75,10 +77,21 @@ export default function CommonWordsTable({ theme, onSelectWord }: CommonWordsTab
         (w.pattern && safeLower(w.pattern).includes(q));
 
       const matchesType = typeFilter === 'All' || w.wordType === typeFilter;
+      
+      let matchesTheme = true;
+      if (themeFilter === 'Belief') {
+        matchesTheme = /believe|faith|guidance|disbelief|deny|poly/i.test(textMatches) || /أمن|كفر|شرك|هدى|ضل|إله/.test(textMatches);
+      } else if (themeFilter === 'Creation') {
+        matchesTheme = /create|heaven|sky|earth|water|light|sun|moon|night|day|mountain/i.test(textMatches) || /خلق|سماء|أرض|ماء|نور|شمس|قمر|ليل/.test(textMatches);
+      } else if (themeFilter === 'Action') {
+        matchesTheme = /work|say|hear|see|look|listen|go|come|make|do/i.test(textMatches) || /عمل|قال|سمع|نظر|مشى|فعل/.test(textMatches);
+      } else if (themeFilter === 'Reward') {
+        matchesTheme = /paradise|fire|reward|punish|torment|hell|garden/i.test(textMatches) || /جنة|نار|حساب|أجر|عذاب|جهنم/.test(textMatches);
+      }
 
-      return matchesSearch && matchesType;
+      return matchesSearch && matchesType && matchesTheme;
     });
-  }, [search, typeFilter]);
+  }, [search, typeFilter, themeFilter]);
 
   // Sort word bank dynamically
   const sortedWords = useMemo(() => {
@@ -160,24 +173,46 @@ export default function CommonWordsTable({ theme, onSelectWord }: CommonWordsTab
           </div>
 
           {/* Type dropdown buttons */}
-          <div className="flex rounded-xl p-0.5 border border-current/10 bg-black/10">
-            {(['All', 'Ism', "Fi'l", 'Harf'] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setTypeFilter(t)}
-                className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                  typeFilter === t
-                    ? isParchment
-                      ? 'bg-[#8c6239] text-white shadow-sm'
-                      : isCosmic
-                        ? 'bg-indigo-600 text-white shadow-md'
-                        : 'bg-emerald-600 text-white shadow-md'
-                    : 'opacity-65 hover:opacity-100 text-current'
-                }`}
-              >
-                {t === 'All' ? 'All POS' : t === 'Ism' ? 'Ism (Noun)' : t === "Fi'l" ? "Fi'l (Verb)" : 'Harf (Particle)'}
-              </button>
-            ))}
+          <div className="flex flex-col gap-2">
+            <div className="flex rounded-xl p-0.5 border border-current/10 bg-black/10">
+              {(['All', 'Ism', "Fi'l", 'Harf'] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTypeFilter(t)}
+                  className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                    typeFilter === t
+                      ? isParchment
+                        ? 'bg-[#8c6239] text-white shadow-sm'
+                        : isCosmic
+                          ? 'bg-indigo-600 text-white shadow-md'
+                          : 'bg-emerald-600 text-white shadow-md'
+                      : 'opacity-65 hover:opacity-100 text-current'
+                  }`}
+                >
+                  {t === 'All' ? 'All POS' : t === 'Ism' ? 'Ism (Noun)' : t === "Fi'l" ? "Fi'l (Verb)" : 'Harf (Particle)'}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex rounded-xl p-0.5 border border-current/10 bg-black/5 flex-wrap">
+              {(['All', 'Belief', 'Creation', 'Action', 'Reward'] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setThemeFilter(t)}
+                  className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                    themeFilter === t
+                      ? isParchment
+                        ? 'bg-[#8c6239] text-white shadow-sm'
+                        : isCosmic
+                          ? 'bg-indigo-600 text-white shadow-md'
+                          : 'bg-emerald-600 text-white shadow-md'
+                      : 'opacity-65 hover:opacity-100 text-current'
+                  }`}
+                >
+                  {t === 'All' ? 'All Themes' : t}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Reset button */}
@@ -185,6 +220,7 @@ export default function CommonWordsTable({ theme, onSelectWord }: CommonWordsTab
             onClick={() => {
               setSearch('');
               setTypeFilter('All');
+              setThemeFilter('All');
               setPage(1);
             }}
             title="Reset Filters"

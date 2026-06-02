@@ -1,0 +1,311 @@
+{
+  "surahName": "Al-Falaq",
+  "surahNumber": 113,
+  "verses": {
+    "1": {
+      "verseNumber": "1",
+      "fullVerseArabic": "قُلْ أَعُوذُ بِرَبِّ ٱلْفَلَقِ",
+      "fullVerseTranslation": "Say, \"I seek refuge in the Lord of daybreak\"",
+      "words": [
+        {
+          "word": "قُلْ",
+          "transliteration": "qul",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ق و ل",
+          "meaning": "Say",
+          "explanation": "Imperative verb (Fi'l Amr), 2nd person masculine singular, derived from the hollow root (qaf-waw-lam). It is built on an inherent sukoon. The radical 'waw' is dropped to prevent the meeting of two unvocalized letters (ijtima' al-sakinayn). It represents a divine command directed initially to the Prophet."
+        },
+        {
+          "word": "أَعُوذُ",
+          "transliteration": "a'ūdhu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ع و ذ",
+          "meaning": "I seek refuge",
+          "explanation": "Imperfect verb (Fi'l Mudari'), active voice, 1st person singular. It is in the indicative state (marfu') marked by a visible dammah at the end. Derived from the hollow root ('ayn-waw-dhal), indicating ongoing/continuous seeking of protection and shelter."
+        },
+        {
+          "word": "بِـ",
+          "transliteration": "bi",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "in",
+          "explanation": "Preposition (Harf Jarr), built on a kasrah, which links the verb of seeking refuge (a'ūdhu) to the object/entity from whom protection is sought."
+        },
+        {
+          "word": "رَبِّ",
+          "transliteration": "rabbi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ر ب ب",
+          "meaning": "the Lord",
+          "explanation": "Noun (Ism), singular masculine, in the genitive case (majrur) due to the preceding preposition 'bi', marked with a kasrah. Syntactically, it acts as the mudaf (possessed noun) in a possessive construct."
+        },
+        {
+          "word": "ٱلْفَلَقِ",
+          "transliteration": "al-falaqi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ف ل ق",
+          "meaning": "the daybreak",
+          "explanation": "Noun (Ism), definite with the prefix 'al-', in the genitive case (majrur) acting as the mudaf ilayh (possessor) in the possessive construct, marked with a visible kasrah. Morphologically derived from the root (fa-lam-qaf) meaning to split, cleave, or break open, referring specifically to the daybreak as it splits the darkness."
+        }
+      ]
+    },
+    "2": {
+      "verseNumber": "2",
+      "fullVerseArabic": "مِن شَرِّ مَا خَلَقَ",
+      "fullVerseTranslation": "From the evil of that which He created",
+      "words": [
+        {
+          "word": "مِن",
+          "transliteration": "min",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "from",
+          "explanation": "Preposition (Harf Jarr) built on a sukoon. Syntactically used here to initiate the source/origin of the harm or evil being avoided."
+        },
+        {
+          "word": "شَرِّ",
+          "transliteration": "sharri",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ش ر ر",
+          "meaning": "(the) evil",
+          "explanation": "Noun (Ism), singular masculine, genitive (majrur) due to the preposition 'min', marked by a visible kasrah. It is the mudaf (annexed noun) in the genitive construct."
+        },
+        {
+          "word": "مَا",
+          "transliteration": "mā",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "of what / that which",
+          "explanation": "Relative pronoun (Ism Mawsul), indeclinable (mabni) on sukoon, occupying the genitive position (fi mahalli jarr) as the mudaf ilayh."
+        },
+        {
+          "word": "خَلَقَ",
+          "transliteration": "khalaqa",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "خ ل ق",
+          "meaning": "He created",
+          "explanation": "Perfect verb (Fi'l Madi), 3rd person masculine singular, built on a fathah. The implicit subject pronoun (mustatir) is 'huwa' (He), referring to Allah. This verb phrase functions as the relative clause (Silat al-Mawsul) with no independent place in parsing."
+        }
+      ]
+    },
+    "3": {
+      "verseNumber": "3",
+      "fullVerseArabic": "وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ",
+      "fullVerseTranslation": "And from the evil of darkness when it settles",
+      "words": [
+        {
+          "word": "وَ_",
+          "transliteration": "wa",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "and",
+          "explanation": "Conjunction particle (Harf 'Atf), built on fathah, coordinating the following prepositional phrase with the preceding one to extend the scope of seeking refuge."
+        },
+        {
+          "word": "مِن",
+          "transliteration": "min",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "from",
+          "explanation": "Preposition (Harf Jarr) built on a sukoon, functioning syntactically as part of the coordinated genitive construction."
+        },
+        {
+          "word": "شَرِّ",
+          "transliteration": "sharri",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ش ر ر",
+          "meaning": "(the) evil",
+          "explanation": "Noun (Ism), singular masculine, genitive (majrur) due to 'min', inflected with a kasrah, functioning as the mudaf."
+        },
+        {
+          "word": "غَاسِقٍ",
+          "transliteration": "ghāsiqin",
+          "isIsmFail": true,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "غ س ق",
+          "meaning": "darkness / one that darkens",
+          "explanation": "Active participle (Ism Fa'il) of Form I, singular masculine, on the pattern 'Fa'il'. It is in the genitive case (majrur) as mudaf ilayh, inflected with double kasrah (tanwin). It lexically refers to the night or the moon as it darkens."
+        },
+        {
+          "word": "إِذَا",
+          "transliteration": "idhā",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "when",
+          "explanation": "Adverbial noun of future time (Zarf Zaman), containing a conditional sense (shart). Built on sukoon, in the accusative position (fi mahalli nasb) of adverbial timing, acting as the mudaf to the following verbal sentence."
+        },
+        {
+          "word": "وَقَبَ",
+          "transliteration": "waqaba",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "و ق ب",
+          "meaning": "it spreads / gathers darkness",
+          "explanation": "Perfect verb (Fi'l Madi), 3rd person masculine singular, built on fathah. The implied subject pronoun (mustatir) is 'huwa' (it/he). The entire verbal sentence is in the genitive position (fi mahalli jarr) as mudaf ilayh to 'idhā'."
+        }
+      ]
+    },
+    "4": {
+      "verseNumber": "4",
+      "fullVerseArabic": "وَمِن شَرِّ ٱلنَّفَّٰثَٰتِ فِي ٱلْعُقَدِ",
+      "fullVerseTranslation": "And from the evil of the blowers in knots",
+      "words": [
+        {
+          "word": "وَ_",
+          "transliteration": "wa",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "and",
+          "explanation": "Conjunction particle (Harf 'Atf), built on fathah, used for coordinating this distinct type of evil back to the primary list."
+        },
+        {
+          "word": "مِن",
+          "transliteration": "min",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "from",
+          "explanation": "Preposition (Harf Jarr) built on a sukoon."
+        },
+        {
+          "word": "شَرِّ",
+          "transliteration": "sharri",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ش ر ر",
+          "meaning": "(the) evil",
+          "explanation": "Noun (Ism), singular masculine, genitive (majrur) due to 'min', inflected with a kasrah, functioning as mudaf."
+        },
+        {
+          "word": "ٱلنَّفَّٰثَٰتِ",
+          "transliteration": "an-naffāthāti",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ن ف ث",
+          "meaning": "of those who blow (the blowers)",
+          "explanation": "Sound feminine plural noun (Jam' Mu'annath Salim), definite with the article 'al-', in the genitive case (majrur) as mudaf ilayh, inflected with a kasrah. Morphologically, it represents the intensive active agent (Sighah Mubalaghah) of the form 'Fa''al' (naffāth) in the plural, referring to those who repeatedly blow/spit with magic."
+        },
+        {
+          "word": "فِي",
+          "transliteration": "fī",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "in",
+          "explanation": "Preposition (Harf Jarr), built on a sukoon, specifying the exact location or focus of the action of blowing."
+        },
+        {
+          "word": "ٱلْعُقَدِ",
+          "transliteration": "al-'uqadi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ع ق د",
+          "meaning": "the knots",
+          "explanation": "Broken plural noun (Jam' Taksir), singular 'uqdah, definite with the prefix 'al-', in the genitive case (majrur) due to the preposition 'fī', marked with a visible kasrah."
+        }
+      ]
+    },
+    "5": {
+      "verseNumber": "5",
+      "fullVerseArabic": "وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ",
+      "fullVerseTranslation": "And from the evil of an envier when he envies",
+      "words": [
+        {
+          "word": "وَ_",
+          "transliteration": "wa",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "and",
+          "explanation": "Conjunction particle (Harf 'Atf), built on fathah, connecting this final specific evil category."
+        },
+        {
+          "word": "مِن",
+          "transliteration": "min",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "from",
+          "explanation": "Preposition (Harf Jarr) built on a sukoon."
+        },
+        {
+          "word": "شَرِّ",
+          "transliteration": "sharri",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ش ر ر",
+          "meaning": "(the) evil",
+          "explanation": "Noun (Ism), singular masculine, genitive (majrur) due to 'min', marked with a kasrah, functioning as the mudaf."
+        },
+        {
+          "word": "حَاسِدٍ",
+          "transliteration": "ḥāsidin",
+          "isIsmFail": true,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ح س د",
+          "meaning": "an envier",
+          "explanation": "Active participle (Ism Fa'il) of Form I, singular masculine, on the pattern 'Fa'il', derived from the root (ha-seen-dal). It is in the genitive case (majrur) as mudaf ilayh, inflected with double kasrah (tanwin)."
+        },
+        {
+          "word": "إِذَا",
+          "transliteration": "idhā",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "when",
+          "explanation": "Adverb of future time (Zarf Zaman), containing a conditional meaning (shart). Built on sukoon, in the accusative position (fi mahalli nasb), functioning as the mudaf of the following sentence."
+        },
+        {
+          "word": "حَسَدَ",
+          "transliteration": "ḥasada",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ح س د",
+          "meaning": "he envies",
+          "explanation": "Perfect verb (Fi'l Madi), 3rd person masculine singular, built on fathah. The implied subject pronoun (mustatir) is 'huwa' (he). The entire verbal sentence is in the genitive position (fi mahalli jarr) as mudaf ilayh to 'idhā', indicating the active manifestation of envy."
+        }
+      ]
+    }
+  }
+}

@@ -92,6 +92,38 @@ const PREDEFINED_PATTERNS: PatternInfo[] = [
     grammaticalWeightDescription: "Form I represents the unconditioned base template of the root. All secondary derived Forms II-X are derived through specific morphological operations overlaying this root baseline."
   },
   {
+    id: "form4_verb",
+    wazan: "أَفْعَلَ",
+    wazanTransliteration: "Af'ala",
+    englishName: "Form IV (Causative Agency)",
+    category: "verb",
+    rootTransformation: "Prefixes a hamza with fathah (أَ) and silences (sukun ْ ) the first root letter.",
+    semanticEffect: "Makes an intransitive root highly transitive. Means to 'make someone perform the action' or initiate a process.",
+    quranicFormula: "a + [R1]ْ + [R2]a + [R3]a",
+    classicalExampleArabic: "أَنْزَلَ",
+    classicalExampleEnglish: "(Anzala) He sent down / caused to descend - from N-Z-L (to descend)",
+    exampleQuranicVerse: "إِنَّا أَنزَلْنَاهُ فِي لَيْلَةِ الْقَدْرِ",
+    exampleQuranicVerseEnglish: "Indeed, We sent it down during the Night of Decree.",
+    commonRootsTitle: ["N-Z-L (Descend)", "S-L-M (Peace)", "H-S-N (Beautify)", "A-R-S (Anchor)"],
+    grammaticalWeightDescription: "Form IV converts an intransitive state directly into causative transitive activation. The prefix hamza acts as a logical trigger to project the root core outward into the world as a singular decisive action."
+  },
+  {
+    id: "form8_verb",
+    wazan: "اِفْتَعَلَ",
+    wazanTransliteration: "Ifta'ala",
+    englishName: "Form VIII (Earnest Effort / Acquisitive)",
+    category: "verb",
+    rootTransformation: "Prefixes a silent Hamza (اِ), silences the 1st root, and inserts a Ta (تَ) before the 2nd root.",
+    semanticEffect: "Represents performing the action with extreme personal focus, interest, or earning the benefit of that action.",
+    quranicFormula: "i + [R1]ْ + ta + [R2]a + [R3]a",
+    classicalExampleArabic: "اِكْتَسَبَ",
+    classicalExampleEnglish: "(Iktasaba) He earned/acquired diligently - from K-S-B (to earn)",
+    exampleQuranicVerse: "اِهْتَدَىٰ مَنِ اهْتَدَىٰ لِنَفْسِهِ",
+    exampleQuranicVerseEnglish: "Whoever is guided is only guided for [the benefit of] his soul.",
+    commonRootsTitle: ["H-D-Y (Guide)", "K-S-B (Earn)", "N-S-R (Victory)", "F-A-L (Act)"],
+    grammaticalWeightDescription: "Form VIII represents highly earnest, diligent work aimed at acquiring or personalizing the root. The infixed Ta (ت) represents self-directed effort and deliberate adaptation."
+  },
+  {
     id: "form2_verb",
     wazan: "فَعَّلَ",
     wazanTransliteration: "Fa''ala",
@@ -108,6 +140,22 @@ const PREDEFINED_PATTERNS: PatternInfo[] = [
     grammaticalWeightDescription: "Form II conveys causation (making another act) or intensive multiplication of the action itself. The presence of the middle-radical shaddah represents concentrated physical or rhetorical energy."
   },
   {
+    id: "form10_verb",
+    wazan: "اِسْتَفْعَلَ",
+    wazanTransliteration: "Istaf'ala",
+    englishName: "Form X (Requestative / Seeking)",
+    category: "verb",
+    rootTransformation: "Prefixes the sequence Alif-Seen-Ta (اِسْتَ) and silences the first root letter.",
+    semanticEffect: "Expresses seeking, asking for, or requesting the root's concept. (E.g. seeking protection, calling to stand up).",
+    quranicFormula: "ista + [R1]ْ + [R2]a + [R3]a",
+    classicalExampleArabic: "اِسْتَغْفَرَ",
+    classicalExampleEnglish: "(Istaghfara) He sought forgiveness - from Gh-F-R (to forgive/cover)",
+    exampleQuranicVerse: "وَاسْتَغْفِرُوا اللَّهَ ۖ إِنَّ اللَّهَ غَفُورٌ رَّحِيمٌ",
+    exampleQuranicVerseEnglish: "And seek forgiveness of Allah. Indeed, Allah is Forgiving and Merciful.",
+    commonRootsTitle: ["Gh-F-R (Forgive)", "Q-W-M (Stand)", "A-M-R (Command)", "N-S-R (Help)"],
+    grammaticalWeightDescription: "Form X denotes the request, pleading, or active seeking of the root's core noun. The triple prefix sequence 'Ista-' operates as an indicator of supplicatory yearning or cognitive judgment."
+  },
+  {
     id: "form3_verb",
     wazan: "فَاعَلَ",
     wazanTransliteration: "Fā'ala",
@@ -122,22 +170,6 @@ const PREDEFINED_PATTERNS: PatternInfo[] = [
     exampleQuranicVerseEnglish: "They [think to] deceive Allah and those who believe.",
     commonRootsTitle: ["Kh-D-A (Deceive)", "Q-T-L (Kill)", "K-T-B (Write)", "S-A-D (Assist)"],
     grammaticalWeightDescription: "Form III introduces an interactive, dual-party or reciprocal aspect. Historically, it implies striving to perform the action upon another, or participating in a mutual dynamic of engagement."
-  },
-  {
-    id: "form4_verb",
-    wazan: "أَفْعَلَ",
-    wazanTransliteration: "Af'ala",
-    englishName: "Form IV (Causative Agency)",
-    category: "verb",
-    rootTransformation: "Prefixes a hamza with fathah (أَ) and silences (sukun ْ ) the first root letter.",
-    semanticEffect: "Makes an intransitive root highly transitive. Means to 'make someone perform the action' or initiate a process.",
-    quranicFormula: "a + [R1]ْ + [R2]a + [R3]a",
-    classicalExampleArabic: "أَنْزَلَ",
-    classicalExampleEnglish: "(Anzala) He sent down / caused to descend - from N-Z-L (to descend)",
-    exampleQuranicVerse: "إِنَّا أَنزَلْنَاهُ فِي لَيْلَةِ الْقَدْرِ",
-    exampleQuranicVerseEnglish: "Indeed, We sent it down during the Night of Decree.",
-    commonRootsTitle: ["N-Z-L (Descend)", "S-L-M (Peace)", "H-S-N (Beautify)", "A-R-S (Anchor)"],
-    grammaticalWeightDescription: "Form IV converts an intransitive state directly into causative transitive activation. The prefix hamza acts as a logical trigger to project the root core outward into the world as a singular decisive action."
   },
   {
     id: "form5_verb",
@@ -170,38 +202,6 @@ const PREDEFINED_PATTERNS: PatternInfo[] = [
     exampleQuranicVerseEnglish: "Blessed is He in whose hand is dominion.",
     commonRootsTitle: ["B-R-K (Bless)", "T-A-N (Interfere)", "A-W-N (Cooperate)", "Sh-B-H (Resemble)"],
     grammaticalWeightDescription: "Form VI indicates mutual reciprocity among multiple agents, or simulated pretense. The grammatical lengthening represents a shared, balanced exchange of the action."
-  },
-  {
-    id: "form8_verb",
-    wazan: "اِفْتَعَلَ",
-    wazanTransliteration: "Ifta'ala",
-    englishName: "Form VIII (Earnest Effort / Acquisitive)",
-    category: "verb",
-    rootTransformation: "Prefixes a silent Hamza (اِ), silences the 1st root, and inserts a Ta (تَ) before the 2nd root.",
-    semanticEffect: "Represents performing the action with extreme personal focus, interest, or earning the benefit of that action.",
-    quranicFormula: "i + [R1]ْ + ta + [R2]a + [R3]a",
-    classicalExampleArabic: "اِكْتَسَبَ",
-    classicalExampleEnglish: "(Iktasaba) He earned/acquired diligently - from K-S-B (to earn)",
-    exampleQuranicVerse: "اِهْتَدَىٰ مَنِ اهْتَدَىٰ لِنَفْسِهِ",
-    exampleQuranicVerseEnglish: "Whoever is guided is only guided for [the benefit of] his soul.",
-    commonRootsTitle: ["H-D-Y (Guide)", "K-S-B (Earn)", "N-S-R (Victory)", "F-A-L (Act)"],
-    grammaticalWeightDescription: "Form VIII represents highly earnest, diligent work aimed at acquiring or personalizing the root. The infixed Ta (ت) represents self-directed effort and deliberate adaptation."
-  },
-  {
-    id: "form10_verb",
-    wazan: "اِسْتَفْعَلَ",
-    wazanTransliteration: "Istaf'ala",
-    englishName: "Form X (Requestative / Seeking)",
-    category: "verb",
-    rootTransformation: "Prefixes the sequence Alif-Seen-Ta (اِسْتَ) and silences the first root letter.",
-    semanticEffect: "Expresses seeking, asking for, or requesting the root's concept. (E.g. seeking protection, calling to stand up).",
-    quranicFormula: "ista + [R1]ْ + [R2]a + [R3]a",
-    classicalExampleArabic: "اِسْتَغْفَرَ",
-    classicalExampleEnglish: "(Istaghfara) He sought forgiveness - from Gh-F-R (to forgive/cover)",
-    exampleQuranicVerse: "وَاسْتَغْفِرُوا اللَّهَ ۖ إِنَّ اللَّهَ غَفُورٌ رَّحِيمٌ",
-    exampleQuranicVerseEnglish: "And seek forgiveness of Allah. Indeed, Allah is Forgiving and Merciful.",
-    commonRootsTitle: ["Gh-F-R (Forgive)", "Q-W-M (Stand)", "A-M-R (Command)", "N-S-R (Help)"],
-    grammaticalWeightDescription: "Form X denotes the request, pleading, or active seeking of the root's core noun. The triple prefix sequence 'Ista-' operates as an indicator of supplicatory yearning or cognitive judgment."
   },
   {
     id: "noun_of_place",

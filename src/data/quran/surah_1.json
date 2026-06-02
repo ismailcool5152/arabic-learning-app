@@ -1,0 +1,345 @@
+{
+  "surahName": "Al-Fatihah",
+  "surahNumber": 1,
+  "verses": {
+    "1": {
+      "verseNumber": "1",
+      "fullVerseArabic": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+      "fullVerseTranslation": "In the name of Allah, the Entirely Merciful, the Especially Merciful.",
+      "words": [
+        {
+          "word": "بِسْمِ",
+          "transliteration": "bismi",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "س - م - و",
+          "meaning": "In the name",
+          "explanation": "Compound of the preposition bi (in/with) and ism (name)."
+        },
+        {
+          "word": "اللَّهِ",
+          "transliteration": "Allahi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ء - ل - ه",
+          "meaning": "Allah",
+          "explanation": "The proper name of the Creator."
+        },
+        {
+          "word": "الرَّحْمَٰنِ",
+          "transliteration": "ar-rahmani",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ر - ح - م",
+          "meaning": "The Entirely Merciful",
+          "explanation": "Adjective (Fa'lan pattern) denoting overwhelming mercy."
+        },
+        {
+          "word": "الرَّحِيمِ",
+          "transliteration": "ar-rahimi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ر - ح - م",
+          "meaning": "The Especially Merciful",
+          "explanation": "Adjective (Fa'il pattern) denoting constant, continuous mercy."
+        }
+      ]
+    },
+    "2": {
+      "verseNumber": "2",
+      "fullVerseArabic": "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+      "fullVerseTranslation": "[All] praise is [due] to Allah, Lord of the worlds",
+      "words": [
+        {
+          "word": "الْحَمْدُ",
+          "transliteration": "al-hamdu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ح - م - د",
+          "meaning": "All Praise",
+          "explanation": "Definite noun representing absolute praise and thanks."
+        },
+        {
+          "word": "لِلَّهِ",
+          "transliteration": "lillahi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Harf",
+          "root": "ء - ل - ه",
+          "meaning": "is due to Allah",
+          "explanation": "Particle li (belonging to) + Allah."
+        },
+        {
+          "word": "رَبِّ",
+          "transliteration": "rabbi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ر - ب - ب",
+          "meaning": "Lord",
+          "explanation": "Noun meaning master, sustainer, lord."
+        },
+        {
+          "word": "الْعَالَمِينَ",
+          "transliteration": "al-'alamina",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ع - ل - م",
+          "meaning": "of the worlds",
+          "explanation": "Plural of 'alam (world), conveying all that exists."
+        }
+      ]
+    },
+    "3": {
+      "verseNumber": "3",
+      "fullVerseArabic": "الرَّحْمَٰنِ الرَّحِيمِ",
+      "fullVerseTranslation": "The Entirely Merciful, the Especially Merciful,",
+      "words": [
+        {
+          "word": "الرَّحْمَٰنِ",
+          "transliteration": "ar-rahmani",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ر - ح - م",
+          "meaning": "The Entirely Merciful",
+          "explanation": "Adjective (Fa'lan pattern) denoting overwhelming mercy."
+        },
+        {
+          "word": "الرَّحِيمِ",
+          "transliteration": "ar-rahimi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ر - ح - م",
+          "meaning": "The Especially Merciful",
+          "explanation": "Adjective (Fa'il pattern) denoting constant, continuous mercy."
+        }
+      ]
+    },
+    "4": {
+      "verseNumber": "4",
+      "fullVerseArabic": "مَالِكِ يَوْمِ الدِّينِ",
+      "fullVerseTranslation": "Sovereign of the Day of Recompense.",
+      "words": [
+        {
+          "word": "مَالِكِ",
+          "transliteration": "maliki",
+          "isIsmFail": true,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "م - ل - ك",
+          "meaning": "Sovereign",
+          "explanation": "Active participle denoting the owner/master."
+        },
+        {
+          "word": "يَوْمِ",
+          "transliteration": "yawmi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ي - و - م",
+          "meaning": "Day",
+          "explanation": "Noun denoting time/day."
+        },
+        {
+          "word": "الدِّينِ",
+          "transliteration": "ad-deeni",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "د - ي - ن",
+          "meaning": "of the Recompense",
+          "explanation": "Definite noun denoting judgment or religion."
+        }
+      ]
+    },
+    "5": {
+      "verseNumber": "5",
+      "fullVerseArabic": "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ",
+      "fullVerseTranslation": "It is You we worship and You we ask for help.",
+      "words": [
+        {
+          "word": "إِيَّاكَ",
+          "transliteration": "iyyaka",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "It is You",
+          "explanation": "Detached pronoun for the object of 'we worship'."
+        },
+        {
+          "word": "نَعْبُدُ",
+          "transliteration": "na'budu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ع - ب - د",
+          "meaning": "we worship",
+          "explanation": "First-person plural present verb."
+        },
+        {
+          "word": "وَإِيَّاكَ",
+          "transliteration": "wa-iyyaka",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "and It is You",
+          "explanation": "Conjunction + Detached pronoun."
+        },
+        {
+          "word": "نَسْتَعِينُ",
+          "transliteration": "nasta'eenu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ع - و - ن",
+          "meaning": "we ask for help",
+          "explanation": "First-person plural present verb (Form X)."
+        }
+      ]
+    },
+    "6": {
+      "verseNumber": "6",
+      "fullVerseArabic": "اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ",
+      "fullVerseTranslation": "Guide us to the straight path -",
+      "words": [
+        {
+          "word": "اهْدِنَا",
+          "transliteration": "ihdina",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ه - د - ي",
+          "meaning": "Guide us",
+          "explanation": "Imperative verb + first-person plural object pronoun."
+        },
+        {
+          "word": "الصِّرَاطَ",
+          "transliteration": "as-sirata",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ص - ر - ط",
+          "meaning": "to the path",
+          "explanation": "Definite noun."
+        },
+        {
+          "word": "الْمُسْتَقِيمَ",
+          "transliteration": "al-mustaqeema",
+          "isIsmFail": true,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ق - و - م",
+          "meaning": "the straight",
+          "explanation": "Active participle (Form X) acting as an adjective."
+        }
+      ]
+    },
+    "7": {
+      "verseNumber": "7",
+      "fullVerseArabic": "صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ",
+      "fullVerseTranslation": "The path of those upon whom You have bestowed favor, not of those who have evoked [Your] anger or of those who are astray.",
+      "words": [
+        {
+          "word": "صِرَاطَ",
+          "transliteration": "sirata",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ص - ر - ط",
+          "meaning": "The path",
+          "explanation": "Noun (mudaf)."
+        },
+        {
+          "word": "الَّذِينَ",
+          "transliteration": "alladheena",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "of those",
+          "explanation": "Relative pronoun."
+        },
+        {
+          "word": "أَنْعَمْتَ",
+          "transliteration": "an'amta",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ن - ع - م",
+          "meaning": "You have bestowed favor",
+          "explanation": "Second-person singular past verb (Form IV)."
+        },
+        {
+          "word": "عَلَيْهِمْ",
+          "transliteration": "alayhim",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "upon them",
+          "explanation": "Preposition 'ala' + third-person plural object pronoun."
+        },
+        {
+          "word": "غَيْرِ",
+          "transliteration": "ghayri",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "غ - ي - ر",
+          "meaning": "not",
+          "explanation": "Noun denoting exclusion/difference."
+        },
+        {
+          "word": "الْمَغْضُوبِ",
+          "transliteration": "al-maghdoobi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "غ - ض - ب",
+          "meaning": "of those who have evoked anger",
+          "explanation": "Passive participle."
+        },
+        {
+          "word": "عَلَيْهِمْ",
+          "transliteration": "alayhim",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "upon them",
+          "explanation": "Preposition 'ala' + third-person plural object pronoun."
+        },
+        {
+          "word": "وَلَا",
+          "transliteration": "wa-la",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "and not",
+          "explanation": "Conjunction + Negative particle."
+        },
+        {
+          "word": "الضَّالِّينَ",
+          "transliteration": "ad-daalleena",
+          "isIsmFail": true,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ض - ل - ل",
+          "meaning": "of those who are astray",
+          "explanation": "Active participle, plural."
+        }
+      ]
+    }
+  }
+}

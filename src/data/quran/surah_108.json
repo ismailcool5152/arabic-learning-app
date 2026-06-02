@@ -1,0 +1,127 @@
+{
+  "surahName": "Al-Kawthar",
+  "surahNumber": 108,
+  "verses": {
+    "1": {
+      "verseNumber": "1",
+      "fullVerseArabic": "إِنَّآ أَعْطَيْنَـٰكَ ٱلْكَوْثَرَ",
+      "fullVerseTranslation": "Indeed, We have granted you, [O Muhammad], the Abundance.",
+      "words": [
+        {
+          "word": "إِنَّآ",
+          "transliteration": "innā",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "Indeed",
+          "explanation": "Particle of emphasis (harf tawkeed) acting as a nasib/nasikha, requiring the accusative case (mansub) for the following clause. The suffix 'na' is the detached pronoun of majesty (plural of respect)."
+        },
+        {
+          "word": "أَعْطَيْنَـٰكَ",
+          "transliteration": "aʿṭaynāka",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ع ط و",
+          "meaning": "We gave/granted you",
+          "explanation": "Verb in the past tense (fi'l madi), Form IV, first-person plural, acting as the predicate of 'inna'. The 'ka' suffix is the second-person masculine singular object pronoun (maf'ul bihi) in the accusative state."
+        },
+        {
+          "word": "ٱلْكَوْثَرَ",
+          "transliteration": "al-kawthara",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ك ث ر",
+          "meaning": "The Abundance",
+          "explanation": "Definite noun in the accusative state (mansub) as the direct object of the verb 'a'taynaka'. It functions as a masdar or hyperbolized description of the overflow of goodness given to the Prophet."
+        }
+      ]
+    },
+    "2": {
+      "verseNumber": "2",
+      "fullVerseArabic": "فَصَلِّ لِرَبِّكَ وَٱنْحَرْ",
+      "fullVerseTranslation": "So pray to your Lord and sacrifice.",
+      "words": [
+        {
+          "word": "فَصَلِّ",
+          "transliteration": "fa-ṣalli",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ص ل و",
+          "meaning": "So pray",
+          "explanation": "The 'fa' is a consequential particle (fa-sababiyya). 'Ṣalli' is an imperative verb (fi'l amr) derived from the root ṣ-l-w, with the final weak consonant removed due to the jussive nature of the command (majzum)."
+        },
+        {
+          "word": "لِرَبِّكَ",
+          "transliteration": "li-rabbika",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "ر ب ب",
+          "meaning": "To your Lord",
+          "explanation": "The 'li' is a preposition (harf jarr) indicating direction/devotion. 'Rabb' is the noun in the genitive case (majrur) due to the preposition. 'Ka' is the possessive pronoun suffix."
+        },
+        {
+          "word": "وَٱنْحَرْ",
+          "transliteration": "wanḥar",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ن ح ر",
+          "meaning": "And sacrifice",
+          "explanation": "The 'wa' is a coordinating conjunction (harf 'atf). 'Inḥar' is an imperative verb (fi'l amr) in the second-person masculine singular, signifying the act of ritual slaughter for Allah alone."
+        }
+      ]
+    },
+    "3": {
+      "verseNumber": "3",
+      "fullVerseArabic": "إِنَّ شَانِئَكَ هُوَ ٱلْأَبْتَرُ",
+      "fullVerseTranslation": "Indeed, your enemy is the one cut off.",
+      "words": [
+        {
+          "word": "إِنَّ",
+          "transliteration": "inna",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "Indeed",
+          "explanation": "Particle of emphasis (harf tawkeed), requiring the following noun to be in the accusative state (mansub)."
+        },
+        {
+          "word": "شَانِئَكَ",
+          "transliteration": "shāniʾaka",
+          "isIsmFail": true,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ش ن أ",
+          "meaning": "Your enemy/hater",
+          "explanation": "Active participle (ism fa'il) in the accusative case (mansub) as the ism of 'inna'. The 'ka' suffix is the genitive object pronoun."
+        },
+        {
+          "word": "هُوَ",
+          "transliteration": "huwa",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "He",
+          "explanation": "Personal detached pronoun used here for emphasis (damir fasl) to strengthen the assertion and specify the subject of the predicate."
+        },
+        {
+          "word": "ٱلْأَبْتَرُ",
+          "transliteration": "al-abtaru",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ب ت ر",
+          "meaning": "The one cut off",
+          "explanation": "Definite noun acting as the predicate (khabar) of 'inna' in the nominative case (marfu'). It denotes the one deprived of good or legacy."
+        }
+      ]
+    }
+  }
+}

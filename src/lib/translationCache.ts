@@ -1,18 +1,20 @@
 export interface CachedTranslation {
   rootMeaning: string;
+  rootStory?: string;
   translations: Record<string, { meaning: string; exists: boolean }>;
   timestamp: number;
 }
 
 const CACHE_KEY = "quranic_ai_translations";
 
-export const saveTranslationToCache = (root: string, rootMeaning: string, translations: Record<string, { meaning: string; exists: boolean }>) => {
+export const saveTranslationToCache = (root: string, rootMeaning: string, rootStory: string | undefined, translations: Record<string, { meaning: string; exists: boolean }>) => {
   try {
     const rawCache = localStorage.getItem(CACHE_KEY);
     const cache: Record<string, CachedTranslation> = rawCache ? JSON.parse(rawCache) : {};
     
     cache[root] = {
       rootMeaning,
+      rootStory,
       translations,
       timestamp: Date.now()
     };
@@ -39,7 +41,7 @@ export const getTranslationFromCache = (root: string): CachedTranslation | null 
 export const exportCacheForBackup = (): string => {
   const data = {
     quranic_ai_translations: JSON.parse(localStorage.getItem(CACHE_KEY) || "{}"),
-    offline_saved_verses: JSON.parse(localStorage.getItem('offline_saved_verses') || "{}"),
+    offline_saved_verses: JSON.parse(localStorage.getItem('offline_saved_verses_v2') || "{}"),
     quranic_arabic_master_flashcards: JSON.parse(localStorage.getItem('quranic_arabic_master_flashcards') || "[]"),
     quranic_arabic_reviewed_flashcards: JSON.parse(localStorage.getItem('quranic_arabic_reviewed_flashcards') || "[]"),
     quranic_arabic_saved_maps: JSON.parse(localStorage.getItem('quranic_arabic_saved_maps') || "[]"),
@@ -66,10 +68,10 @@ export const importCacheFromBackup = (backupData: string) => {
 
         // 2. Offline Verses (additive dictionary)
         if (parsed.offline_saved_verses) {
-            const raw = localStorage.getItem('offline_saved_verses');
+            const raw = localStorage.getItem('offline_saved_verses_v2');
             const existing = raw ? JSON.parse(raw) : {};
             const merged = { ...existing, ...parsed.offline_saved_verses };
-            localStorage.setItem('offline_saved_verses', JSON.stringify(merged));
+            localStorage.setItem('offline_saved_verses_v2', JSON.stringify(merged));
         }
 
         // 3. Master Flashcards (additive array of strings)

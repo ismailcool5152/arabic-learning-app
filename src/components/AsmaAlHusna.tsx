@@ -1371,12 +1371,23 @@ export default function AsmaAlHusna({ theme, onSelectRoot, onSelectWord }: AsmaA
                  </div>
                  
                  <div className="space-y-3 pt-4 border-t border-current/10">
-                    <div className="flex justify-between items-center bg-current/5 p-2 rounded-lg">
-                       <span className="text-[9px] font-mono uppercase tracking-wider opacity-60">Root Component</span>
-                       <span className="font-arabic font-bold text-lg">{name.root} <button title="Explore Root" onClick={() => onSelectRoot(name.root)} className="ml-1 opacity-50 hover:opacity-100 hover:text-amber-500 transition-all"><Layers className="w-3.5 h-3.5 inline"/></button></span>
+                    <div className="flex justify-between items-start bg-current/5 p-2 rounded-lg gap-2">
+                       <span className="text-[9px] font-mono uppercase tracking-wider opacity-60 w-16">Root</span>
+                       <div className="text-right">
+                         <span className="font-arabic font-bold text-lg">{name.root} <button title="Explore Root" onClick={() => onSelectRoot(name.root)} className="ml-1 opacity-50 hover:opacity-100 hover:text-amber-500 transition-all"><Layers className="w-3.5 h-3.5 inline"/></button></span>
+                         <span className="block text-[9px] opacity-70 italic font-medium">{name.rootTrans}</span>
+                       </div>
                     </div>
                     
-                    <div className="flex justify-between items-center text-xs px-1 opacity-80">
+                    <div className="bg-current/5 p-2 rounded-lg flex flex-col gap-1.5 flex-1 h-[80px]">
+                       <div className="flex items-center justify-between">
+                         <span className="text-[9px] font-mono uppercase tracking-wider opacity-60">Pattern (Wazan)</span>
+                         <span className="text-[10px] font-bold bg-current/10 px-1.5 py-0.5 rounded">{name.pattern}</span>
+                       </div>
+                       <p className="text-[9.5px] leading-relaxed opacity-85">{name.patternExpl}</p>
+                    </div>
+
+                    <div className="flex justify-between items-center text-xs px-1 opacity-80 pt-1">
                        <span className="flex items-center gap-1.5"><BookOpen className="w-3 h-3"/> Ref</span>
                        <span className="font-mono">{generateQuranicRef(name.num)}</span>
                     </div>

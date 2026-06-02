@@ -177,6 +177,24 @@ function getDetailedWordMeanings(w: VerseWordBreakdown): WordMeaningSplit {
       contextual: "You have spent your lives worshipping (temporary, cultural tribal deities).",
       rootConcept: "Submitting to custom, servitude, or worship.",
       formation: "Form I past active verb configured in second-person masculine plural form."
+    },
+    "يَـٰٓأَيُّهَا": {
+      exact: "O! / O you who... (Composite Vocative Expression)",
+      contextual: "O you (direct, majestic divine address calling for total focus and emotional response).",
+      rootConcept: "A non-derived composite vocative calling structure. Combines the calling particle 'Yā' in Arabic (يَا) with the intermediary pronoun 'Ayyu' (أَيُّ) and the attention-alerting suffix 'Hā' (هَا).",
+      formation: "A multi-layered vocative construct consisting of three distinct semantic layers: (1) 'Yā' (pre-vocative particle), (2) 'Ayyu' (a nominative-bound singular pronoun serving as the syntactical recipient of the call), and (3) 'Hā' (the focus-lock particle of visual/auditory attention)."
+    },
+    "يأيها": {
+      exact: "O! / O you who... (Composite Vocative Expression)",
+      contextual: "O you (direct, majestic divine address calling for total focus and emotional response).",
+      rootConcept: "A non-derived composite vocative calling structure. Combines the calling particle 'Yā' in Arabic (يَا) with the intermediary pronoun 'Ayyu' (أَيُّ) and the attention-alerting suffix 'Hā' (هَا).",
+      formation: "A multi-layered vocative construct consisting of three distinct semantic layers: (1) 'Yā' (pre-vocative particle), (2) 'Ayyu' (a nominative-bound singular pronoun serving as the syntactical recipient of the call), and (3) 'Hā' (the focus-lock particle of visual/auditory attention)."
+    },
+    "يـأيها": {
+      exact: "O! / O you who... (Composite Vocative Expression)",
+      contextual: "O you (direct, majestic divine address calling for total focus and emotional response).",
+      rootConcept: "A non-derived composite vocative calling structure. Combines the calling particle 'Yā' in Arabic (يَا) with the intermediary pronoun 'Ayyu' (أَيُّ) and the attention-alerting suffix 'Hā' (هَا).",
+      formation: "A multi-layered vocative construct consisting of three distinct semantic layers: (1) 'Yā' (pre-vocative particle), (2) 'Ayyu' (a nominative-bound singular pronoun serving as the syntactical recipient of the call), and (3) 'Hā' (the focus-lock particle of visual/auditory attention)."
     }
   };
 
@@ -190,6 +208,11 @@ function getDetailedWordMeanings(w: VerseWordBreakdown): WordMeaningSplit {
   let contextual = meaning;
   let concept = "Universal Base Concept represented by root letters.";
   let logic = `Word represents direct morphological application of Category: ${w.wordType}.`;
+
+  if (w.root === "None" || !w.root || w.root.trim() === "" || w.root.toLowerCase() === "none") {
+    concept = "Non-derived structural element. It functions as a semantic connector, focus-marker, or pronoun, without a lexical root.";
+    logic = `This is a grammatical or logical particle ('${w.wordType || 'Harf'}') providing structural context, sentence boundaries, or emphasis.`;
+  }
 
   if (meaning.includes("/")) {
     const parts = meaning.split("/");
@@ -206,15 +229,18 @@ function getDetailedWordMeanings(w: VerseWordBreakdown): WordMeaningSplit {
     contextual = meaning.trim();
   }
 
-  if (w.wordType === "Ism") {
-    concept = w.isIsmFail ? "Targeted agency / ACTIVE ACTOR" : "Substantive state / permanent quality.";
-    logic = `This is an 'Ism' (Noun/Substantive name of concept). Root is '${w.root}'. Case structure is defined by its current position.`;
-  } else if (w.wordType === "Fi'l") {
-    concept = "Active event / temporal transformation.";
-    logic = `This is a 'Fi'l' (Verb) indicating active event propagation in physical space, anchored to the Root '${w.root}'.`;
-  } else if (w.wordType === "Harf") {
-    concept = "Relational connection / directional vector.";
-    logic = "This is a fixed structural particle ('Harf') providing emphasis, containment, or direction to nouns or verbs.";
+  const wordTypeLower = w.wordType ? w.wordType.trim().toLowerCase() : '';
+  if (w.root !== "None" && w.root && w.root.toLowerCase() !== "none") {
+    if (wordTypeLower === "ism" || wordTypeLower === "noun" || wordTypeLower === "adjective") {
+      concept = w.isIsmFail ? "Targeted agency / ACTIVE ACTOR" : "Substantive state / permanent quality.";
+      logic = `This is an 'Ism' (Noun/Substantive name of concept). Root is '${w.root}'. Case structure is defined by its current position.`;
+    } else if (wordTypeLower === "fi'l" || wordTypeLower === "fil" || wordTypeLower === "verb") {
+      concept = "Active event / temporal transformation.";
+      logic = `This is a 'Fi'l' (Verb) indicating active event propagation in physical space, anchored to the Root '${w.root}'.`;
+    } else if (wordTypeLower === "harf" || wordTypeLower === "particle") {
+      concept = "Relational connection / directional vector.";
+      logic = "This is a fixed structural particle ('Harf') providing emphasis, containment, or direction to nouns or verbs.";
+    }
   }
 
   return {
@@ -228,7 +254,8 @@ function getDetailedWordMeanings(w: VerseWordBreakdown): WordMeaningSplit {
 function parseWordGrammar(w: VerseWordBreakdown): WordGrammarDetails {
   const explanation = safeLower(w.explanation || '');
   const meaning = safeLower(w.meaning || '');
-  const wordType = w.wordType; // "Ism" | "Fi'l" | "Harf"
+  const wordTypeRaw = w.wordType || '';
+  const wordType = wordTypeRaw.trim().toLowerCase();
 
   let tense = "N/A";
   let pattern = "Standard / General";
@@ -237,8 +264,18 @@ function parseWordGrammar(w: VerseWordBreakdown): WordGrammarDetails {
   let aspect = "N/A";
   let caseOrMood = "N/A";
 
+  const isHarfType = wordType === "harf" || wordType === "particle" || w.isHarf;
+
+  if (isHarfType) {
+    pattern = "N/A (Fixed Particle)";
+    number = "N/A (Particle)";
+    gender = "N/A (Particle)";
+    aspect = "N/A (Particle)";
+    caseOrMood = "Indeclinable (Mabnī)";
+  }
+
   // Check tense (mainly for verbs)
-  if (wordType === "Fi'l") {
+  if (wordType === "fi'l" || wordType === "fil" || wordType === "verb") {
     tense = "Perfect Past (Māḍī)";
     if (explanation.includes("imperative") || explanation.includes("command") || explanation.includes("amr")) {
       tense = "Imperative Command (Amr)";
@@ -250,74 +287,84 @@ function parseWordGrammar(w: VerseWordBreakdown): WordGrammarDetails {
   }
 
   // Check pattern
-  const patternMatch = w.explanation.match(/(pattern\s+\([^)]+\)|fa'lān|fa'īl|muf'il|tā'īr|form\s+[ivxldcm]+)/i);
-  if (patternMatch) {
-    pattern = patternMatch[0];
-  } else if (explanation.includes("form i ")) {
-    pattern = "Form I (Basic)";
-  } else if (explanation.includes("form ii")) {
-    pattern = "Form II (Derived)";
-  } else if (explanation.includes("intensive hyperbole")) {
-    pattern = "Fa'lān (Intense)";
-  } else if (explanation.includes("constant qualitative")) {
-    pattern = "Fa'īl (Constant quality)";
-  } else if (w.isIsmFail) {
-    pattern = "Fā'il (Active Participle)";
+  if (!isHarfType) {
+    const patternMatch = w.explanation.match(/(pattern\s+\([^)]+\)|fa'lān|fa'īl|muf'il|tā'īr|form\s+[ivxldcm]+)/i);
+    if (patternMatch) {
+      pattern = patternMatch[0];
+    } else if (explanation.includes("form i ")) {
+      pattern = "Form I (Basic)";
+    } else if (explanation.includes("form ii")) {
+      pattern = "Form II (Derived)";
+    } else if (explanation.includes("intensive hyperbole")) {
+      pattern = "Fa'lān (Intense)";
+    } else if (explanation.includes("constant qualitative")) {
+      pattern = "Fa'īl (Constant quality)";
+    } else if (w.isIsmFail) {
+      pattern = "Fā'il (Active Participle)";
+    }
   }
 
   // Check Number (singular / plural / dual)
-  if (explanation.includes("plural") || meaning.includes("(pl.") || meaning.includes("plural")) {
-    number = "Plural (Jam')";
-  } else if (explanation.includes("dual") || meaning.includes("dual")) {
-    number = "Dual (Muthannā)";
-  } else if (explanation.includes("collective")) {
-    number = "Collective Noun";
-  } else {
-    number = "Singular (Mufrad)";
+  if (!isHarfType) {
+    if (explanation.includes("plural") || meaning.includes("(pl.") || meaning.includes("plural")) {
+      number = "Plural (Jam')";
+    } else if (explanation.includes("dual") || meaning.includes("dual")) {
+      number = "Dual (Muthannā)";
+    } else if (explanation.includes("collective")) {
+      number = "Collective Noun";
+    } else {
+      number = "Singular (Mufrad)";
+    }
   }
 
   // Check Gender (masculine / feminine / common)
-  if (explanation.includes("feminine") || explanation.includes("female") || explanation.includes("maternal")) {
-    gender = "Feminine (Mu'annath)";
-  } else if (explanation.includes("masculine") || explanation.includes("male")) {
-    gender = "Masculine (Mudhakkar)";
-  } else {
-    if (wordType === "Harf") {
-      gender = "N/A (Particle)";
+  if (!isHarfType) {
+    if (explanation.includes("feminine") || explanation.includes("female") || explanation.includes("maternal")) {
+      gender = "Feminine (Mu'annath)";
+    } else if (explanation.includes("masculine") || explanation.includes("male")) {
+      gender = "Masculine (Mudhakkar)";
     } else {
-      gender = "Masculine (By Default)";
+      if (wordType === "harf" || wordType === "particle") {
+        gender = "N/A (Particle)";
+      } else {
+        gender = "Masculine (By Default)";
+      }
     }
   }
 
   // Voice or derivation state
-  if (wordType === "Fi'l") {
-    if (explanation.includes("passive")) {
-      aspect = "Passive Voice (Majhūl)";
+  if (!isHarfType) {
+    if (wordType === "fi'l" || wordType === "fil" || wordType === "verb") {
+      if (explanation.includes("passive")) {
+        aspect = "Passive Voice (Majhūl)";
+      } else {
+        aspect = "Active Voice (Ma'rūf)";
+      }
     } else {
-      aspect = "Active Voice (Ma'rūf)";
+      aspect = w.isIsmFail ? "Active Participle" : "Standard Noun derivation";
     }
-  } else {
-    aspect = w.isIsmFail ? "Active Participle" : "Standard Noun derivation";
   }
 
   // Case/State for Ism / Mood for Fi'l
-  if (wordType === "Ism") {
-    if (explanation.includes("genitive") || explanation.includes("majroor") || explanation.includes("majrir")) {
-      caseOrMood = "Genitive (Majrūr)";
-    } else if (explanation.includes("accusative") || explanation.includes("mansoob") || explanation.includes("mansub")) {
-      caseOrMood = "Accusative (Manṣūb)";
-    } else if (explanation.includes("nominative") || explanation.includes("marfoo") || explanation.includes("marfu")) {
-      caseOrMood = "Nominative (Marfū')";
-    } else {
-      caseOrMood = "Nominative Base (Marfū')";
-    }
-  } else if (wordType === "Fi'l") {
-    if (explanation.includes("subjunctive") || explanation.includes("mansub")) {
-      caseOrMood = "Subjunctive (Manṣūb)";
-    } else if (explanation.includes("jussive") || explanation.includes("majzum")) {
-      caseOrMood = "Jussive (Majzūm)";
-    } else {
-      caseOrMood = "Indicative (Marfū')";
+  if (!isHarfType) {
+    if (wordType === "ism" || wordType === "noun" || wordType === "adjective") {
+      if (explanation.includes("genitive") || explanation.includes("majroor") || explanation.includes("majrir")) {
+        caseOrMood = "Genitive (Majrūr)";
+      } else if (explanation.includes("accusative") || explanation.includes("mansoob") || explanation.includes("mansub")) {
+        caseOrMood = "Accusative (Manṣūb)";
+      } else if (explanation.includes("nominative") || explanation.includes("marfoo") || explanation.includes("marfu")) {
+        caseOrMood = "Nominative (Marfū')";
+      } else {
+        caseOrMood = "Nominative Base (Marfū')";
+      }
+    } else if (wordType === "fi'l" || wordType === "fil" || wordType === "verb") {
+      if (explanation.includes("subjunctive") || explanation.includes("mansub")) {
+        caseOrMood = "Subjunctive (Manṣūb)";
+      } else if (explanation.includes("jussive") || explanation.includes("majzum")) {
+        caseOrMood = "Jussive (Majzūm)";
+      } else {
+        caseOrMood = "Indicative (Marfū')";
+      }
     }
   }
 
@@ -334,37 +381,15 @@ function parseWordGrammar(w: VerseWordBreakdown): WordGrammarDetails {
 
 export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: VerseBreakdownProps) {
   // Input Selection
-  const [selectedPresetId, setSelectedPresetId] = useState<string>('');
+  const [selectedPresetId, setSelectedPresetId] = useState<string>('1:1');
   const [customSurah, setCustomSurah] = useState<string>('');
   const [customVerse, setCustomVerse] = useState<string>('');
   
-  // Offline-saved custom verses from localStorage
-  const [offlineSavedVerses, setOfflineSavedVerses] = useState<Record<string, VerseBreakdownData>>(() => {
-    try {
-      const stored = localStorage.getItem('offline_saved_verses');
-      return stored ? JSON.parse(stored) : {};
-    } catch (e) {
-      console.error('Failed to load offline saved verses from localStorage:', e);
-      return {};
-    }
-  });
+  // Session-saved custom verses in memory (no user-level cache or localStorage used)
+  const [offlineSavedVerses, setOfflineSavedVerses] = useState<Record<string, VerseBreakdownData>>({});
 
   useEffect(() => {
-    const handleDataImport = () => {
-      try {
-        const stored = localStorage.getItem('offline_saved_verses');
-        if (stored) {
-          setOfflineSavedVerses(JSON.parse(stored));
-        }
-      } catch (e) {
-        console.error('Failed to reload offline saved verses after import:', e);
-      }
-    };
-    
-    window.addEventListener('quranic_arabic_data_imported', handleDataImport);
-    return () => {
-      window.removeEventListener('quranic_arabic_data_imported', handleDataImport);
-    };
+    // Synchronize or handle custom triggers if any
   }, []);
 
   // App state
@@ -374,7 +399,7 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
 
   const currentWordIndex = useMemo(() => {
     if (!activeVerseData || !selectedWordToken) return -1;
-    return activeVerseData.words.findIndex(w => w.word === selectedWordToken.word);
+    return activeVerseData.words.findIndex(w => w === selectedWordToken);
   }, [activeVerseData, selectedWordToken]);
 
   const handlePrevWord = (e?: React.MouseEvent) => {
@@ -617,13 +642,12 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
         freshVerseData.surahNumber = matchedSurah.number;
         freshVerseData.verseNumber = vQuery;
 
-        // Auto-save offline by default: update local storage cache immediately!
+        // Retain recently fetched verses only in in-memory list for this active browser session
         const updatedOffline = {
           ...offlineSavedVerses,
           [cacheKey]: freshVerseData
         };
         setOfflineSavedVerses(updatedOffline);
-        localStorage.setItem('offline_saved_verses', JSON.stringify(updatedOffline));
 
         setActiveVerseData(freshVerseData);
         setSelectedWordToken(null);
@@ -693,19 +717,18 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
               <div className="pt-3 border-t border-current/10">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-xs font-bold opacity-85 flex items-center gap-1.5 font-mono uppercase tracking-wider">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" /> Your Offline Saved Verses ({Object.keys(offlineSavedVerses).length}):
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" /> Session Explored Verses ({Object.keys(offlineSavedVerses).length}):
                   </h4>
                   <button
                     onClick={() => {
-                      if (window.confirm("Do you want to clear your local offline-saved verses cache?")) {
+                      if (window.confirm("Do you want to clear this session's recently loaded verses list?")) {
                         setOfflineSavedVerses({});
-                        localStorage.removeItem('offline_saved_verses');
                       }
                     }}
                     className="text-[10px] font-mono text-rose-400 hover:text-rose-300 flex items-center gap-1 bg-red-500/10 hover:bg-red-500/20 px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
-                    title="Clear offline storage cache"
+                    title="Clear session explorer list"
                   >
-                    <Trash2 className="w-3 h-3" /> Clear Saved Cache
+                    <Trash2 className="w-3 h-3" /> Clear Session List
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -883,16 +906,17 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
               className="flex flex-wrap gap-x-2.5 md:gap-x-4 gap-y-2 md:gap-y-3.5 justify-center py-8 max-w-4xl mx-auto select-none" 
               dir="rtl"
             >
-              {activeVerseData.words.map((w, idx) => {
-                const isSelected = selectedWordToken?.word === w.word;
-                let typeColor = colors.textIsm;
-                if (w.wordType === "Fi'l") {
-                  typeColor = colors.textFil;
-                } else if (w.wordType === "Harf") {
-                  typeColor = colors.textHarf;
-                }
+               {activeVerseData.words.map((w, idx) => {
+                 const isSelected = selectedWordToken === w;
+                 let typeColor = colors.textIsm;
+                 const wTypeLower = w.wordType ? w.wordType.trim().toLowerCase() : '';
+                 if (wTypeLower === "fi'l" || wTypeLower === "fil" || wTypeLower === "verb") {
+                   typeColor = colors.textFil;
+                 } else if (wTypeLower === "harf" || wTypeLower === "particle") {
+                   typeColor = colors.textHarf;
+                 }
 
-                return (
+                 return (
                   <button
                     key={`aayat-word-inline-${idx}`}
                     onClick={() => setSelectedWordToken(w)}
@@ -945,22 +969,26 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
 
           {/* Hover Screen / Detached Modal for Word-by-Word details */}
           {selectedWordToken && createPortal((() => {
-            const currentWordIndex = activeVerseData.words.findIndex(w => w.word === selectedWordToken.word);
+            const currentWordIndex = activeVerseData.words.findIndex(w => w === selectedWordToken);
             
             const parsedDetails = getDetailedWordMeanings(selectedWordToken);
             const info = parseWordGrammar(selectedWordToken);
             
             // Helpful descriptions for Part of Speech
+            const wordTypeNorm = selectedWordToken.wordType ? selectedWordToken.wordType.trim().toLowerCase() : '';
+            const isIsm = wordTypeNorm === 'ism' || wordTypeNorm === 'noun' || wordTypeNorm === 'adjective';
+            const isFil = wordTypeNorm === "fi'l" || wordTypeNorm === 'fil' || wordTypeNorm === 'verb';
+
             const categoryDesc = 
-              selectedWordToken.wordType === "Ism" 
+              isIsm 
                 ? "Noun / Adjective / Pronoun (Names a core entity or quality independently of active time)" 
-                : selectedWordToken.wordType === "Fi'l"
+                : isFil
                   ? "Action Verb (Represents a dynamic event bound to a past, present, or future timeline)"
                   : "Particle (Preposition/Conjunction. Yields semantic vectors only when linked to other words)";
 
-            const typeColorClass = selectedWordToken.wordType === "Ism" 
+            const typeColorClass = isIsm 
               ? colors.textIsm 
-              : selectedWordToken.wordType === "Fi'l" 
+              : isFil 
                 ? colors.textFil 
                 : colors.textHarf;
 

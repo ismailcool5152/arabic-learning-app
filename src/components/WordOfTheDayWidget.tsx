@@ -241,14 +241,17 @@ export default function WordOfTheDayWidget({ theme, isOfflineMode, onSelectWord,
                      <span className="text-[10px] font-mono uppercase tracking-widest">Generating classic example from Gemini Server...</span>
                   </div>
                 ) : (
-                  <>
-                    <p className="font-arabic text-lg md:text-xl font-bold leading-relaxed mb-2" dir="rtl">
+                  <div className="relative">
+                    <div className="absolute top-0 right-0">
+                       <AudioPlayButton text={dailyInfo?.verse?.split('(')[0] || ''} isParchment={isParchment} />
+                    </div>
+                    <p className="font-arabic text-lg md:text-xl font-bold leading-relaxed mb-2 mt-6" dir="rtl">
                       {dailyInfo?.verse?.split('(')[0]}
                     </p>
                     <p className="text-sm italic opacity-80 font-serif">
                       ({dailyInfo?.verse?.split('(')[1] || ''}
                     </p>
-                  </>
+                  </div>
                 )}
               </div>
               

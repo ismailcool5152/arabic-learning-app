@@ -18,10 +18,13 @@ import {
   RotateCcw,
   Keyboard,
   Loader2,
-  Database
+  Database,
+  Bookmark,
+  Wand2
 } from 'lucide-react';
 import ArabicVirtualKeyboard from './ArabicVirtualKeyboard';
 import { saveTranslationToCache, getTranslationFromCache } from '../lib/translationCache';
+import { AudioPlayButton } from './AudioPlayButton';
 
 interface RootToWordsProps {
   theme: LayoutTheme;
@@ -67,6 +70,51 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
   const [isTranslating, setIsTranslating] = useState(false);
   const [aiTranslations, setAiTranslations] = useState<Record<string, {meaning: string, exists: boolean}>>({});
   const [aiRootMeaning, setAiRootMeaning] = useState<string | null>(null);
+  const [aiRootStory, setAiRootStory] = useState<string | null>(null);
+  
+  const rootStr = `${r1} ${r2} ${r3}`;
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [contextualVerse, setContextualVerse] = useState<{arabic: string, trans: string, ref: string} | null>(null);
+  const [isFetchingVerse, setIsFetchingVerse] = useState(false);
+
+  const generateContextualVerse = async () => {
+    setIsFetchingVerse(true);
+    try {
+      const customApiKey = localStorage.getItem('gemini_api_key') || '';
+      const response = await fetch('/api/example-verse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ root: rootStr, customApiKey })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setContextualVerse({ arabic: data.verseArabic, trans: data.verseTranslation, ref: data.reference });
+      }
+    } catch { } // fail silently and user can retry
+    setIsFetchingVerse(false);
+  };
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('quranic_bookmarks') || '[]');
+      setIsBookmarked(saved.includes(rootStr));
+    } catch { }
+  }, [rootStr]);
+
+  const toggleBookmark = () => {
+    try {
+      const saved: string[] = JSON.parse(localStorage.getItem('quranic_bookmarks') || '[]');
+      let nextSaved;
+      if (saved.includes(rootStr)) {
+        nextSaved = saved.filter(r => r !== rootStr);
+        setIsBookmarked(false);
+      } else {
+        nextSaved = [...saved, rootStr];
+        setIsBookmarked(true);
+      }
+      localStorage.setItem('quranic_bookmarks', JSON.stringify(nextSaved));
+    } catch { }
+  };
 
   useEffect(() => {
     if (initialRoot) {
@@ -84,6 +132,7 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
   useEffect(() => {
     setAiTranslations({});
     setAiRootMeaning(null);
+    setContextualVerse(null);
   }, [r1, r2, r3]);
 
   const isParchment = theme === 'parchment';
@@ -196,9 +245,11 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
     if (cached) {
       setAiTranslations(cached.translations);
       setAiRootMeaning(cached.rootMeaning);
+      setAiRootStory(cached.rootStory || null);
     } else {
       setAiTranslations({});
       setAiRootMeaning(null);
+      setAiRootStory(null);
     }
   }, [r1, r2, r3]);
 
@@ -244,9 +295,12 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
         if (data.rootMeaning) {
           setAiRootMeaning(data.rootMeaning);
         }
+        if (data.rootStory) {
+          setAiRootStory(data.rootStory);
+        }
 
         // Save successfully fetched and parsed record to cache
-        saveTranslationToCache(root, data.rootMeaning || '', transRecord);
+        saveTranslationToCache(root, data.rootMeaning || '', data.rootStory, transRecord);
       }
     } catch (e) {
       console.error("Batch translation failed:", e);
@@ -552,18 +606,32 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
           </div>
 
           {/* Visual Meaning Explanation Card */}
-          <div className="lg:col-span-4 rounded-xl p-3 bg-black/10 border border-current/5 space-y-1">
+          <div className="lg:col-span-4 rounded-xl p-3 bg-black/10 border border-current/5 space-y-1 relative">
+            <div className="absolute top-3 right-3 flex items-center gap-1">
+              <button onClick={toggleBookmark} className={`p-1.5 rounded-lg transition-all ${isBookmarked ? 'bg-amber-500/20 text-amber-500 hover:bg-amber-500/30' : 'bg-current/5 opacity-60 hover:opacity-100 hover:bg-current/10'}`}>
+                <Bookmark className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
+              </button>
+            </div>
             <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-amber-500">Active Structural Root:</span>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 mt-1">
               <span className="text-xl font-serif font-black">{r1} - {r2} - {r3}</span>
-              <span className={`text-xs font-mono font-semibold px-2 py-0.5 rounded ${badgeThemeBg}`}>
+              <AudioPlayButton text={`${r1} ${r2} ${r3}`} isParchment={isParchment} />
+              <span className={`text-xs font-mono font-semibold px-2 py-0.5 rounded ${badgeThemeBg} ml-2`}>
                 {activeDoc.transliteration}
               </span>
             </div>
-            <p className="text-[10px] leading-relaxed opacity-85">
+            <p className="text-[10px] leading-relaxed opacity-85 mt-2">
               {aiRootMeaning ? aiRootMeaning : `${activeDoc.meaning} — associated with '${safeLower(activeDoc.english || '')}ing' acts.`}
             </p>
-            <div className="mt-2 pt-2 border-t border-current/10">
+            {aiRootStory && (
+              <div className={`mt-3 p-2.5 rounded-lg border ${isParchment ? 'bg-[#8c6239]/5 border-[#8c6239]/20 text-[#5c4033]' : 'bg-amber-500/5 border-amber-500/20 text-amber-200'} text-xs leading-relaxed animate-fadeIn`}>
+                <span className="font-bold opacity-80 block mb-1 flex items-center gap-1">
+                  <Wand2 className="w-3 h-3" /> Semantic Story
+                </span>
+                {aiRootStory}
+              </div>
+            )}
+            <div className="mt-3 pt-2 border-t border-current/10">
               <p className="text-[9px] font-mono font-bold opacity-75 flex items-center gap-1">
                  <Database className="w-3 h-3" />
                  This root appears {(r1.charCodeAt(0) * r2.charCodeAt(0) * r3.charCodeAt(0)) % 1500 + 40} times across {(r1.charCodeAt(0) + r2.charCodeAt(0) + r3.charCodeAt(0)) % 114 + 1} surahs.
@@ -622,6 +690,35 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
             </div>
           </div>
         )}
+
+        {/* Contextual Verse Module */}
+        <div className={`mt-4 rounded-xl border ${isParchment ? 'bg-[#ebdcd3]/40 border-[#dfd2be]' : 'bg-black/10 border-current/10'} p-4`}>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 opacity-90 text-indigo-400">
+               <BookOpen className="w-4 h-4"/> Quranic Context Example
+            </h3>
+            <button 
+              onClick={generateContextualVerse}
+              disabled={isFetchingVerse}
+              className={`text-[10px] font-bold px-3 py-1.5 rounded flex items-center gap-1.5 transition-all ${isParchment ? 'bg-[#8c6239]/10 text-[#8c6239] hover:bg-[#8c6239]/20' : 'bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20'}`}
+            >
+              {isFetchingVerse ? <RotateCcw className="w-3 h-3 animate-spin"/> : <Sparkles className="w-3 h-3"/>}
+              {contextualVerse ? 'Generate Another' : 'Find Example Verse'}
+            </button>
+          </div>
+          {contextualVerse ? (
+            <div className="animate-fadeIn p-3 bg-current/5 rounded-lg text-center space-y-2">
+               <div className="text-right w-full flex justify-end">
+                 <AudioPlayButton text={contextualVerse.arabic} isParchment={isParchment} />
+               </div>
+               <p className="font-arabic text-xl md:text-2xl font-bold leading-relaxed">{contextualVerse.arabic}</p>
+               <p className="text-sm italic opacity-90">({contextualVerse.trans})</p>
+               <p className="text-[10px] font-mono opacity-60 mt-2">{contextualVerse.ref}</p>
+            </div>
+          ) : (
+            <p className="text-xs opacity-60 italic text-center py-2">Discover a classic verse representing this root...</p>
+          )}
+        </div>
 
         {/* Related Roots Section */}
         {!progressiveReveal && (
@@ -708,8 +805,11 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
                   
                   {/* Past Tense Box */}
                   <div className="p-2.5 rounded-lg bg-black/10 border border-current/5 text-right relative overflow-hidden flex flex-col justify-end">
-                    <span className="absolute left-2 top-1 text-[8px] font-mono uppercase opacity-55">Past (Madi)</span>
-                    <div className={`text-2xl md:text-3xl font-serif font-extrabold text-amber-500 mt-2 tracking-normal ${aiTranslations[t.past] && !aiTranslations[t.past].exists ? 'line-through opacity-60' : ''}`} dir="rtl">{t.past}</div>
+                    <span className="absolute left-2 top-2 text-[8px] font-mono uppercase opacity-55">Past (Madi)</span>
+                    <div className="absolute right-2 top-2">
+                       <AudioPlayButton text={t.past} isParchment={isParchment} />
+                    </div>
+                    <div className={`text-2xl md:text-3xl font-serif font-extrabold text-amber-500 mt-6 tracking-normal ${aiTranslations[t.past] && !aiTranslations[t.past].exists ? 'line-through opacity-60' : ''}`} dir="rtl">{t.past}</div>
                     <div className="text-[9px] font-mono text-left opacity-65 flex justify-between items-center w-full">
                       <span>{safeLower(t.pastTrans || '')}</span>
                       {aiTranslations[t.past] && (
@@ -722,8 +822,11 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
 
                   {/* Present Tense Box */}
                   <div className="p-2.5 rounded-lg bg-black/10 border border-current/5 text-right relative overflow-hidden flex flex-col justify-end">
-                    <span className="absolute left-2 top-1 text-[8px] font-mono uppercase opacity-55">Present (Mudari)</span>
-                    <div className={`text-2xl md:text-3xl font-serif font-extrabold text-teal-400 mt-2 tracking-normal ${aiTranslations[t.present] && !aiTranslations[t.present].exists ? 'line-through opacity-60' : ''}`} dir="rtl">{t.present}</div>
+                    <span className="absolute left-2 top-2 text-[8px] font-mono uppercase opacity-55">Present (Mudari)</span>
+                    <div className="absolute right-2 top-2">
+                       <AudioPlayButton text={t.present} isParchment={isParchment} />
+                    </div>
+                    <div className={`text-2xl md:text-3xl font-serif font-extrabold text-teal-400 mt-6 tracking-normal ${aiTranslations[t.present] && !aiTranslations[t.present].exists ? 'line-through opacity-60' : ''}`} dir="rtl">{t.present}</div>
                     <div className="text-[9px] font-mono text-left opacity-65 flex justify-between items-center w-full">
                       <span>{safeLower(t.presentTrans || '')}</span>
                       {aiTranslations[t.present] && (
@@ -779,6 +882,9 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
                     <span className="text-[10px] font-mono opacity-65">{gf.basePattern}</span>
                   </td>
                   <td className="p-3 text-right">
+                    <div className="flex justify-end items-center gap-2 mb-1">
+                      <AudioPlayButton text={gf.masculine} isParchment={isParchment} />
+                    </div>
                     <div className={`text-2xl font-serif font-extrabold text-amber-500 tracking-normal ${aiTranslations[gf.masculine] && !aiTranslations[gf.masculine].exists ? 'line-through opacity-60' : ''}`} dir="rtl">{gf.masculine}</div>
                     <div className="flex flex-col items-end gap-0.5">
                       <span className="text-[10px] opacity-75">{gf.mascMeaning}</span>
@@ -790,6 +896,9 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
                     </div>
                   </td>
                   <td className="p-3 text-right">
+                    <div className="flex justify-end items-center gap-2 mb-1">
+                      <AudioPlayButton text={gf.feminine} isParchment={isParchment} />
+                    </div>
                     <div className={`text-2xl font-serif font-extrabold text-emerald-400 tracking-normal ${aiTranslations[gf.feminine] && !aiTranslations[gf.feminine].exists ? 'line-through opacity-60' : ''}`} dir="rtl">{gf.feminine}</div>
                     <div className="flex flex-col items-end gap-0.5">
                       <span className="text-[10px] opacity-75">{gf.femMeaning}</span>

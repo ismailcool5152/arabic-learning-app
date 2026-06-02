@@ -1,0 +1,2356 @@
+{
+  "surahName": "At-Talaq",
+  "surahNumber": 65,
+  "verses": {
+    "1": {
+      "verseNumber": "1",
+      "fullVerseArabic": "يَـٰٓأَيُّهَا ٱلنَّبِىُّ إِذَا طَلَّقْتُمُ ٱلنِّسَآءَ فَطَلِّقُوهُنَّ لِعِدَّتِهِنَّ وَأَحْصُوا۟ ٱلْعِدَّةَ ۖ وَٱتَّقُوا۟ ٱللَّهَ رَبَّكُمْ ۖ لَا تُخْرِجُوهُنَّ مِنۢ بُيُوتِهِنَّ وَلَا يَخْرُجْنَ إِلَّآ أَن يَأْتِينَ بِفَـٰحِشَةٍۢ مُّبَيِّنَةٍۢ ۚ وَتِلْكَ حُدُودُ ٱللَّهِ ۚ وَمَن يَتَعَدَّ حُدُودَ ٱللَّهِ فَقَدْ ظَلَمَ نَفْسَهُۥ ۚ لَا تَدْرِى لَعَلَّ ٱللَّهَ يُحْدِثُ بَعْدَ ذَٰلِكَ أَمْرًۭا",
+      "fullVerseTranslation": "O Prophet, when you [Muslims] divorce women, divorce them for [the commencement of] their waiting period and keep count of the waiting period,1 and fear Allāh, your Lord. Do not turn them out of their [husbands'] houses, nor should they [themselves] leave [during that period] unless they are committing a clear immorality. And those are the limits [set by] Allāh. And whoever transgresses the limits of Allāh has certainly wronged himself. You know not; perhaps Allāh will bring about after that a [different] matter.2",
+      "words": [
+        {
+          "word": "يَـٰٓأَيُّهَا",
+          "transliteration": "yāayyuhā",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "O",
+          "explanation": "Vocative particle (O)"
+        },
+        {
+          "word": "ٱلنَّبِىُّ",
+          "transliteration": "l-nabiyu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ن - ب - أ",
+          "meaning": "Prophet",
+          "explanation": "Definite singular noun (the Prophet)"
+        },
+        {
+          "word": "إِذَا",
+          "transliteration": "idhā",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "When",
+          "explanation": "Adverbial particle of time (when)"
+        },
+        {
+          "word": "طَلَّقْتُمُ",
+          "transliteration": "ṭallaqtumu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ط - ل - ق",
+          "meaning": "you divorce",
+          "explanation": "Form II past verb, second-person plural masculine (you divorce)"
+        },
+        {
+          "word": "ٱلنِّسَآءَ",
+          "transliteration": "l-nisāa",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ن - س - و",
+          "meaning": "[the] women",
+          "explanation": "Definite plural noun (the women)"
+        },
+        {
+          "word": "فَطَلِّقُوهُنَّ",
+          "transliteration": "faṭalliqūhunna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ط - ل - ق",
+          "meaning": "then divorce them",
+          "explanation": "Conjunction + Form II imperative verb + feminine plural pronoun"
+        },
+        {
+          "word": "لِعِدَّتِهِنَّ",
+          "transliteration": "liʿiddatihinna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ع - د - د",
+          "meaning": "for their waiting period",
+          "explanation": "Preposition + noun (waiting period) + feminine plural pronoun"
+        },
+        {
+          "word": "وَأَحْصُوا۟",
+          "transliteration": "wa-aḥṣū",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ح - ص - ي",
+          "meaning": "and keep count",
+          "explanation": "Conjunction + Form IV imperative verb (and keep count)"
+        },
+        {
+          "word": "ٱلْعِدَّةَ ۖ",
+          "transliteration": "l-ʿidata",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ع - د - د",
+          "meaning": "(of) the waiting period",
+          "explanation": "Definite noun (the waiting period)"
+        },
+        {
+          "word": "وَٱتَّقُوا۟",
+          "transliteration": "wa-ittaqū",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "و - ق - ي",
+          "meaning": "and fear",
+          "explanation": "Conjunction + Form VIII imperative verb (and fear)"
+        },
+        {
+          "word": "ٱللَّهَ",
+          "transliteration": "l-laha",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "إ - ل - ه",
+          "meaning": "Allah",
+          "explanation": "Proper noun (Allah)"
+        },
+        {
+          "word": "رَبَّكُمْ ۖ",
+          "transliteration": "rabbakum",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ر - ب - ب",
+          "meaning": "your Lord",
+          "explanation": "Noun (Lord) + second-person plural possessive pronoun"
+        },
+        {
+          "word": "لَا",
+          "transliteration": "lā",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "(Do) not",
+          "explanation": "Negation particle (does not)"
+        },
+        {
+          "word": "تُخْرِجُوهُنَّ",
+          "transliteration": "tukh'rijūhunna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "خ - ر - ج",
+          "meaning": "expel them",
+          "explanation": "Form IV present verb + feminine plural object pronoun"
+        },
+        {
+          "word": "مِنۢ",
+          "transliteration": "min",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "from",
+          "explanation": "Preposition (from)"
+        },
+        {
+          "word": "بُيُوتِهِنَّ",
+          "transliteration": "buyūtihinna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ب - ي - ت",
+          "meaning": "their houses",
+          "explanation": "Plural noun (houses) + feminine plural possessive pronoun"
+        },
+        {
+          "word": "وَلَا",
+          "transliteration": "walā",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "and not",
+          "explanation": "Conjunction + negative particle (and nor / and not)"
+        },
+        {
+          "word": "يَخْرُجْنَ",
+          "transliteration": "yakhruj'na",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "خ - ر - ج",
+          "meaning": "they should leave",
+          "explanation": "Feminine plural present verb (they leave)"
+        },
+        {
+          "word": "إِلَّآ",
+          "transliteration": "illā",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "except",
+          "explanation": "Exceptive particle (except)"
+        },
+        {
+          "word": "أَن",
+          "transliteration": "an",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "that",
+          "explanation": "Subordinating particle (that / to)"
+        },
+        {
+          "word": "يَأْتِينَ",
+          "transliteration": "yatīna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "أ - ت - ي",
+          "meaning": "they commit",
+          "explanation": "Feminine plural present verb (they commit/bring)"
+        },
+        {
+          "word": "بِفَـٰحِشَةٍۢ",
+          "transliteration": "bifāḥishatin",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ف - ح - ش",
+          "meaning": "an immorality",
+          "explanation": "Preposition + singular noun (with immorality)"
+        },
+        {
+          "word": "مُّبَيِّنَةٍۢ ۚ",
+          "transliteration": "mubayyinatin",
+          "isIsmFail": true,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ب - ي - ن",
+          "meaning": "clear",
+          "explanation": "Form II active participle acting as adjective (clear / open) [Ism Fa'il]"
+        },
+        {
+          "word": "وَتِلْكَ",
+          "transliteration": "watil'ka",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "And these",
+          "explanation": "Conjunction + feminine singular demonstrative pronoun (and those)"
+        },
+        {
+          "word": "حُدُودُ",
+          "transliteration": "ḥudūdu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ح - د - د",
+          "meaning": "(are the) limits",
+          "explanation": "Plural noun in nominative state (bounds / limits)"
+        },
+        {
+          "word": "ٱللَّهِ ۚ",
+          "transliteration": "l-lahi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "إ - ل - ه",
+          "meaning": "(of) Allah",
+          "explanation": "Proper noun (Allah)"
+        },
+        {
+          "word": "وَمَن",
+          "transliteration": "waman",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "And whoever",
+          "explanation": "Conjunction + conditional pronoun (and whoever)"
+        },
+        {
+          "word": "يَتَعَدَّ",
+          "transliteration": "yataʿadda",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ع - د - و",
+          "meaning": "transgresses",
+          "explanation": "Form V present verb in jussive condition state (transgresses)"
+        },
+        {
+          "word": "حُدُودَ",
+          "transliteration": "ḥudūda",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "(the) limits",
+          "explanation": "Noun representing state/entity: \"(the) limits\""
+        },
+        {
+          "word": "ٱللَّهِ",
+          "transliteration": "l-lahi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "إ - ل - ه",
+          "meaning": "(of) Allah",
+          "explanation": "Proper noun (Allah)"
+        },
+        {
+          "word": "فَقَدْ",
+          "transliteration": "faqad",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "then certainly",
+          "explanation": "Conjunction + emphasizing particle (certainly / has indeed)"
+        },
+        {
+          "word": "ظَلَمَ",
+          "transliteration": "ẓalama",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ظ - ل - م",
+          "meaning": "he has wronged",
+          "explanation": "Singular past verb (he wronged)"
+        },
+        {
+          "word": "نَفْسَهُۥ ۚ",
+          "transliteration": "nafsahu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ن - ف - س",
+          "meaning": "himself",
+          "explanation": "Singular noun + singular possessive pronoun (himself / his soul)"
+        },
+        {
+          "word": "لَا",
+          "transliteration": "lā",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "Not",
+          "explanation": "Negation particle (does not)"
+        },
+        {
+          "word": "تَدْرِى",
+          "transliteration": "tadrī",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "د - ر - ي",
+          "meaning": "you know",
+          "explanation": "Singular present verb (you know)"
+        },
+        {
+          "word": "لَعَلَّ",
+          "transliteration": "laʿalla",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "Perhaps",
+          "explanation": "Complementary particle of hope (perhaps)"
+        },
+        {
+          "word": "ٱللَّهَ",
+          "transliteration": "l-laha",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "إ - ل - ه",
+          "meaning": "Allah",
+          "explanation": "Proper noun (Allah)"
+        },
+        {
+          "word": "يُحْدِثُ",
+          "transliteration": "yuḥ'dithu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ح - د - ث",
+          "meaning": "will bring about",
+          "explanation": "Singular Form IV present verb (brings about)"
+        },
+        {
+          "word": "بَعْدَ",
+          "transliteration": "baʿda",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ب - ع - د",
+          "meaning": "after",
+          "explanation": "Adverb of time (after)"
+        },
+        {
+          "word": "ذَٰلِكَ",
+          "transliteration": "dhālika",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "that",
+          "explanation": "Demonstrative pronoun (that)"
+        },
+        {
+          "word": "أَمْرًۭا",
+          "transliteration": "amran",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "أ - م - ر",
+          "meaning": "a matter",
+          "explanation": "Singular noun in accusative state (a matter / affair)"
+        }
+      ]
+    },
+    "2": {
+      "verseNumber": "2",
+      "fullVerseArabic": "فَإِذَا بَلَغْنَ أَجَلَهُنَّ فَأَمْسِكُوهُنَّ بِمَعْرُوفٍ أَوْ فَارِقُوهُنَّ بِمَعْرُوفٍۢ وَأَشْهِدُوا۟ ذَوَىْ عَدْلٍۢ مِّنكُمْ وَأَقِيمُوا۟ ٱلشَّهَـٰدَةَ لِلَّهِ ۚ ذَٰلِكُمْ يُوعَظُ بِهِۦ مَن كَانَ يُؤْمِنُ بِٱللَّهِ وَٱلْيَوْمِ ٱلْـَٔاخِرِ ۚ وَمَن يَتَّقِ ٱللَّهَ يَجْعَل لَّهُۥ مَخْرَجًۭا",
+      "fullVerseTranslation": "And when they have [nearly] fulfilled their term, either retain them according to acceptable terms or part with them according to acceptable terms. And bring to witness two just men from among you and establish the testimony for [the acceptance of] Allāh. That is instructed to whoever should believe in Allāh and the Last Day. And whoever fears Allāh - He will make for him a way out1",
+      "words": [
+        {
+          "word": "فَإِذَا",
+          "transliteration": "fa-idhā",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "Then when",
+          "explanation": "Conjunction + adverbial particle of time (and when)"
+        },
+        {
+          "word": "بَلَغْنَ",
+          "transliteration": "balaghna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ب - ل - غ",
+          "meaning": "they have reached",
+          "explanation": "Feminine plural past verb (they fulfilled / reached)"
+        },
+        {
+          "word": "أَجَلَهُنَّ",
+          "transliteration": "ajalahunna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "أ - ج - ل",
+          "meaning": "their term",
+          "explanation": "Singular noun + feminine plural possessive pronoun (their term)"
+        },
+        {
+          "word": "فَأَمْسِكُوهُنَّ",
+          "transliteration": "fa-amsikūhunna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "م - س - ك",
+          "meaning": "then retain them",
+          "explanation": "Conjunction + Form IV imperative + feminine plural object pronoun (retain them)"
+        },
+        {
+          "word": "بِمَعْرُوفٍ",
+          "transliteration": "bimaʿrūfin",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ع - ر - ف",
+          "meaning": "with kindness",
+          "explanation": "Preposition + passive participle as noun (honorably / acceptably)"
+        },
+        {
+          "word": "أَوْ",
+          "transliteration": "aw",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "or",
+          "explanation": "Disjunctive particle (or)"
+        },
+        {
+          "word": "فَارِقُوهُنَّ",
+          "transliteration": "fāriqūhunna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ف - ر - ق",
+          "meaning": "part with them",
+          "explanation": "Conjunction + Form III imperative + feminine plural object pronoun (part with them)"
+        },
+        {
+          "word": "بِمَعْرُوفٍۢ",
+          "transliteration": "bimaʿrūfin",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "with kindness",
+          "explanation": "Noun representing state/entity: \"with kindness\""
+        },
+        {
+          "word": "وَأَشْهِدُوا۟",
+          "transliteration": "wa-ashhidū",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ش - ه - د",
+          "meaning": "And take witness",
+          "explanation": "Conjunction + Form IV imperative verb (and bring to witness)"
+        },
+        {
+          "word": "ذَوَىْ",
+          "transliteration": "dhaway",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ذ - و - و",
+          "meaning": "two men",
+          "explanation": "Dual noun in accusative state (two possessors of)"
+        },
+        {
+          "word": "عَدْلٍۢ",
+          "transliteration": "ʿadlin",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ع - د - ل",
+          "meaning": "just",
+          "explanation": "Singular noun (justice)"
+        },
+        {
+          "word": "مِّنكُمْ",
+          "transliteration": "minkum",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "among you",
+          "explanation": "Preposition + plural possessive pronoun (from among you)"
+        },
+        {
+          "word": "وَأَقِيمُوا۟",
+          "transliteration": "wa-aqīmū",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ق - و - م",
+          "meaning": "and establish",
+          "explanation": "Conjunction + Form IV imperative verb (and establish)"
+        },
+        {
+          "word": "ٱلشَّهَـٰدَةَ",
+          "transliteration": "l-shahādata",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ش - ه - د",
+          "meaning": "the testimony",
+          "explanation": "Definite singular noun (the testimony)"
+        },
+        {
+          "word": "لِلَّهِ ۚ",
+          "transliteration": "lillahi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "إ - ل - ه",
+          "meaning": "for Allah",
+          "explanation": "Preposition + proper noun (for Allah)"
+        },
+        {
+          "word": "ذَٰلِكُمْ",
+          "transliteration": "dhālikum",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "That",
+          "explanation": "Demonstrative pronoun with plural suffix (that of you)"
+        },
+        {
+          "word": "يُوعَظُ",
+          "transliteration": "yūʿaẓu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "و - ع - ظ",
+          "meaning": "is instructed",
+          "explanation": "Passive present verb (is instructed / exhorted)"
+        },
+        {
+          "word": "بِهِۦ",
+          "transliteration": "bihi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "with it",
+          "explanation": "Preposition + attached singular pronoun (by/with it)"
+        },
+        {
+          "word": "مَن",
+          "transliteration": "man",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "whoever",
+          "explanation": "Noun representing state/entity: \"whoever\""
+        },
+        {
+          "word": "كَانَ",
+          "transliteration": "kāna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ك - و - ن",
+          "meaning": "[is]",
+          "explanation": "Past verb (he was / used to)"
+        },
+        {
+          "word": "يُؤْمِنُ",
+          "transliteration": "yu'minu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "أ - م - ن",
+          "meaning": "believes",
+          "explanation": "Form IV present verb (he believes)"
+        },
+        {
+          "word": "بِٱللَّهِ",
+          "transliteration": "bil-lahi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "in Allah",
+          "explanation": "Noun representing state/entity: \"in Allah\""
+        },
+        {
+          "word": "وَٱلْيَوْمِ",
+          "transliteration": "wal-yawmi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ي - و - م",
+          "meaning": "and the Day",
+          "explanation": "Conjunction + definite noun (and the day)"
+        },
+        {
+          "word": "ٱلْـَٔاخِرِ ۚ",
+          "transliteration": "l-ākhiri",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "the Last",
+          "explanation": "Noun representing state/entity: \"the Last\""
+        },
+        {
+          "word": "وَمَن",
+          "transliteration": "waman",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "And whoever",
+          "explanation": "Conjunction + conditional pronoun (and whoever)"
+        },
+        {
+          "word": "يَتَّقِ",
+          "transliteration": "yattaqi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "و - ق - ي",
+          "meaning": "fears",
+          "explanation": "Form VIII present verb in conditional jussive state (fears)"
+        },
+        {
+          "word": "ٱللَّهَ",
+          "transliteration": "l-laha",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "إ - ل - ه",
+          "meaning": "Allah",
+          "explanation": "Proper noun (Allah)"
+        },
+        {
+          "word": "يَجْعَل",
+          "transliteration": "yajʿal",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ج - ع - ل",
+          "meaning": "He will make",
+          "explanation": "Present verb as conditional answer (He will make)"
+        },
+        {
+          "word": "لَّهُۥ",
+          "transliteration": "lahu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "for him",
+          "explanation": "Noun representing state/entity: \"for him\""
+        },
+        {
+          "word": "مَخْرَجًۭا",
+          "transliteration": "makhrajan",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "خ - ر - ج",
+          "meaning": "a way out",
+          "explanation": "Singular noun of place/action (a way out)"
+        }
+      ]
+    },
+    "3": {
+      "verseNumber": "3",
+      "fullVerseArabic": "وَيَرْزُقْهُ مِنْ حَيْثُ لَا يَحْتَسِبُ ۚ وَمَن يَتَوَكَّلْ عَلَى ٱللَّهِ فَهُوَ حَسْبُهُۥٓ ۚ إِنَّ ٱللَّهَ بَـٰلِغُ أَمْرِهِۦ ۚ قَدْ جَعَلَ ٱللَّهُ لِكُلِّ شَىْءٍۢ قَدْرًۭا",
+      "fullVerseTranslation": "And will provide for him from where he does not expect. And whoever relies upon Allāh - then He is sufficient for him. Indeed, Allāh will accomplish His purpose. Allāh has already set for everything a [decreed] extent.",
+      "words": [
+        {
+          "word": "وَيَرْزُقْهُ",
+          "transliteration": "wayarzuq'hu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ر - ز - ق",
+          "meaning": "And He will provide for him",
+          "explanation": "Conjunction + present verb + attached pronoun (and provides him)"
+        },
+        {
+          "word": "مِنْ",
+          "transliteration": "min",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "from",
+          "explanation": "Preposition (from)"
+        },
+        {
+          "word": "حَيْثُ",
+          "transliteration": "ḥaythu",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "where",
+          "explanation": "Adverbial particle of location (where)"
+        },
+        {
+          "word": "لَا",
+          "transliteration": "lā",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "not",
+          "explanation": "Negation particle (does not)"
+        },
+        {
+          "word": "يَحْتَسِبُ ۚ",
+          "transliteration": "yaḥtasibu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ح - س - ب",
+          "meaning": "he thinks",
+          "explanation": "Form VIII present verb (he expects / anticipates)"
+        },
+        {
+          "word": "وَمَن",
+          "transliteration": "waman",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "And whoever",
+          "explanation": "Conjunction + conditional pronoun (and whoever)"
+        },
+        {
+          "word": "يَتَوَكَّلْ",
+          "transliteration": "yatawakkal",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "و - ك - ل",
+          "meaning": "puts his trust",
+          "explanation": "Form V present verb in conditional jussive state (places dependency)"
+        },
+        {
+          "word": "عَلَى",
+          "transliteration": "ʿalā",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "upon",
+          "explanation": "Preposition (upon / on)"
+        },
+        {
+          "word": "ٱللَّهِ",
+          "transliteration": "l-lahi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "إ - ل - ه",
+          "meaning": "Allah",
+          "explanation": "Proper noun (Allah)"
+        },
+        {
+          "word": "فَهُوَ",
+          "transliteration": "fahuwa",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "then He",
+          "explanation": "Conjunction + singular third-person pronoun (then he / then He)"
+        },
+        {
+          "word": "حَسْبُهُۥٓ ۚ",
+          "transliteration": "ḥasbuhu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "(is) sufficient for him",
+          "explanation": "Noun representing state/entity: \"(is) sufficient for him\""
+        },
+        {
+          "word": "إِنَّ",
+          "transliteration": "inna",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "Indeed",
+          "explanation": "Particle of emphasis (Indeed / surely)"
+        },
+        {
+          "word": "ٱللَّهَ",
+          "transliteration": "l-laha",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "إ - ل - ه",
+          "meaning": "Allah",
+          "explanation": "Proper noun (Allah)"
+        },
+        {
+          "word": "بَـٰلِغُ",
+          "transliteration": "bālighu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "None",
+          "meaning": "(will) accomplish",
+          "explanation": "Temporal verb / Fi'l indicating action: \"(will) accomplish\""
+        },
+        {
+          "word": "أَمْرِهِۦ ۚ",
+          "transliteration": "amrihi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "His purpose",
+          "explanation": "Noun representing state/entity: \"His purpose\""
+        },
+        {
+          "word": "قَدْ",
+          "transliteration": "qad",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "Indeed",
+          "explanation": "Verbal emphasizing particle (already / indeed)"
+        },
+        {
+          "word": "جَعَلَ",
+          "transliteration": "jaʿala",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ج - ع - ل",
+          "meaning": "has set",
+          "explanation": "Singular past verb (He has set / decreed)"
+        },
+        {
+          "word": "ٱللَّهُ",
+          "transliteration": "l-lahu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "Allah",
+          "explanation": "Noun representing state/entity: \"Allah\""
+        },
+        {
+          "word": "لِكُلِّ",
+          "transliteration": "likulli",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "for every",
+          "explanation": "Preposition + noun (for every / for all)"
+        },
+        {
+          "word": "شَىْءٍۢ",
+          "transliteration": "shayin",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ش - ي - أ",
+          "meaning": "thing",
+          "explanation": "Singular noun in genitive state (thing / entity)"
+        },
+        {
+          "word": "قَدْرًۭا",
+          "transliteration": "qadran",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ق - د - ر",
+          "meaning": "a measure",
+          "explanation": "Singular noun in accusative state (a measure / extent)"
+        }
+      ]
+    },
+    "4": {
+      "verseNumber": "4",
+      "fullVerseArabic": "وَٱلَّـٰٓـِٔى يَئِسْنَ مِنَ ٱلْمَحِيضِ مِن نِّسَآئِكُمْ إِنِ ٱرْتَبْتُمْ فَعِدَّتُهُنَّ ثَلَـٰثَةُ أَشْهُرٍۢ وَٱلَّـٰٓـِٔى لَمْ يَحِضْنَ ۚ وَأُو۟لَـٰتُ ٱلْأَحْمَالِ أَجَلُهُنَّ أَن يَضَعْنَ حَمْلَهُنَّ ۚ وَمَن يَتَّقِ ٱللَّهَ يَجْعَل لَّهُۥ مِنْ أَمْرِهِۦ يُسْرًۭا",
+      "fullVerseTranslation": "And those who no longer expect menstruation among your women - if you doubt, then their period is three months, and [also for] those who have not menstruated. And for those who are pregnant, their term is until they give birth.1 And whoever fears Allāh - He will make for him of his matter ease.",
+      "words": [
+        {
+          "word": "وَٱلَّـٰٓـِٔى",
+          "transliteration": "wa-allāī",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "And those who",
+          "explanation": "Conjunction + relative feminine plural pronoun (and those who)"
+        },
+        {
+          "word": "يَئِسْنَ",
+          "transliteration": "ya-is'na",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ي - أ - س",
+          "meaning": "have despaired",
+          "explanation": "Feminine plural past verb (they despaired / no longer expect)"
+        },
+        {
+          "word": "مِنَ",
+          "transliteration": "mina",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "of",
+          "explanation": "Preposition (from)"
+        },
+        {
+          "word": "ٱلْمَحِيضِ",
+          "transliteration": "l-maḥīḍi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ح - ي - ض",
+          "meaning": "the menstruation",
+          "explanation": "Definite noun (menstruation)"
+        },
+        {
+          "word": "مِن",
+          "transliteration": "min",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "among",
+          "explanation": "Preposition (from)"
+        },
+        {
+          "word": "نِّسَآئِكُمْ",
+          "transliteration": "nisāikum",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "your women",
+          "explanation": "Noun representing state/entity: \"your women\""
+        },
+        {
+          "word": "إِنِ",
+          "transliteration": "ini",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "if",
+          "explanation": "Conditional particle of if (if)"
+        },
+        {
+          "word": "ٱرْتَبْتُمْ",
+          "transliteration": "ir'tabtum",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "you doubt",
+          "explanation": "Noun representing state/entity: \"you doubt\""
+        },
+        {
+          "word": "فَعِدَّتُهُنَّ",
+          "transliteration": "faʿiddatuhunna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ع - د - د",
+          "meaning": "then their waiting period",
+          "explanation": "Conjunction + noun (their waiting period) + possessive pronoun"
+        },
+        {
+          "word": "ثَلَـٰثَةُ",
+          "transliteration": "thalāthatu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ث - ل - ث",
+          "meaning": "(is) three",
+          "explanation": "Number noun (three)"
+        },
+        {
+          "word": "أَشْهُرٍۢ",
+          "transliteration": "ashhurin",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ش - ه - ر",
+          "meaning": "months",
+          "explanation": "Plural noun (months) in genitive state"
+        },
+        {
+          "word": "وَٱلَّـٰٓـِٔى",
+          "transliteration": "wa-allāī",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "and the ones who",
+          "explanation": "Conjunction + relative feminine plural pronoun (and those who)"
+        },
+        {
+          "word": "لَمْ",
+          "transliteration": "lam",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "not",
+          "explanation": "Negation particle of jussive past meaning (did not)"
+        },
+        {
+          "word": "يَحِضْنَ ۚ",
+          "transliteration": "yaḥiḍ'na",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ح - ي - ض",
+          "meaning": "[they] menstruated",
+          "explanation": "Feminine plural present verb in jussive state (they menstruate)"
+        },
+        {
+          "word": "وَأُو۟لَـٰتُ",
+          "transliteration": "wa-ulātu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "أ - و - ل",
+          "meaning": "And those who (are)",
+          "explanation": "Conjunction + plural possessive noun (and those of)"
+        },
+        {
+          "word": "ٱلْأَحْمَالِ",
+          "transliteration": "l-aḥmāli",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ح - م - ل",
+          "meaning": "pregnant",
+          "explanation": "Definite plural noun (the burdens / pregnancies)"
+        },
+        {
+          "word": "أَجَلُهُنَّ",
+          "transliteration": "ajaluhunna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "أ - ج - ل",
+          "meaning": "their term",
+          "explanation": "Singular noun (their term) + possessive pronoun"
+        },
+        {
+          "word": "أَن",
+          "transliteration": "an",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "until",
+          "explanation": "Subordinating particle (that / to)"
+        },
+        {
+          "word": "يَضَعْنَ",
+          "transliteration": "yaḍaʿna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "و - ض - ع",
+          "meaning": "they deliver",
+          "explanation": "Feminine plural present verb (they deliver / lay down)"
+        },
+        {
+          "word": "حَمْلَهُنَّ ۚ",
+          "transliteration": "ḥamlahunna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ح - م - ل",
+          "meaning": "their burdens",
+          "explanation": "Singular noun (their burden) + possessive pronoun"
+        },
+        {
+          "word": "وَمَن",
+          "transliteration": "waman",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "And whoever",
+          "explanation": "Conjunction + conditional pronoun (and whoever)"
+        },
+        {
+          "word": "يَتَّقِ",
+          "transliteration": "yattaqi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "و - ق - ي",
+          "meaning": "fears",
+          "explanation": "Form VIII present verb in conditional jussive state (fears)"
+        },
+        {
+          "word": "ٱللَّهَ",
+          "transliteration": "l-laha",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "إ - ل - ه",
+          "meaning": "Allah",
+          "explanation": "Proper noun (Allah)"
+        },
+        {
+          "word": "يَجْعَل",
+          "transliteration": "yajʿal",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ج - ع - ل",
+          "meaning": "He will make",
+          "explanation": "Present verb as conditional answer (He will make)"
+        },
+        {
+          "word": "لَّهُۥ",
+          "transliteration": "lahu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "for him",
+          "explanation": "Noun representing state/entity: \"for him\""
+        },
+        {
+          "word": "مِنْ",
+          "transliteration": "min",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "of",
+          "explanation": "Preposition (from)"
+        },
+        {
+          "word": "أَمْرِهِۦ",
+          "transliteration": "amrihi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "his affair",
+          "explanation": "Noun representing state/entity: \"his affair\""
+        },
+        {
+          "word": "يُسْرًۭا",
+          "transliteration": "yus'ran",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ي - س - ر",
+          "meaning": "ease",
+          "explanation": "Singular noun in accusative state (ease)"
+        }
+      ]
+    },
+    "5": {
+      "verseNumber": "5",
+      "fullVerseArabic": "ذَٰلِكَ أَمْرُ ٱللَّهِ أَنزَلَهُۥٓ إِلَيْكُمْ ۚ وَمَن يَتَّقِ ٱللَّهَ يُكَفِّرْ عَنْهُ سَيِّـَٔاتِهِۦ وَيُعْظِمْ لَهُۥٓ أَجْرًا",
+      "fullVerseTranslation": "That is the command of Allāh, which He has sent down to you; and whoever fears Allāh - He will remove for him his misdeeds and make great for him his reward.",
+      "words": [
+        {
+          "word": "ذَٰلِكَ",
+          "transliteration": "dhālika",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "That",
+          "explanation": "Demonstrative pronoun (that)"
+        },
+        {
+          "word": "أَمْرُ",
+          "transliteration": "amru",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "أ - م - ر",
+          "meaning": "(is the) Command",
+          "explanation": "Singular noun (command / affair)"
+        },
+        {
+          "word": "ٱللَّهِ",
+          "transliteration": "l-lahi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "إ - ل - ه",
+          "meaning": "(of) Allah",
+          "explanation": "Proper noun (Allah)"
+        },
+        {
+          "word": "أَنزَلَهُۥٓ",
+          "transliteration": "anzalahu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "which He has sent down",
+          "explanation": "Noun representing state/entity: \"which He has sent down\""
+        },
+        {
+          "word": "إِلَيْكُمْ ۚ",
+          "transliteration": "ilaykum",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "to you",
+          "explanation": "Preposition + plural object pronoun (unto you)"
+        },
+        {
+          "word": "وَمَن",
+          "transliteration": "waman",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "and whoever",
+          "explanation": "Conjunction + conditional pronoun (and whoever)"
+        },
+        {
+          "word": "يَتَّقِ",
+          "transliteration": "yattaqi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "و - ق - ي",
+          "meaning": "fears",
+          "explanation": "Form VIII present verb in conditional jussive state (fears)"
+        },
+        {
+          "word": "ٱللَّهَ",
+          "transliteration": "l-laha",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "إ - ل - ه",
+          "meaning": "Allah",
+          "explanation": "Proper noun (Allah)"
+        },
+        {
+          "word": "يُكَفِّرْ",
+          "transliteration": "yukaffir",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ك - ف - ر",
+          "meaning": "He will remove",
+          "explanation": "Form II present verb as conditional answer (He will expiate)"
+        },
+        {
+          "word": "عَنْهُ",
+          "transliteration": "ʿanhu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "from him",
+          "explanation": "Preposition + attached pronoun (from him / from his)"
+        },
+        {
+          "word": "سَيِّـَٔاتِهِۦ",
+          "transliteration": "sayyiātihi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "س - و - أ",
+          "meaning": "his evil deeds",
+          "explanation": "Feminine plural noun + attached possessive pronoun (his misdeeds)"
+        },
+        {
+          "word": "وَيُعْظِمْ",
+          "transliteration": "wayuʿ'ẓim",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "None",
+          "meaning": "and make great",
+          "explanation": "Temporal verb / Fi'l indicating action: \"and make great\""
+        },
+        {
+          "word": "لَهُۥٓ",
+          "transliteration": "lahu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "for him",
+          "explanation": "Noun representing state/entity: \"for him\""
+        },
+        {
+          "word": "أَجْرًا",
+          "transliteration": "ajran",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "أ - ج - ر",
+          "meaning": "(his) reward",
+          "explanation": "Singular noun in accusative state (reward / wage)"
+        }
+      ]
+    },
+    "6": {
+      "verseNumber": "6",
+      "fullVerseArabic": "أَسْكِنُوهُنَّ مِنْ حَيْثُ سَكَنتُم مِّن وُجْدِكُمْ وَلَا تُضَآرُّوهُنَّ لِتُضَيِّقُوا۟ عَلَيْهِنَّ ۚ وَإِن كُنَّ أُو۟لَـٰتِ حَمْلٍۢ فَأَنفِقُوا۟ عَلَيْهِنَّ حَتَّىٰ يَضَعْنَ حَمْلَهُنَّ ۚ فَإِنْ أَرْضَعْنَ لَكُمْ فَـَٔاتُوهُنَّ أُجُورَهُنَّ ۖ وَأْتَمِرُوا۟ بَيْنَكُم بِمَعْرُوفٍۢ ۖ وَإِن تَعَاسَرْتُمْ فَسَتُرْضِعُ لَهُۥٓ أُخْرَىٰ",
+      "fullVerseTranslation": "Lodge them1 [in a section] of where you dwell out of your means and do not harm them in order to oppress them.2 And if they should be pregnant, then spend on them until they give birth. And if they breastfeed for you, then give them their payment and confer among yourselves in the acceptable way; but if you are in discord, then there may breastfeed for him [i.e., the father] another woman.3",
+      "words": [
+        {
+          "word": "أَسْكِنُوهُنَّ",
+          "transliteration": "askinūhunna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "س - ك - ن",
+          "meaning": "Lodge them",
+          "explanation": "Form IV imperative verb + feminine plural object pronoun (lodge them)"
+        },
+        {
+          "word": "مِنْ",
+          "transliteration": "min",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "from",
+          "explanation": "Preposition (from)"
+        },
+        {
+          "word": "حَيْثُ",
+          "transliteration": "ḥaythu",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "where",
+          "explanation": "Adverbial particle of location (where)"
+        },
+        {
+          "word": "سَكَنتُم",
+          "transliteration": "sakantum",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "س - ك - ن",
+          "meaning": "you dwell",
+          "explanation": "Plural past verb (you dwelt)"
+        },
+        {
+          "word": "مِّن",
+          "transliteration": "min",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "(out) of",
+          "explanation": "Relational particle / Harf meaning: \"(out) of\""
+        },
+        {
+          "word": "وُجْدِكُمْ",
+          "transliteration": "wuj'dikum",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "و - ج - د",
+          "meaning": "your means",
+          "explanation": "Noun (means / capacity) + plural possessive pronoun"
+        },
+        {
+          "word": "وَلَا",
+          "transliteration": "walā",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "and (do) not",
+          "explanation": "Conjunction + negative particle (and nor / and not)"
+        },
+        {
+          "word": "تُضَآرُّوهُنَّ",
+          "transliteration": "tuḍārrūhunna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ض - ر - ر",
+          "meaning": "harm them",
+          "explanation": "Form III present negative imperative verb + feminine plural pronoun (harm them)"
+        },
+        {
+          "word": "لِتُضَيِّقُوا۟",
+          "transliteration": "lituḍayyiqū",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ض - ي - ق",
+          "meaning": "to distress",
+          "explanation": "Form II present verb in subjunctive purpose state (to restrict/oppress them)"
+        },
+        {
+          "word": "عَلَيْهِنَّ ۚ",
+          "transliteration": "ʿalayhinna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "[on] them",
+          "explanation": "Preposition + feminine plural pronoun (upon them)"
+        },
+        {
+          "word": "وَإِن",
+          "transliteration": "wa-in",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "And if",
+          "explanation": "Conjunction + conditional particle (and if)"
+        },
+        {
+          "word": "كُنَّ",
+          "transliteration": "kunna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ك - و - n",
+          "meaning": "they are",
+          "explanation": "Feminine plural auxiliary past verb (they are)"
+        },
+        {
+          "word": "أُو۟لَـٰتِ",
+          "transliteration": "ulāti",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "those (who are)",
+          "explanation": "Noun representing state/entity: \"those (who are)\""
+        },
+        {
+          "word": "حَمْلٍۢ",
+          "transliteration": "ḥamlin",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ح - م - ل",
+          "meaning": "pregnant",
+          "explanation": "Singular noun in genitive state (pregnancy / burden)"
+        },
+        {
+          "word": "فَأَنفِقُوا۟",
+          "transliteration": "fa-anfiqū",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ن - ف - ق",
+          "meaning": "then spend",
+          "explanation": "Conjunction + Form IV imperative verb (then spend)"
+        },
+        {
+          "word": "عَلَيْهِنَّ",
+          "transliteration": "ʿalayhinna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "on them",
+          "explanation": "Preposition + feminine plural pronoun (upon them)"
+        },
+        {
+          "word": "حَتَّىٰ",
+          "transliteration": "ḥattā",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "until",
+          "explanation": "Prepositional particle of limit (until)"
+        },
+        {
+          "word": "يَضَعْنَ",
+          "transliteration": "yaḍaʿna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "و - ض - ع",
+          "meaning": "they deliver",
+          "explanation": "Feminine plural present verb (they deliver / lay down)"
+        },
+        {
+          "word": "حَمْلَهُنَّ ۚ",
+          "transliteration": "ḥamlahunna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ح - م - ل",
+          "meaning": "their burden",
+          "explanation": "Singular noun (their burden) + possessive pronoun"
+        },
+        {
+          "word": "فَإِنْ",
+          "transliteration": "fa-in",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "Then if",
+          "explanation": "Conjunction + conditional particle (then if)"
+        },
+        {
+          "word": "أَرْضَعْنَ",
+          "transliteration": "arḍaʿna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ر - ض - ع",
+          "meaning": "they suckle",
+          "explanation": "Feminine plural past verb (they breastfeed)"
+        },
+        {
+          "word": "لَكُمْ",
+          "transliteration": "lakum",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "for you",
+          "explanation": "Preposition + plural object pronoun (for you)"
+        },
+        {
+          "word": "فَـَٔاتُوهُنَّ",
+          "transliteration": "faātūhunna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "أ - ت - ي",
+          "meaning": "then give them",
+          "explanation": "Conjunction + Form IV imperative + feminine plural pronoun (then give them)"
+        },
+        {
+          "word": "أُجُورَهُنَّ ۖ",
+          "transliteration": "ujūrahunna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "أ - ج - ر",
+          "meaning": "their payment",
+          "explanation": "Plural noun + feminine plural possessive pronoun (their wages/rewards)"
+        },
+        {
+          "word": "وَأْتَمِرُوا۟",
+          "transliteration": "watamirū",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "أ - م - ر",
+          "meaning": "and consult",
+          "explanation": "Conjunction + Form VIII imperative verb (and confer / consult)"
+        },
+        {
+          "word": "بَيْنَكُم",
+          "transliteration": "baynakum",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ب - ي - ن",
+          "meaning": "among yourselves",
+          "explanation": "Adverb of place + plural possessive pronoun (among you)"
+        },
+        {
+          "word": "بِمَعْرُوفٍۢ ۖ",
+          "transliteration": "bimaʿrūfin",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "with kindness",
+          "explanation": "Noun representing state/entity: \"with kindness\""
+        },
+        {
+          "word": "وَإِن",
+          "transliteration": "wa-in",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "but if",
+          "explanation": "Conjunction + conditional particle (and if)"
+        },
+        {
+          "word": "تَعَاسَرْتُمْ",
+          "transliteration": "taʿāsartum",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ع - س - ر",
+          "meaning": "you disagree",
+          "explanation": "Form VI past verb, plural (you find difficulty / are in discord)"
+        },
+        {
+          "word": "فَسَتُرْضِعُ",
+          "transliteration": "fasatur'ḍiʿu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ر - ض - ع",
+          "meaning": "then may suckle",
+          "explanation": "Conjunction + future prefix + Form IV present verb (then will breastfeed)"
+        },
+        {
+          "word": "لَهُۥٓ",
+          "transliteration": "lahu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "for him",
+          "explanation": "Noun representing state/entity: \"for him\""
+        },
+        {
+          "word": "أُخْرَىٰ",
+          "transliteration": "ukh'rā",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "أ - خ - ر",
+          "meaning": "another (women)",
+          "explanation": "Feminine singular adjective (another woman)"
+        }
+      ]
+    },
+    "7": {
+      "verseNumber": "7",
+      "fullVerseArabic": "لِيُنفِقْ ذُو سَعَةٍۢ مِّن سَعَتِهِۦ ۖ وَمَن قُدِرَ عَلَيْهِ رِزْقُهُۥ فَلْيُنفِقْ مِمَّآ ءَاتَىٰهُ ٱللَّهُ ۚ لَا يُكَلِّفُ ٱللَّهُ نَفْسًا إِلَّا مَآ ءَاتَىٰهَا ۚ سَيَجْعَلُ ٱللَّهُ بَعْدَ عُسْرٍۢ يُسْرًۭا",
+      "fullVerseTranslation": "Let a man of wealth spend from his wealth, and he whose provision is restricted - let him spend from what Allāh has given him. Allāh does not charge a soul except [according to] what He has given it. Allāh will bring about, after hardship, ease [i.e., relief].",
+      "words": [
+        {
+          "word": "لِيُنفِقْ",
+          "transliteration": "liyunfiq",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ن - ف - ق",
+          "meaning": "Let spend",
+          "explanation": "Lām of command + present verb (let spend)"
+        },
+        {
+          "word": "ذُو",
+          "transliteration": "dhū",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ذ - و - و",
+          "meaning": "owner",
+          "explanation": "Singular nominative mudaf possessor noun (the possessor of)"
+        },
+        {
+          "word": "سَعَةٍۢ",
+          "transliteration": "saʿatin",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "و - س - ع",
+          "meaning": "(of) ample means",
+          "explanation": "Singular noun (abundance / capacity)"
+        },
+        {
+          "word": "مِّن",
+          "transliteration": "min",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "from",
+          "explanation": "Relational particle / Harf meaning: \"from\""
+        },
+        {
+          "word": "سَعَتِهِۦ ۖ",
+          "transliteration": "saʿatihi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "و - س - ع",
+          "meaning": "his ample means",
+          "explanation": "Singular noun + singular possessive pronoun (his abundance)"
+        },
+        {
+          "word": "وَمَن",
+          "transliteration": "waman",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "and (he) who",
+          "explanation": "Conjunction + conditional pronoun (and whoever)"
+        },
+        {
+          "word": "قُدِرَ",
+          "transliteration": "qudira",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ق - د - ر",
+          "meaning": "is restricted",
+          "explanation": "Singular passive past verb (is restricted / measured)"
+        },
+        {
+          "word": "عَلَيْهِ",
+          "transliteration": "ʿalayhi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "on him",
+          "explanation": "Preposition + attached pronoun (upon him)"
+        },
+        {
+          "word": "رِزْقُهُۥ",
+          "transliteration": "riz'quhu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ر - ز - ق",
+          "meaning": "his provision",
+          "explanation": "Singular noun (his provision) + third-person singular possessive pronoun"
+        },
+        {
+          "word": "فَلْيُنفِقْ",
+          "transliteration": "falyunfiq",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ن - ف - ق",
+          "meaning": "let him spend",
+          "explanation": "Conjunction + command lām + present verb in jussive state (then let spend)"
+        },
+        {
+          "word": "مِمَّآ",
+          "transliteration": "mimmā",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "from what",
+          "explanation": "Preposition min + relative pronoun ma (from what)"
+        },
+        {
+          "word": "ءَاتَىٰهُ",
+          "transliteration": "ātāhu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "أ - ت - ي",
+          "meaning": "he has been given",
+          "explanation": "Form IV past verb + attached third-person object pronoun (given him)"
+        },
+        {
+          "word": "ٱللَّهُ ۚ",
+          "transliteration": "l-lahu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "(by) Allah",
+          "explanation": "Noun representing state/entity: \"(by) Allah\""
+        },
+        {
+          "word": "لَا",
+          "transliteration": "lā",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "Does not",
+          "explanation": "Negation particle (does not)"
+        },
+        {
+          "word": "يُكَلِّفُ",
+          "transliteration": "yukallifu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ك - ل - ف",
+          "meaning": "burden",
+          "explanation": "Form II present verb (burdens / taxes)"
+        },
+        {
+          "word": "ٱللَّهُ",
+          "transliteration": "l-lahu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "Allah",
+          "explanation": "Noun representing state/entity: \"Allah\""
+        },
+        {
+          "word": "نَفْسًا",
+          "transliteration": "nafsan",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ن - ف - س",
+          "meaning": "any soul",
+          "explanation": "Singular noun in accusative state (a soul)"
+        },
+        {
+          "word": "إِلَّا",
+          "transliteration": "illā",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "except",
+          "explanation": "Exceptive particle (except)"
+        },
+        {
+          "word": "مَآ",
+          "transliteration": "mā",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "(with) what",
+          "explanation": "Relative pronoun (what)"
+        },
+        {
+          "word": "ءَاتَىٰهَا ۚ",
+          "transliteration": "ātāhā",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "أ - ت - ي",
+          "meaning": "He has given it",
+          "explanation": "Form IV past verb + attached pronoun (has given it)"
+        },
+        {
+          "word": "سَيَجْعَلُ",
+          "transliteration": "sayajʿalu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ج - ع - ل",
+          "meaning": "Will bring about",
+          "explanation": "Future prefix + present verb (He will bring about / make)"
+        },
+        {
+          "word": "ٱللَّهُ",
+          "transliteration": "l-lahu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "Allah",
+          "explanation": "Noun representing state/entity: \"Allah\""
+        },
+        {
+          "word": "بَعْدَ",
+          "transliteration": "baʿda",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ب - ع - د",
+          "meaning": "after",
+          "explanation": "Adverb of time (after)"
+        },
+        {
+          "word": "عُسْرٍۢ",
+          "transliteration": "ʿus'rin",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ع - س - ر",
+          "meaning": "hardship",
+          "explanation": "Singular noun (difficulty / hardship)"
+        },
+        {
+          "word": "يُسْرًۭا",
+          "transliteration": "yus'ran",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ي - س - ر",
+          "meaning": "ease",
+          "explanation": "Singular noun in accusative state (ease)"
+        }
+      ]
+    },
+    "8": {
+      "verseNumber": "8",
+      "fullVerseArabic": "وَكَأَيِّن مِّن قَرْيَةٍ عَتَتْ عَنْ أَمْرِ رَبِّهَا وَرُسُلِهِۦ فَحَاسَبْنَـٰهَا حِسَابًۭا شَدِيدًۭا وَعَذَّبْنَـٰهَا عَذَابًۭا نُّكْرًۭا",
+      "fullVerseTranslation": "And how many a city was insolent toward the command of its Lord and His messengers, so We took it to severe account and punished it with a terrible punishment.",
+      "words": [
+        {
+          "word": "وَكَأَيِّن",
+          "transliteration": "waka-ayyin",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "And how many",
+          "explanation": "Conjunction + compound word of degree (and how many)"
+        },
+        {
+          "word": "مِّن",
+          "transliteration": "min",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "of",
+          "explanation": "Relational particle / Harf meaning: \"of\""
+        },
+        {
+          "word": "قَرْيَةٍ",
+          "transliteration": "qaryatin",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ق - ر - ي",
+          "meaning": "a town",
+          "explanation": "Singular noun (town / city)"
+        },
+        {
+          "word": "عَتَتْ",
+          "transliteration": "ʿatat",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ع - ت - و",
+          "meaning": "rebelled",
+          "explanation": "Feminine singular past verb (rebelled / was insolent)"
+        },
+        {
+          "word": "عَنْ",
+          "transliteration": "ʿan",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "against",
+          "explanation": "Preposition (from / about / toward)"
+        },
+        {
+          "word": "أَمْرِ",
+          "transliteration": "amri",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "(the) Command",
+          "explanation": "Noun representing state/entity: \"(the) Command\""
+        },
+        {
+          "word": "رَبِّهَا",
+          "transliteration": "rabbihā",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "(of) its Lord",
+          "explanation": "Noun representing state/entity: \"(of) its Lord\""
+        },
+        {
+          "word": "وَرُسُلِهِۦ",
+          "transliteration": "warusulihi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ر - س - ل",
+          "meaning": "and His Messengers",
+          "explanation": "Conjunction + plural noun + possessive pronoun (and His Messengers)"
+        },
+        {
+          "word": "فَحَاسَبْنَـٰهَا",
+          "transliteration": "faḥāsabnāhā",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ح - س - ب",
+          "meaning": "so We took it to account",
+          "explanation": "Conjunction + past verb + feminine plural pronoun object (so We took it to account)"
+        },
+        {
+          "word": "حِسَابًۭا",
+          "transliteration": "ḥisāban",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ح - س - ب",
+          "meaning": "an account",
+          "explanation": "Verbal noun / cognate cognos (an account / a reckoning)"
+        },
+        {
+          "word": "شَدِيدًۭا",
+          "transliteration": "shadīdan",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ش - د - د",
+          "meaning": "severe",
+          "explanation": "Singular adjective (severe)"
+        },
+        {
+          "word": "وَعَذَّبْنَـٰهَا",
+          "transliteration": "waʿadhabnāhā",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ع - ذ - ب",
+          "meaning": "and We punished it",
+          "explanation": "Conjunction + Form II past verb + pronoun (and We punished it)"
+        },
+        {
+          "word": "عَذَابًۭا",
+          "transliteration": "ʿadhāban",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ع - ذ - ب",
+          "meaning": "a punishment",
+          "explanation": "Noun / cognate noun (a punishment)"
+        },
+        {
+          "word": "نُّكْرًۭا",
+          "transliteration": "nuk'ran",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ن - ك - ر",
+          "meaning": "terrible",
+          "explanation": "Singular adjective (terrible / horrible)"
+        }
+      ]
+    },
+    "9": {
+      "verseNumber": "9",
+      "fullVerseArabic": "فَذَاقَتْ وَبَالَ أَمْرِهَا وَكَانَ عَـٰقِبَةُ أَمْرِهَا خُسْرًا",
+      "fullVerseTranslation": "And it tasted the bad consequence of its affair [i.e., rebellion], and the outcome of its affair was loss.",
+      "words": [
+        {
+          "word": "فَذَاقَتْ",
+          "transliteration": "fadhāqat",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ذ - و - غ",
+          "meaning": "So it tasted",
+          "explanation": "Conjunction + feminine singular past verb (so it tasted)"
+        },
+        {
+          "word": "وَبَالَ",
+          "transliteration": "wabāla",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "و - ب - ل",
+          "meaning": "(the bad) consequence",
+          "explanation": "Singular noun (the evil consequence of)"
+        },
+        {
+          "word": "أَمْرِهَا",
+          "transliteration": "amrihā",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "(of) its affair",
+          "explanation": "Noun representing state/entity: \"(of) its affair\""
+        },
+        {
+          "word": "وَكَانَ",
+          "transliteration": "wakāna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ك - و - ن",
+          "meaning": "and was",
+          "explanation": "Conjunction + past auxiliary verb (and was)"
+        },
+        {
+          "word": "عَـٰقِبَةُ",
+          "transliteration": "ʿāqibatu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "(the) end",
+          "explanation": "Noun representing state/entity: \"(the) end\""
+        },
+        {
+          "word": "أَمْرِهَا",
+          "transliteration": "amrihā",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "(of) its affair",
+          "explanation": "Noun representing state/entity: \"(of) its affair\""
+        },
+        {
+          "word": "خُسْرًا",
+          "transliteration": "khus'ran",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "خ - س - ر",
+          "meaning": "loss",
+          "explanation": "Noun in accusative state (loss)"
+        }
+      ]
+    },
+    "10": {
+      "verseNumber": "10",
+      "fullVerseArabic": "أَعَدَّ ٱللَّهُ لَهُمْ عَذَابًۭا شَدِيدًۭا ۖ فَٱتَّقُوا۟ ٱللَّهَ يَـٰٓأُو۟لِى ٱلْأَلْبَـٰبِ ٱلَّذِينَ ءَامَنُوا۟ ۚ قَدْ أَنزَلَ ٱللَّهُ إِلَيْكُمْ ذِكْرًۭا",
+      "fullVerseTranslation": "Allāh has prepared for them a severe punishment; so fear Allāh, O you of understanding who have believed. Allāh has sent down to you a message [i.e., the Qur’ān].1",
+      "words": [
+        {
+          "word": "أَعَدَّ",
+          "transliteration": "aʿadda",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ع - د - د",
+          "meaning": "Has prepared",
+          "explanation": "Form IV singular past verb (He has prepared)"
+        },
+        {
+          "word": "ٱللَّهُ",
+          "transliteration": "l-lahu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "Allah",
+          "explanation": "Noun representing state/entity: \"Allah\""
+        },
+        {
+          "word": "لَهُمْ",
+          "transliteration": "lahum",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "for them",
+          "explanation": "Preposition + plural object pronoun (for them)"
+        },
+        {
+          "word": "عَذَابًۭا",
+          "transliteration": "ʿadhāban",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ع - ذ - ب",
+          "meaning": "a punishment",
+          "explanation": "Noun / cognate noun (a punishment)"
+        },
+        {
+          "word": "شَدِيدًۭا ۖ",
+          "transliteration": "shadīdan",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ش - د - د",
+          "meaning": "severe",
+          "explanation": "Singular adjective (severe)"
+        },
+        {
+          "word": "فَٱتَّقُوا۟",
+          "transliteration": "fa-ittaqū",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "So fear",
+          "explanation": "Noun representing state/entity: \"So fear\""
+        },
+        {
+          "word": "ٱللَّهَ",
+          "transliteration": "l-laha",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "إ - ل - ه",
+          "meaning": "Allah",
+          "explanation": "Proper noun (Allah)"
+        },
+        {
+          "word": "يَـٰٓأُو۟لِى",
+          "transliteration": "yāulī",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "O men",
+          "explanation": "Noun representing state/entity: \"O men\""
+        },
+        {
+          "word": "ٱلْأَلْبَـٰبِ",
+          "transliteration": "l-albābi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "(of) understanding",
+          "explanation": "Noun representing state/entity: \"(of) understanding\""
+        },
+        {
+          "word": "ٱلَّذِينَ",
+          "transliteration": "alladhīna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "those who",
+          "explanation": "Definite relative plural pronoun (those who)"
+        },
+        {
+          "word": "ءَامَنُوا۟ ۚ",
+          "transliteration": "āmanū",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "أ - م - ن",
+          "meaning": "have believed",
+          "explanation": "Form IV past verb, plural (they have believed)"
+        },
+        {
+          "word": "قَدْ",
+          "transliteration": "qad",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "Indeed",
+          "explanation": "Verbal emphasizing particle (already / indeed)"
+        },
+        {
+          "word": "أَنزَلَ",
+          "transliteration": "anzala",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ن - ز - ل",
+          "meaning": "Has sent down",
+          "explanation": "Form IV standard singular past verb (He sent down)"
+        },
+        {
+          "word": "ٱللَّهُ",
+          "transliteration": "l-lahu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "Allah",
+          "explanation": "Noun representing state/entity: \"Allah\""
+        },
+        {
+          "word": "إِلَيْكُمْ",
+          "transliteration": "ilaykum",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "to you",
+          "explanation": "Preposition + plural object pronoun (unto you)"
+        },
+        {
+          "word": "ذِكْرًۭا",
+          "transliteration": "dhik'ran",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ذ - ك - ر",
+          "meaning": "a Message",
+          "explanation": "Singular noun in accusative state (a reminder / message)"
+        }
+      ]
+    }
+  }
+}

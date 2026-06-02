@@ -1,0 +1,258 @@
+{
+  "surahName": "An-Nas",
+  "surahNumber": 114,
+  "verses": {
+    "1": {
+      "verseNumber": "1",
+      "fullVerseArabic": "قُلْ أَعُوذُ بِرَبِّ ٱلنَّاسِ",
+      "fullVerseTranslation": "Say, 'I seek refuge in the Lord of mankind,'",
+      "words": [
+        {
+          "word": "قُلْ",
+          "transliteration": "qul",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ق و ل",
+          "meaning": "Say",
+          "explanation": "Imperative verb (fi'l amr), second person masculine singular. It is built upon sukun (mabni 'ala al-sukun). The underlying form is 'uqlul' with the weak letter (waw) dropped to avoid two sukun meeting."
+        },
+        {
+          "word": "أَعُوذُ",
+          "transliteration": "a'ūdhu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ع و ذ",
+          "meaning": "I seek refuge",
+          "explanation": "Present tense verb (fi'l mudari'), first person singular, imperfect. It is marfu' (nominative) due to the absence of any nasib or jazim particles, with the sign of raf' being the damma."
+        },
+        {
+          "word": "بِرَبِّ",
+          "transliteration": "birabbi",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "ر ب ب",
+          "meaning": "in the Lord",
+          "explanation": "Ba is a preposition (harf jar) denoting connection/seeking help (isti'anah). Rabb is a noun (ism majrur) governed by the ba, with the kasra as the sign of jarr."
+        },
+        {
+          "word": "ٱلنَّاسِ",
+          "transliteration": "an-nāsi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ن و س",
+          "meaning": "of mankind",
+          "explanation": "Definite noun (ism mu'arraf bi-al-lam), genitive (majrur) as it is a mudaf ilayh (possessive complement) to Rabb."
+        }
+      ]
+    },
+    "2": {
+      "verseNumber": "2",
+      "fullVerseArabic": "مَلِكِ ٱلنَّاسِ",
+      "fullVerseTranslation": "The Sovereign of mankind,",
+      "words": [
+        {
+          "word": "مَلِكِ",
+          "transliteration": "maliki",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "م ل ك",
+          "meaning": "Sovereign/King",
+          "explanation": "Noun in the genitive state (majrur). It serves as an apposition (badal) or a second attribute (na't) for the previous Rabb, indicating possessive relationship."
+        },
+        {
+          "word": "ٱلنَّاسِ",
+          "transliteration": "an-nāsi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ن و س",
+          "meaning": "of mankind",
+          "explanation": "Definite noun in the genitive case, serving as the mudaf ilayh (possessive complement) for the noun Maliki."
+        }
+      ]
+    },
+    "3": {
+      "verseNumber": "3",
+      "fullVerseArabic": "إِلَٰهِ ٱلنَّاسِ",
+      "fullVerseTranslation": "The God of mankind,",
+      "words": [
+        {
+          "word": "إِلَٰهِ",
+          "transliteration": "ilāhi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "أ ل ه",
+          "meaning": "God/Deity",
+          "explanation": "Noun in the genitive case. It functions as a third apposition or attribute to the previous nouns, affirming divinity over creation."
+        },
+        {
+          "word": "ٱلنَّاسِ",
+          "transliteration": "an-nāsi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ن و س",
+          "meaning": "of mankind",
+          "explanation": "Definite noun in the genitive case, acting as the mudaf ilayh for the noun Ilahi."
+        }
+      ]
+    },
+    "4": {
+      "verseNumber": "4",
+      "fullVerseArabic": "مِن شَرِّ ٱلْوَسْوَاسِ ٱلْخَنَّاسِ",
+      "fullVerseTranslation": "From the evil of the retreating whisperer,",
+      "words": [
+        {
+          "word": "مِن",
+          "transliteration": "min",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "from",
+          "explanation": "Preposition of origin (harf jar) indicating the source or cause of the danger."
+        },
+        {
+          "word": "شَرِّ",
+          "transliteration": "sharri",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ش ر ر",
+          "meaning": "evil",
+          "explanation": "Noun in the genitive case, majrur by the preposition min."
+        },
+        {
+          "word": "ٱلْوَسْوَاسِ",
+          "transliteration": "al-waswāsi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "و س و س",
+          "meaning": "the whisperer",
+          "explanation": "Noun acting as a mudaf ilayh in the genitive case, denoting the one who habitually whispers."
+        },
+        {
+          "word": "ٱلْخَنَّاسِ",
+          "transliteration": "al-khannāsi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "خ ن س",
+          "meaning": "the retreating",
+          "explanation": "Adjective (na't) for Al-Waswas, in the genitive case, describing the habit of receding upon the dhikr of Allah."
+        }
+      ]
+    },
+    "5": {
+      "verseNumber": "5",
+      "fullVerseArabic": "ٱلَّذِى يُوَسْوِسُ فِى صُدُورِ ٱلنَّاسِ",
+      "fullVerseTranslation": "Who whispers into the breasts of mankind,",
+      "words": [
+        {
+          "word": "ٱلَّذِى",
+          "transliteration": "alladhī",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "who",
+          "explanation": "Relative pronoun (ism mawsul) acting as a second attribute or descriptor for the Al-Waswas."
+        },
+        {
+          "word": "يُوَسْوِسُ",
+          "transliteration": "yuwaswisu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "و س و س",
+          "meaning": "whispers",
+          "explanation": "Present tense verb (fi'l mudari'), derived from the quadriliteral root (form II). It is marfu' with damma."
+        },
+        {
+          "word": "فِى",
+          "transliteration": "fī",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "into",
+          "explanation": "Preposition of location (harf jar), used here to denote entrance into the heart/breast."
+        },
+        {
+          "word": "صُدُورِ",
+          "transliteration": "sudūri",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ص د ر",
+          "meaning": "breasts",
+          "explanation": "Plural noun in the genitive case, majrur by the preposition fi, serving as the location for the whispering."
+        },
+        {
+          "word": "ٱلنَّاسِ",
+          "transliteration": "an-nāsi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ن و س",
+          "meaning": "of mankind",
+          "explanation": "Definite noun in the genitive case, acting as the mudaf ilayh for Sudur."
+        }
+      ]
+    },
+    "6": {
+      "verseNumber": "6",
+      "fullVerseArabic": "مِنَ ٱلْجِنَّةِ وَٱلنَّاسِ",
+      "fullVerseTranslation": "From among the jinn and mankind.",
+      "words": [
+        {
+          "word": "مِنَ",
+          "transliteration": "mina",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "from",
+          "explanation": "Preposition (harf jar) used here to denote categorization (bayan)."
+        },
+        {
+          "word": "ٱلْجِنَّةِ",
+          "transliteration": "al-jinnati",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ج ن ن",
+          "meaning": "the jinn",
+          "explanation": "Collective noun in the genitive case, majrur by the preposition min."
+        },
+        {
+          "word": "وَ",
+          "transliteration": "wa",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "and",
+          "explanation": "Conjunction (harf 'atf) joining the two categories."
+        },
+        {
+          "word": "ٱلنَّاسِ",
+          "transliteration": "an-nāsi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ن و س",
+          "meaning": "mankind",
+          "explanation": "Definite noun conjoined to Al-Jinnati, taking the same genitive state (majrur)."
+        }
+      ]
+    }
+  }
+}

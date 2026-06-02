@@ -1,0 +1,23 @@
+{
+  "surahName": "Al-'Asr",
+  "surahNumber": 103,
+  "verses": {
+    "1": {
+      "verseNumber": "1",
+      "fullVerseArabic": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+      "fullVerseTranslation": "In the name of Allah, the Entirely Merciful, the Especially Merciful. [Note: Data for chapter 103 pending full compilation]",
+      "words": [
+        {
+          "word": "بِسْمِ",
+          "transliteration": "bismi",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "س - م - و",
+          "meaning": "In the name",
+          "explanation": "Placeholder for offline database structure."
+        }
+      ]
+    }
+  }
+}

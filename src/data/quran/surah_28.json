@@ -1,0 +1,167 @@
+{
+  "surahName": "Al-Qasas",
+  "surahNumber": 28,
+  "verses": {
+    "1": {
+      "verseNumber": "1",
+      "fullVerseArabic": "طسم",
+      "fullVerseTranslation": "Ta, Seen, Meem.",
+      "words": [
+        {
+          "word": "طسم",
+          "transliteration": "Ta-Seen-Meem",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "Ta, Seen, Meem",
+          "explanation": "Disjointed letters (Huroof Muqatta'at), the meanings of which are known only to Allah."
+        }
+      ]
+    },
+    "2": {
+      "verseNumber": "2",
+      "fullVerseArabic": "تِلْكَ آيَاتُ الْكِتَابِ الْمُبِينِ",
+      "fullVerseTranslation": "These are the verses of the clear Book.",
+      "words": [
+        {
+          "word": "تِلْكَ",
+          "transliteration": "tilka",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "These",
+          "explanation": "Demonstrative pronoun (feminine singular) pointing to the verses."
+        },
+        {
+          "word": "آيَاتُ",
+          "transliteration": "ayatu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ء ي ي",
+          "meaning": "the verses",
+          "explanation": "Plural of ayah (sign/verse), functioning as the predicate."
+        },
+        {
+          "word": "الْكِتَابِ",
+          "transliteration": "al-kitabi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ك ت ب",
+          "meaning": "the Book",
+          "explanation": "Definite noun referring to the Quran, in genitive case (mudaf ilayh)."
+        },
+        {
+          "word": "الْمُبِينِ",
+          "transliteration": "al-mubeeni",
+          "isIsmFail": true,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ب ي ن",
+          "meaning": "the clear",
+          "explanation": "Active participle (Form IV) acting as an adjective for the Book."
+        }
+      ]
+    },
+    "3": {
+      "verseNumber": "3",
+      "fullVerseArabic": "نَتْلُو عَلَيْكَ مِنْ نَبَإِ مُوسَىٰ وَفِرْعَوْنَ بِالْحَقِّ لِقَوْمٍ يُؤْمِنُونَ",
+      "fullVerseTranslation": "We recite to you from the news of Moses and Pharaoh in truth for a people who believe.",
+      "words": [
+        {
+          "word": "نَتْلُو",
+          "transliteration": "natloo",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ت ل و",
+          "meaning": "We recite",
+          "explanation": "Present tense verb (Form I), first person plural."
+        },
+        {
+          "word": "عَلَيْكَ",
+          "transliteration": "alayka",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "to you",
+          "explanation": "Preposition 'ala' (upon/to) attached to second person pronoun."
+        },
+        {
+          "word": "مِنْ",
+          "transliteration": "min",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "from",
+          "explanation": "Preposition denoting part of or origin."
+        },
+        {
+          "word": "نَبَإِ",
+          "transliteration": "naba'i",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ن ب ء",
+          "meaning": "the news",
+          "explanation": "Noun in genitive case after 'min'."
+        },
+        {
+          "word": "مُوسَىٰ",
+          "transliteration": "moosa",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "Moses",
+          "explanation": "Proper noun (foreign name), invariable in case ending."
+        },
+        {
+          "word": "وَفِرْعَوْنَ",
+          "transliteration": "wa-fir'awna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "and Pharaoh",
+          "explanation": "Conjunction 'wa' + proper noun (diptote hence fatha in genitive)."
+        },
+        {
+          "word": "بِالْحَقِّ",
+          "transliteration": "bil-haqqi",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Ism",
+          "root": "ح ق ق",
+          "meaning": "in truth",
+          "explanation": "Preposition 'bi' + definite noun 'haqq' (truth)."
+        },
+        {
+          "word": "لِقَوْمٍ",
+          "transliteration": "liqawmin",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Ism",
+          "root": "ق و م",
+          "meaning": "for a people",
+          "explanation": "Preposition 'li' (for) + indefinite noun 'qawm' (people)."
+        },
+        {
+          "word": "يُؤْمِنُونَ",
+          "transliteration": "yu'minoona",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "ء م ن",
+          "meaning": "(who) believe",
+          "explanation": "Present tense verb (Form IV), third person plural masculine."
+        }
+      ]
+    }
+  }
+}

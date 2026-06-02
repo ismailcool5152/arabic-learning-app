@@ -1,0 +1,137 @@
+{
+  "surahName": "Ar-Rum",
+  "surahNumber": 30,
+  "verses": {
+    "1": {
+      "verseNumber": "1",
+      "fullVerseArabic": "الم",
+      "fullVerseTranslation": "Alif, Lam, Meem.",
+      "words": [
+        {
+          "word": "الم",
+          "transliteration": "Alif-Lam-Meem",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "Alif, Lam, Meem",
+          "explanation": "Disjointed letters (Huroof Muqatta'at)."
+        }
+      ]
+    },
+    "2": {
+      "verseNumber": "2",
+      "fullVerseArabic": "غُلِبَتِ الرُّومُ",
+      "fullVerseTranslation": "The Byzantines have been defeated",
+      "words": [
+        {
+          "word": "غُلِبَتِ",
+          "transliteration": "ghulibati",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "غ ل ب",
+          "meaning": "has been defeated",
+          "explanation": "Passive past verb (Form I), third person feminine singular."
+        },
+        {
+          "word": "الرُّومُ",
+          "transliteration": "ar-roomu",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "the Romans (Byzantines)",
+          "explanation": "Definite noun acting as the proxy subject (na'ib fa'il)."
+        }
+      ]
+    },
+    "3": {
+      "verseNumber": "3",
+      "fullVerseArabic": "فِي أَدْنَى الْأَرْضِ وَهُم مِّن بَعْدِ غَلَبِهِمْ سَيَغْلِبُونَ",
+      "fullVerseTranslation": "In the nearest land. But they, after their defeat, will overcome.",
+      "words": [
+        {
+          "word": "فِي",
+          "transliteration": "fee",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "in",
+          "explanation": "Preposition."
+        },
+        {
+          "word": "أَدْنَى",
+          "transliteration": "adna",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "د ن و",
+          "meaning": "the lowest / nearest",
+          "explanation": "Elative noun (Ism Tafdeel) meaning nearest or lowest."
+        },
+        {
+          "word": "الْأَرْضِ",
+          "transliteration": "al-ardi",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ء ر ض",
+          "meaning": "land / earth",
+          "explanation": "Definite noun in genitive case."
+        },
+        {
+          "word": "وَهُم",
+          "transliteration": "wa-hum",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Ism",
+          "root": "None",
+          "meaning": "and they",
+          "explanation": "Conjunction 'wa' + third person plural pronoun."
+        },
+        {
+          "word": "مِّن",
+          "transliteration": "min",
+          "isIsmFail": false,
+          "isHarf": true,
+          "wordType": "Harf",
+          "root": "None",
+          "meaning": "from",
+          "explanation": "Preposition."
+        },
+        {
+          "word": "بَعْدِ",
+          "transliteration": "ba'di",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "ب ع د",
+          "meaning": "after",
+          "explanation": "Adverb of time in genitive case after 'min'."
+        },
+        {
+          "word": "غَلَبِهِمْ",
+          "transliteration": "ghalabihim",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Ism",
+          "root": "غ ل ب",
+          "meaning": "their defeat",
+          "explanation": "Verbal noun + attached plural pronoun."
+        },
+        {
+          "word": "سَيَغْلِبُونَ",
+          "transliteration": "sayaghliboona",
+          "isIsmFail": false,
+          "isHarf": false,
+          "wordType": "Fi'l",
+          "root": "غ ل ب",
+          "meaning": "will overcome",
+          "explanation": "Future particle 'sa' + active present verb (Form I)."
+        }
+      ]
+    }
+  }
+}
