@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { appStorage } from '../lib/appStorage';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   SURAH_MAPPING_LIST, 
@@ -144,7 +145,7 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
   // Custom API keys if entered in global scope
   const [customApiKey, setCustomApiKey] = useState<string>(() => {
     try {
-      return localStorage.getItem('quranic_arabic_custom_api_key') || '';
+      return appStorage.getItem('quranic_arabic_custom_api_key') || '';
     } catch {
       return '';
     }
@@ -171,10 +172,14 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
     setIsLoading(true);
     setErrorMessage(null);
     try {
+      const activeMeta = SURAH_MAPPING_LIST.find(s => s.number === selectedSurahNumber);
       const res = await fetch('/api/surah-vocab-map', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ surahNum: selectedSurahNumber })
+        body: JSON.stringify({ 
+          surahNum: selectedSurahNumber,
+          totalVerses: activeMeta ? activeMeta.totalVerses : undefined
+        })
       });
       if (!res.ok) throw new Error('Failed to retrieve vocabulary data from database.');
       const data: VocabMapResponse = await res.json();
@@ -574,7 +579,7 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
                     value={customApiKey}
                     onChange={(e) => {
                       setCustomApiKey(e.target.value);
-                      try { localStorage.setItem('quranic_arabic_custom_api_key', e.target.value); } catch {}
+                      try { appStorage.setItem('quranic_arabic_custom_api_key', e.target.value); } catch {}
                     }}
                   />
                   <p className="text-[9px] opacity-30 font-mono">Saved dynamically to localized client session storage.</p>

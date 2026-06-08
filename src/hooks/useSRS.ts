@@ -1,11 +1,12 @@
 import { useState, useCallback, useEffect } from 'react';
 import { SRSRecord } from '../types';
 import { calculateNextReview, createNewSRSRecord } from '../lib/srs';
+import { appStorage } from '../lib/appStorage';
 
 export function useSRS() {
   const [records, setRecords] = useState<SRSRecord[]>(() => {
     try {
-      const stored = localStorage.getItem('quranic_arabic_srs_records');
+      const stored = appStorage.getItem('quranic_arabic_srs_records');
       return stored ? JSON.parse(stored) : [];
     } catch {
       return [];
@@ -16,7 +17,7 @@ export function useSRS() {
 
   useEffect(() => {
     try {
-      localStorage.setItem('quranic_arabic_srs_records', JSON.stringify(records));
+      appStorage.setItem('quranic_arabic_srs_records', JSON.stringify(records));
     } catch (e) {}
 
     // Calculate due count

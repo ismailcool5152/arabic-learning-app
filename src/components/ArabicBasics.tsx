@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { appStorage } from '../lib/appStorage';
 import { LayoutTheme } from '../types';
 import { SURAH_DATABASE } from './surahData';
 import { AudioPlayButton } from './AudioPlayButton';
@@ -827,7 +828,7 @@ export default function ArabicBasics({ theme }: ArabicBasicsProps) {
   // Sub-navigation state
   const [activeSection, setActiveSection] = useState<string>(() => {
     try {
-      return localStorage.getItem('quranic_arabic_basics_nav') || 'blocks';
+      return appStorage.getItem('quranic_arabic_basics_nav') || 'blocks';
     } catch {
       return 'blocks';
     }
@@ -836,7 +837,7 @@ export default function ArabicBasics({ theme }: ArabicBasicsProps) {
   const handleSectionChange = (sectionId: string) => {
     setActiveSection(sectionId);
     try {
-      localStorage.setItem('quranic_arabic_basics_nav', sectionId);
+      appStorage.setItem('quranic_arabic_basics_nav', sectionId);
     } catch (e) {
       // Ignore
     }

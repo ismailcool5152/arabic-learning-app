@@ -1,5 +1,6 @@
 import { safeLower } from '../lib/utils';
 import React, { useState, useEffect } from 'react';
+import { appStorage } from '../lib/appStorage';
 import { LayoutTheme } from '../types';
 import { 
   BookOpen, 
@@ -80,7 +81,7 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
   const generateContextualVerse = async () => {
     setIsFetchingVerse(true);
     try {
-      const customApiKey = localStorage.getItem('gemini_api_key') || '';
+      const customApiKey = appStorage.getItem('gemini_api_key') || appStorage.getItem('quranic_arabic_custom_api_key') || '';
       const response = await fetch('/api/example-verse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -96,14 +97,14 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
 
   useEffect(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem('quranic_bookmarks') || '[]');
+      const saved = JSON.parse(appStorage.getItem('quranic_bookmarks') || '[]');
       setIsBookmarked(saved.includes(rootStr));
     } catch { }
   }, [rootStr]);
 
   const toggleBookmark = () => {
     try {
-      const saved: string[] = JSON.parse(localStorage.getItem('quranic_bookmarks') || '[]');
+      const saved: string[] = JSON.parse(appStorage.getItem('quranic_bookmarks') || '[]');
       let nextSaved;
       if (saved.includes(rootStr)) {
         nextSaved = saved.filter(r => r !== rootStr);
@@ -112,7 +113,7 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
         nextSaved = [...saved, rootStr];
         setIsBookmarked(true);
       }
-      localStorage.setItem('quranic_bookmarks', JSON.stringify(nextSaved));
+      appStorage.setItem('quranic_bookmarks', JSON.stringify(nextSaved));
     } catch { }
   };
 
@@ -270,7 +271,7 @@ export default function RootToWords({ theme, onSelectWord, initialRoot, isOfflin
     });
 
     try {
-      const customApiKey = localStorage.getItem('quranic_arabic_custom_api_key') || '';
+      const customApiKey = appStorage.getItem('quranic_arabic_custom_api_key') || appStorage.getItem('gemini_api_key') || '';
       const response = await fetch('/api/translate-root-words', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

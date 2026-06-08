@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { appStorage } from '../lib/appStorage';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   GraduationCap, 
@@ -532,7 +533,7 @@ export default function RootFlashcards({ theme, onSelectWord, onWordSeen }: Root
   // Progress Track storage (local persistence)
   const [masteredIds, setMasteredIds] = useState<string[]>(() => {
     try {
-      const stored = localStorage.getItem('quranic_arabic_master_flashcards');
+      const stored = appStorage.getItem('quranic_arabic_master_flashcards');
       return stored ? JSON.parse(stored) : [];
     } catch {
       return [];
@@ -541,7 +542,7 @@ export default function RootFlashcards({ theme, onSelectWord, onWordSeen }: Root
 
   const [reviewedIds, setReviewedIds] = useState<string[]>(() => {
     try {
-      const stored = localStorage.getItem('quranic_arabic_reviewed_flashcards');
+      const stored = appStorage.getItem('quranic_arabic_reviewed_flashcards');
       return stored ? JSON.parse(stored) : [];
     } catch {
       return [];
@@ -555,10 +556,10 @@ export default function RootFlashcards({ theme, onSelectWord, onWordSeen }: Root
   useEffect(() => {
     const handleDataImport = () => {
       try {
-        const storedMastered = localStorage.getItem('quranic_arabic_master_flashcards');
+        const storedMastered = appStorage.getItem('quranic_arabic_master_flashcards');
         if (storedMastered) setMasteredIds(JSON.parse(storedMastered));
         
-        const storedReviewed = localStorage.getItem('quranic_arabic_reviewed_flashcards');
+        const storedReviewed = appStorage.getItem('quranic_arabic_reviewed_flashcards');
         if (storedReviewed) setReviewedIds(JSON.parse(storedReviewed));
       } catch (e) {
         console.error('Failed to reload flashcard data after import:', e);
@@ -574,7 +575,7 @@ export default function RootFlashcards({ theme, onSelectWord, onWordSeen }: Root
   // Sync Mastered card IDs to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('quranic_arabic_master_flashcards', JSON.stringify(masteredIds));
+      appStorage.setItem('quranic_arabic_master_flashcards', JSON.stringify(masteredIds));
     } catch (e) {
       console.error(e);
     }
@@ -583,7 +584,7 @@ export default function RootFlashcards({ theme, onSelectWord, onWordSeen }: Root
   // Sync Reviewed card IDs to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('quranic_arabic_reviewed_flashcards', JSON.stringify(reviewedIds));
+      appStorage.setItem('quranic_arabic_reviewed_flashcards', JSON.stringify(reviewedIds));
     } catch (e) {
       console.error(e);
     }

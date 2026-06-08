@@ -3,6 +3,7 @@ import { LayoutTheme, WordAnalysis } from '../types';
 import { Sparkles, Calendar, BookOpen, Clock, Activity, History, ArrowRight, Book, Layers, RotateCcw, Check } from 'lucide-react';
 import RootToWords from './RootToWords';
 import { AudioPlayButton } from './AudioPlayButton';
+import { appStorage } from '../lib/appStorage';
 
 interface Props {
   theme: LayoutTheme;
@@ -14,41 +15,39 @@ interface Props {
 
 // 28 Roots representing each letter
 const ALPHABET_ROOTS = [
-  { root: "أ م ر", meaning: "To command, matter, affair", letter: "ا" },
-  { root: "ب ر ك", meaning: "To bless, multiply", letter: "ب" },
-  { root: "ت و ب", meaning: "To repent, turn back", letter: "ت" },
-  { root: "ث ب ت", meaning: "To be firm, steady", letter: "ث" },
-  { root: "ج ع ل", meaning: "To make, place, set", letter: "ج" },
-  { root: "ح م د", meaning: "To praise, commend", letter: "ح" },
-  { root: "خ ل ق", meaning: "To create, shape", letter: "خ" },
-  { root: "د ع و", meaning: "To call, invite, pray", letter: "د" },
-  { root: "ذ ك ر", meaning: "To remember, mention", letter: "ذ" },
-  { root: "ر ح م", meaning: "To have mercy, compassion", letter: "ر" },
-  { root: "ز ك و", meaning: "To purify, grow", letter: "ز" },
-  { root: "س ل م", meaning: "To be safe, submit, peace", letter: "س" },
-  { root: "ش ك ر", meaning: "To thank, be grateful", letter: "ش" },
-  { root: "ص ب ر", meaning: "To be patient, endure", letter: "ص" },
-  { root: "ض ر ب", meaning: "To strike, travel, set forth", letter: "ض" },
-  { root: "ط ه ر", meaning: "To purify, cleanse", letter: "ط" },
-  { root: "ظ ل م", meaning: "To wrong, oppress, darkness", letter: "ظ" },
-  { root: "ع ل م", meaning: "To know, learn", letter: "ع" },
-  { root: "غ ف ر", meaning: "To forgive, cover", letter: "غ" },
-  { root: "ف ع ل", meaning: "To do, act", letter: "ف" },
-  { root: "ق و ل", meaning: "To say, speak", letter: "ق" },
-  { root: "ك ت ب", meaning: "To write, ordain", letter: "ك" },
-  { root: "ل ق ي", meaning: "To meet, encounter", letter: "ل" },
-  { root: "م ل ك", meaning: "To possess, rule", letter: "م" },
-  { root: "ن ص ر", meaning: "To help, give victory", letter: "ن" },
-  { root: "ه د ي", meaning: "To guide, direct", letter: "ه" },
-  { root: "و ج د", meaning: "To find, to exist", letter: "و" },
-  { root: "ي ق ن", meaning: "To be certain, sure", letter: "ي" }
+  { root: "أ م ر", meaning: "To command, matter, affair", letter: "ا", words: [{ar: "أَمْر", en: "Command / Matter"}, {ar: "يَأْمُرُ", en: "He commands"}] },
+  { root: "ب ر ك", meaning: "To bless, multiply", letter: "ب", words: [{ar: "بَرَكَة", en: "Blessing"}, {ar: "يُبَارِكُ", en: "He blesses"}] },
+  { root: "ت و ب", meaning: "To repent, turn back", letter: "ت", words: [{ar: "تَوْبَة", en: "Repentance"}, {ar: "يَتُوبُ", en: "He repents"}] },
+  { root: "ث ب ت", meaning: "To be firm, steady", letter: "ث", words: [{ar: "ثَابِت", en: "Firm / Steady"}, {ar: "يُثَبِّتُ", en: "He makes firm"}] },
+  { root: "ج ع ل", meaning: "To make, place, set", letter: "ج", words: [{ar: "جَعَلَ", en: "He made"}, {ar: "يَجْعَلُ", en: "He makes"}] },
+  { root: "ح م د", meaning: "To praise, commend", letter: "ح", words: [{ar: "حَمْد", en: "Praise"}, {ar: "يَحْمَدُ", en: "He praises"}] },
+  { root: "خ ل ق", meaning: "To create, shape", letter: "خ", words: [{ar: "خَالِق", en: "Creator"}, {ar: "يَخْلُقُ", en: "He creates"}] },
+  { root: "د ع و", meaning: "To call, invite, pray", letter: "د", words: [{ar: "دُعَاء", en: "Supplication"}, {ar: "يَدْعُو", en: "He calls/prays"}] },
+  { root: "ذ ك ر", meaning: "To remember, mention", letter: "ذ", words: [{ar: "ذِكْر", en: "Remembrance"}, {ar: "يَذْكُرُ", en: "He remembers"}] },
+  { root: "ر ح م", meaning: "To have mercy, compassion", letter: "ر", words: [{ar: "رَحْمَة", en: "Mercy"}, {ar: "رَحْمَٰن", en: "Entirely Merciful"}] },
+  { root: "ز ك و", meaning: "To purify, grow", letter: "ز", words: [{ar: "زَكَاة", en: "Charity"}, {ar: "يُزَكِّي", en: "He purifies"}] },
+  { root: "س ل م", meaning: "To be safe, submit, peace", letter: "س", words: [{ar: "سَلَام", en: "Peace"}, {ar: "إِسْلَام", en: "Submission"}] },
+  { root: "ش ك ر", meaning: "To thank, be grateful", letter: "ش", words: [{ar: "شُكْر", en: "Gratitude"}, {ar: "شَاكِر", en: "Thankful"}] },
+  { root: "ص ب ر", meaning: "To be patient, endure", letter: "ص", words: [{ar: "صَبْر", en: "Patience"}, {ar: "يَصْبِرُ", en: "He is patient"}] },
+  { root: "ض ر ب", meaning: "To strike, travel, set forth", letter: "ض", words: [{ar: "ضَرَبَ", en: "He struck"}, {ar: "يَضْرِبُ", en: "He strikes"}] },
+  { root: "ط ه ر", meaning: "To purify, cleanse", letter: "ط", words: [{ar: "طَهَارَة", en: "Purity"}, {ar: "يُطَهِّرُ", en: "He purifies"}] },
+  { root: "ظ ل م", meaning: "To wrong, oppress, darkness", letter: "ظ", words: [{ar: "ظُلْم", en: "Oppression"}, {ar: "ظَالِم", en: "Oppressor"}] },
+  { root: "ع ل م", meaning: "To know, learn", letter: "ع", words: [{ar: "عِلْم", en: "Knowledge"}, {ar: "عَالِم", en: "Scholar"}] },
+  { root: "غ ف ر", meaning: "To forgive, cover", letter: "غ", words: [{ar: "مَغْفِرَة", en: "Forgiveness"}, {ar: "غَفُور", en: "Oft-Forgiving"}] },
+  { root: "ف ع ل", meaning: "To do, act", letter: "ف", words: [{ar: "فِعْل", en: "Action/Verb"}, {ar: "فَاعِل", en: "Doer"}] },
+  { root: "ق و ل", meaning: "To say, speak", letter: "ق", words: [{ar: "قَوْل", en: "Speech/Saying"}, {ar: "قَائِل", en: "Speaker"}] },
+  { root: "ك ت ب", meaning: "To write, ordain", letter: "ك", words: [{ar: "كِتَاب", en: "Book/Record"}, {ar: "كَاتِب", en: "Writer"}] },
+  { root: "ل ق ي", meaning: "To meet, encounter", letter: "ل", words: [{ar: "لِقَاء", en: "Meeting"}, {ar: "يَلْقَى", en: "He meets"}] },
+  { root: "م ل ك", meaning: "To possess, rule", letter: "م", words: [{ar: "مَلِك", en: "King"}, {ar: "مُلْك", en: "Kingdom"}] },
+  { root: "ن ص ر", meaning: "To help, give victory", letter: "ن", words: [{ar: "نَصْر", en: "Victory"}, {ar: "نَصِير", en: "Helper"}] },
+  { root: "ه د ي", meaning: "To guide, direct", letter: "ه", words: [{ar: "هُدًى", en: "Guidance"}, {ar: "هَادٍ", en: "Guide"}] },
+  { root: "و ج د", meaning: "To find, to exist", letter: "و", words: [{ar: "وُجُود", en: "Existence"}, {ar: "وَجَدَ", en: "He found"}] },
+  { root: "ي ق ن", meaning: "To be certain, sure", letter: "ي", words: [{ar: "يَقِين", en: "Certainty"}, {ar: "مُوقِن", en: "One who is certain"}] }
 ];
 
 export default function WordOfTheDayWidget({ theme, isOfflineMode, onSelectWord, onWordSeen, onStartQuiz }: Props) {
   const [dailyRoot, setDailyRoot] = useState<string>('');
   const [dailyInfo, setDailyInfo] = useState<any>(null);
-  const [quizOptions, setQuizOptions] = useState<string[]>([]);
-  const [hasRevealedMeaning, setHasRevealedMeaning] = useState<boolean>(false);
   const [showExplore, setShowExplore] = useState<boolean>(false);
   
   const isCosmic = theme === 'cosmic';
@@ -67,88 +66,51 @@ export default function WordOfTheDayWidget({ theme, isOfflineMode, onSelectWord,
   useEffect(() => {
     const today = new Date();
     const dayOfMonth = today.getDate(); // 1 - 31
+    const daySeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + dayOfMonth;
+    
     let idx = 0;
     if (dayOfMonth <= 28) {
       idx = dayOfMonth - 1;
     } else {
-      const seed = today.getFullYear() * 1000 + today.getMonth() * 100 + dayOfMonth;
-      idx = seed % ALPHABET_ROOTS.length;
+      idx = daySeed % ALPHABET_ROOTS.length;
     }
     
     const info = ALPHABET_ROOTS[idx];
     setDailyRoot(info.root);
     setDailyInfo({ ...info, verse: getExampleVerse(info.root) });
     
-    // Generate quiz options
-    const options = [info.meaning];
-    while(options.length < 3) {
-      const randIdx = Math.floor(Math.random() * ALPHABET_ROOTS.length);
-      const randMeaning = ALPHABET_ROOTS[randIdx].meaning;
-      if (!options.includes(randMeaning)) {
-        options.push(randMeaning);
-      }
-    }
-    // Shuffle
-    setQuizOptions(options.sort(() => Math.random() - 0.5));
-    
   }, []);
 
-  const handleReveal = async () => {
-    setHasRevealedMeaning(true);
-    
-    // Check if we need to fetch a dynamic verse
-    if (dailyInfo?.verse?.includes("unavailable")) {
-      setDailyInfo(prev => ({ ...prev, isFetchingVerse: true }));
-      try {
-        const customApiKey = localStorage.getItem('gemini_api_key') || '';
-        const response = await fetch('/api/example-verse', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ root: dailyRoot, customApiKey })
-        });
-        
-        if (!response.ok) {
-           const errorData = await response.json().catch(() => ({}));
-           console.error("Verse API failed:", errorData);
-           setDailyInfo(prev => ({
-             ...prev,
-             verse: `Failed to generate example (${response.status} ${response.statusText}). Load explorer for derivatives.`,
-             isFetchingVerse: false
-           }));
-           return;
-        }
-
-        const data = await response.json();
-        
-        if (data && data.verseArabic) {
-          setDailyInfo(prev => ({
-            ...prev,
-            verse: `${data.verseArabic} (${data.verseTranslation} - ${data.reference})`,
-            isFetchingVerse: false
-          }));
-        } else {
-          setDailyInfo(prev => ({
-            ...prev,
-            verse: "Could not retrieve classic example. (API Limit or Formating Issue) Load Explorer.",
-            isFetchingVerse: false
-          }));
-        }
-      } catch (error) {
-        setDailyInfo(prev => ({
-          ...prev,
-          verse: "Could not reach server to fetch example. Please try again.",
-          isFetchingVerse: false
-        }));
-      }
-    }
-  };
   const getExampleVerse = (root: string) => {
     const verses: Record<string, string> = {
-      "ك ت ب": "ذَٰلِكَ الْكِتَابُ لَا رَيْبَ ۛ فِيهِ (This is the Book about which there is no doubt - 2:2)",
-      "ع ل م": "وَعَلَّمَ آدَمَ الْأَسْمَاءَ كُلَّهَا (And He taught Adam the names - all of them - 2:31)",
-      "خ ل ق": "خَلَقَ الْإِنسَانَ مِن عَلَقٍ (Created man from a clinging substance - 96:2)",
+      "أ م ر": "أَوْ أَمَرَ بِالتَّقْوَىٰ (Or commanded righteousness - 96:12)",
+      "ب ر ك": "تَبَارَكَ الَّذِي بِيَدِهِ الْمُلْكُ (Blessed is He in whose hand is the dominion - 67:1)",
+      "ت و ب": "إِنَّهُ كَانَ تَوَّابًا (Indeed, He is ever accepting of repentance - 110:3)",
+      "ث ب ت": "يُثَبِّتُ اللَّهُ الَّذِينَ آمَنُوا (Allah keeps firm those who believe - 14:27)",
+      "ج ع ل": "أَلَمْ نَجْعَلِ الْأَرْضَ مِهَادًا (Have We not made the earth a resting place - 78:6)",
+      "ح م د": "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ (All praise is due to Allah, Lord of the worlds - 1:2)",
+      "خ ل ق": "خَلَقَ الْإِنسَانَ مِنْ عَلَقٍ (Created man from a clinging substance - 96:2)",
+      "د ع و": "ادْعُونِي أَسْتَجِبْ لَكُمْ (Call upon Me; I will respond to you - 40:60)",
+      "ذ ك ر": "فَاذْكُرُونِي أَذْكُرْكُمْ (So remember Me; I will remember you - 2:152)",
+      "ر ح م": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ (In the name of Allah, the Entirely Merciful, the Especially Merciful - 1:1)",
+      "ز ك و": "قَدْ أَفْلَحَ مَن زَكَّاهَا (He has succeeded who purifies it - 91:9)",
+      "س ل م": "سَلَامٌ هِيَ حَتَّىٰ مَطْلَعِ الْفَجْرِ (Peace it is until the emergence of dawn - 97:5)",
+      "ش ك ر": "وَسَيَجْزِي اللَّهُ الشَّاكِرِينَ (And Allah will reward the grateful - 3:144)",
+      "ص ب ر": "وَاصْبِرْ لِحُكْمِ رَبِّكَ (And be patient for the decision of your Lord - 52:48)",
+      "ض ر ب": "ضُرِبَتْ عَلَيْهِمُ الذِّلَّةُ (Shame is pitched over them - 3:112)",
+      "ط ه ر": "وَثِيَابَكَ فَطَهِّرْ (And your clothing purify - 74:4)",
+      "ظ ل م": "وَمَا ظَلَمْنَاهُمْ وَلَٰكِن كَانُوا هُمُ الظَّالِمِينَ (And We did not wrong them, but it was they who were the wrongdoers - 43:76)",
+      "ع ل م": "عَلَّمَ الْإِنسَانَ مَا لَمْ يَعْلَمْ (Taught man that which he knew not - 96:5)",
+      "غ ف ر": "وَاسْتَغْفِرْهُ إِنَّهُ كَانَ تَوَّابًا (And ask forgiveness of Him; indeed, He is ever-accepting of repentance - 110:3)",
+      "ف ع ل": "أَلَمْ تَرَ كَيْفَ فَعَلَ رَبُّكَ (Have you not seen how your Lord dealt - 105:1)",
+      "ق و ل": "قُلْ هُوَ اللَّهُ أَحَدٌ (Say, 'He is Allah, [who is] One.' - 112:1)",
+      "ك ت ب": "كِتَابٌ مَرْقُومٌ (A register inscribed - 83:9)",
+      "ل ق ي": "يَا أَيُّهَا الْإِنسَانُ إِنَّكَ كَادِحٌ إِلَىٰ رَبِّكَ كَدْحًا فَمُلَاقِيهِ (O mankind, indeed you are laboring toward your Lord with exertion and will meet Him - 84:6)",
+      "م ل ك": "مَالِكِ يَوْمِ الدِّينِ (Sovereign of the Day of Recompense - 1:4)",
       "ن ص ر": "إِذَا جَاءَ نَصْرُ اللَّهِ وَالْفَتْحُ (When the victory of Allah has come and the conquest - 110:1)",
-      "س ج د": "وَاسْجُدْ وَاقْتَرِب (And prostrate and draw near [to Allah] - 96:19)"
+      "ه د ي": "اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ (Guide us to the straight path - 1:6)",
+      "و ج د": "وَوَجَدَكَ ضَالًّا فَهَدَىٰ (And He found you lost and guided - 93:7)",
+      "ي ق ن": "وَبِالْآخِرَةِ هُمْ يُوقِنُونَ (And of the Hereafter they are certain - 2:4)"
     };
     return verses[root] || "Classical example unavailable for this specific root in offline mode. Load explorer for derivatives.";
   };
@@ -159,11 +121,11 @@ export default function WordOfTheDayWidget({ theme, isOfflineMode, onSelectWord,
       const today = new Date();
       const dateKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
       try {
-        const raw = localStorage.getItem('quranic_arabic_wotd_history');
+        const raw = appStorage.getItem('quranic_arabic_wotd_history');
         const history = raw ? JSON.parse(raw) : {};
         if (!history[dateKey] || history[dateKey] !== dailyRoot) {
           history[dateKey] = dailyRoot;
-          localStorage.setItem('quranic_arabic_wotd_history', JSON.stringify(history));
+          appStorage.setItem('quranic_arabic_wotd_history', JSON.stringify(history));
         }
       } catch (e) {
         console.error("Failed to track WOTD history", e);
@@ -206,32 +168,29 @@ export default function WordOfTheDayWidget({ theme, isOfflineMode, onSelectWord,
             </div>
           </div>
 
-          {!hasRevealedMeaning ? (
-            <div className="space-y-4 animate-fadeIn max-w-md mx-auto md:mx-0">
-               <h3 className="text-sm font-bold opacity-70 uppercase tracking-wider mb-2">What does it mean?</h3>
-               <div className="grid gap-2">
-                 {quizOptions.map((opt, i) => (
-                    <button
-                      key={i}
-                      onClick={handleReveal}
-                      className={`p-4 rounded-xl text-sm font-medium border transition-all text-left group ${
-                        isParchment ? 'bg-[#8c6239]/5 border-[#8c6239]/20 hover:bg-[#8c6239]/10 text-[#5c3d2e]' : isCosmic ? 'bg-indigo-950/40 border-indigo-500/30 hover:bg-indigo-900/60 text-indigo-200' : 'bg-emerald-500/5 border-emerald-500/20 hover:bg-emerald-500/10 text-emerald-800'
-                      }`}
-                    >
-                       <span className="opacity-0 group-hover:opacity-100 transition-opacity mr-2">❔</span> {opt}
-                    </button>
-                 ))}
-               </div>
-               <button onClick={handleReveal} className="text-xs opacity-50 hover:underline pt-2">Skip & Reveal Meaning</button>
-            </div>
-          ) : (
-            <div className="space-y-6 animate-fadeIn max-w-lg mx-auto md:mx-0">
+          <div className="space-y-6 animate-fadeIn max-w-lg mx-auto md:mx-0">
               <div>
-                <h3 className="text-sm font-bold opacity-50 uppercase tracking-widest mb-1">Meaning</h3>
+                <h3 className="text-sm font-bold opacity-50 uppercase tracking-widest mb-1">Root Meaning</h3>
                 <p className={`text-2xl font-serif font-bold ${colors.accentText}`}>
                   {dailyInfo?.meaning}
                 </p>
               </div>
+
+              {dailyInfo?.words && dailyInfo.words.length > 0 && (
+                <div>
+                  <h3 className="text-[10px] font-bold opacity-50 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                     <BookOpen className="w-3 h-3"/> Derived Words
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {dailyInfo.words.map((w: any, idx: number) => (
+                      <div key={idx} className={`p-3 rounded-xl border flex flex-col items-center justify-center text-center ${isParchment ? 'bg-white/40 border-[#d8c8b8]' : isCosmic ? 'bg-indigo-950/40 border-indigo-500/30 text-indigo-100' : 'bg-emerald-50/50 border-emerald-100'}`}>
+                         <span className="text-2xl font-arabic font-bold text-amber-500" dir="rtl">{w.ar}</span>
+                         <span className="text-[10px] font-mono mt-1 opacity-70 whitespace-nowrap">{w.en}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               
               <div className={`p-5 rounded-2xl border ${isParchment ? 'bg-white/50 border-[#d8c8b8]' : isCosmic ? 'bg-black/30 border-white/5' : 'bg-slate-50/50 border-slate-200'}`}>
                 <h3 className="text-[10px] font-bold opacity-50 uppercase tracking-widest mb-2 flex items-center gap-1.5"><BookOpen className="w-3 h-3"/> Example Usage in Quran</h3>
@@ -266,7 +225,6 @@ export default function WordOfTheDayWidget({ theme, isOfflineMode, onSelectWord,
                 </button>
               )}
             </div>
-          )}
         </div>
         
         {/* Right column: Streak & Calendar Progress */}
@@ -322,7 +280,7 @@ export default function WordOfTheDayWidget({ theme, isOfflineMode, onSelectWord,
       </div>
 
       {/* Embedding RootToWords for full generation and morphology forms */}
-      {showExplore && hasRevealedMeaning && (
+      {showExplore && (
         <div className="animate-fadeIn">
           {/* We reuse the RootToWords generator directly inside the daily widget! */}
           <RootToWords 

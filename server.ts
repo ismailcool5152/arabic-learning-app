@@ -22,6 +22,7 @@ const app = express();
 // Initialize Google Cloud Storage bucket configuration dynamically
 let storage: any = null;
 let bucketName = "";
+let gcsAvailable = true;
 
 try {
   storage = new Storage();
@@ -32,13 +33,13 @@ try {
     console.log(`[GCS Setup] Google Cloud Storage resolved bucket name from config: "${bucketName}"`);
   }
 } catch (err: any) {
+  gcsAvailable = false;
   console.log("[GCS Setup] Google Cloud Storage initialization skipped or unavailable:", err.message);
 }
 
 // Global helper to push dynamic updates to GCS
 async function uploadToGCS(localPath: string, gcsDestPath: string) {
-  if (!storage || !bucketName) {
-    console.log("[GCS Backup] GCS not configured; skipping cloud backup of updated local file.");
+  if (!storage || !bucketName || !gcsAvailable) {
     return;
   }
   try {
@@ -51,14 +52,22 @@ async function uploadToGCS(localPath: string, gcsDestPath: string) {
     });
     console.log(`[GCS Backup] Successfully uploaded updated local file ${localPath} to GCS bucket: gs://${bucketName}/${gcsDestPath}`);
   } catch (err: any) {
-    console.error(`[GCS Backup] Error uploading ${localPath} to GCS:`, err.message || err);
+    gcsAvailable = false;
+    // Format error cleanly to avoid printing massive JSON structures in logs
+    let errorDetail = "Unknown issue or permission restriction";
+    if (err && typeof err === "object") {
+      errorDetail = err.message || err.details || (err.errors ? JSON.stringify(err.errors) : JSON.stringify(err)).slice(0, 300);
+    } else if (err) {
+      errorDetail = String(err);
+    }
+    console.log(`[GCS Backup] GCS synchronization disabled due to permission constraint. Falling back to local state storage. Details: ${errorDetail}`);
   }
 }
 
 // Global startup sync function
 async function syncWithCloudStorage() {
-  if (!storage || !bucketName) {
-    console.log("[GCS Startup Sync] GCS is not configured or client initialization failed. Operating on local offline data only.");
+  if (!storage || !bucketName || !gcsAvailable) {
+    console.log("[GCS Startup Sync] GCS is not configured, skipped, or restricted. Operating on local offline data only.");
     return;
   }
 
@@ -71,16 +80,36 @@ async function syncWithCloudStorage() {
     const bucket = storage.bucket(bucketName);
 
     // Verify bucket access first
-    const [exists] = await bucket.exists();
+    let exists = false;
+    try {
+      const [existsResult] = await bucket.exists();
+      exists = existsResult;
+    } catch (existsErr: any) {
+      gcsAvailable = false;
+      const detail = existsErr.message || "Access denied or missing GCP authorization credentials.";
+      console.log(`[GCS Startup Sync] Notice: Bucket access verification skipped (GCS disabled). Info: ${detail}`);
+      return;
+    }
+
     if (!exists) {
+      gcsAvailable = false;
       console.log(`[GCS Startup Sync] Warning: Bucket "${bucketName}" does not exist or account lacks permission. Sync skipped.`);
       return;
     }
 
     // List files in Cloud Storage
-    const [gcsFiles] = await bucket.getFiles({ prefix: "quran/" });
-    const gcsFileNamesMap = new Map<string, any>();
+    let gcsFiles: any[] = [];
+    try {
+      const [filesResult] = await bucket.getFiles({ prefix: "quran/" });
+      gcsFiles = filesResult;
+    } catch (listErr: any) {
+      gcsAvailable = false;
+      const detail = listErr.message || "Unable to list directory contents in cloud storage.";
+      console.log(`[GCS Startup Sync] Notice: GCS remote file listing skipped. Info: ${detail}`);
+      return;
+    }
 
+    const gcsFileNamesMap = new Map<string, any>();
     for (const bFile of gcsFiles) {
       const baseName = path.basename(bFile.name);
       if (baseName && !baseName.startsWith('.')) {
@@ -105,8 +134,12 @@ async function syncWithCloudStorage() {
     for (const [baseName, gcsFile] of gcsFileNamesMap.entries()) {
       const destLocalPath = path.join(localDir, baseName);
       if (!localFileNamesSet.has(baseName)) {
-        await gcsFile.download({ destination: destLocalPath });
-        downloadCount++;
+        try {
+          await gcsFile.download({ destination: destLocalPath });
+          downloadCount++;
+        } catch (downloadErr: any) {
+          console.warn(`[GCS Startup Sync] Warn: Failed to download remote file ${baseName}:`, downloadErr.message || "Forbidden");
+        }
       }
     }
     if (downloadCount > 0) {
@@ -119,22 +152,29 @@ async function syncWithCloudStorage() {
       if (!gcsFileNamesMap.has(localFile)) {
         const localFilePath = path.join(localDir, localFile);
         const gcsDestPath = `quran/${localFile}`;
-        await bucket.upload(localFilePath, {
-          destination: gcsDestPath,
-          metadata: {
-            cacheControl: "no-cache",
-          }
-        });
-        uploadCount++;
+        try {
+          await bucket.upload(localFilePath, {
+            destination: gcsDestPath,
+            metadata: {
+              cacheControl: "no-cache",
+            }
+          });
+          uploadCount++;
+        } catch (uploadErr: any) {
+          gcsAvailable = false;
+          console.log(`[GCS Startup Sync] Seeding notice: Upload skipped for ${localFile} (bucket is restricted or read-only). Disabling cloud writes.`);
+          break;
+        }
       }
     }
     if (uploadCount > 0) {
       console.log(`[GCS Startup Sync] Successfully seeded ${uploadCount} offline local files to Google Cloud Storage.`);
     }
 
-    console.log("[GCS Startup Sync] Bidirectional database synchronization completed successfully.");
+    console.log("[GCS Startup Sync] Bidirectional database synchronization processed.");
   } catch (err: any) {
-    console.error("[GCS Startup Sync] Graceful error handler caught exception:", err.message || err);
+    const errorDetail = err.message || JSON.stringify(err);
+    console.warn("[GCS Startup Sync] Startup synchronization caught exception:", errorDetail);
   }
 }
 app.use(express.json());
@@ -375,25 +415,29 @@ app.post("/api/example-verse", async (req: express.Request, res: express.Respons
       return res.status(500).json({ error: "GEMINI_API_KEY is not configured and no custom key was provided." });
     }
 
-    const selectedModel = "gemini-2.5-flash"; // Using flash for speed
+    const selectedModel = "gemini-3.1-flash-lite"; // Using flash for speed
 
     const queryPrompt = `
-Provide a classic example verse from the Quran that prominently features a word derived from the Arabic root "${root}".
-Return it strictly as a JSON object spanning no more than the necessary fields.
-    `;
+Provide a relevant, classic example verse (Aayat) from the Quran specifically selected from Juz Amma (Juz 30, consisting of Surahs 78 through 114) that features a word derived from the classical Arabic root "${root}".
+
+Crucially:
+1. The verse MUST be from Juz Amma (Juz 30), meaning the Surah number must be between 78 and 114 inclusive (e.g., Al-Naba, Naziat, Al-Alaq, Al-Infitar, Al-Fil, Quraish, Al-Asr, Al-Ikhlas, etc.). Avoid other Surahs.
+2. The verse MUST be highly relevant, containing a clear derivative word of the root "${root}".
+3. Provide the full Arabic of the verse (or relevant continuous segment) with correct harakat, its English translation, and its precise Quranic reference index (e.g., Surat Al-Alaq 96:4 or Surah Al-Asr 103:2).
+`;
 
     const response = await activeAi.models.generateContent({
       model: selectedModel,
       contents: queryPrompt,
       config: {
-        systemInstruction: "You are a scholar of the Quran capable of instantly finding representative verses for classical Arabic roots.",
+        systemInstruction: "You are a scholar of the Quran capable of instantly finding representative, highly relevant example verses for classical Arabic roots specifically from Juz Amma (Juz 30, Surahs 78 to 114 of the Quran). Make sure you ONLY output verses within this Surah range (78 to 114).",
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
           properties: {
             verseArabic: { type: Type.STRING, description: "The Arabic text of the verse (or relevant segment) with harakat." },
             verseTranslation: { type: Type.STRING, description: "The English translation of the segment." },
-            reference: { type: Type.STRING, description: "The Quranic reference (e.g., Surat Al-Baqarah 2:2)." }
+            reference: { type: Type.STRING, description: "The Quranic reference (e.g., Surat Al-Alaq 96:1)." }
           },
           required: ["verseArabic", "verseTranslation", "reference"]
         }
@@ -410,7 +454,7 @@ Return it strictly as a JSON object spanning no more than the necessary fields.
     // Robust Offline Fallback: Extract from offline verses map or matching profiles if available
     const rootClean = root ? root.replace(/\s+/g, "").toLowerCase() : "";
     
-    // Default fallback verse (Al-Alaq 96:1) in case nothing matches
+    // Default fallback verse (Al-Alaq 96:1) in case nothing matches - already from Juz Amma!
     let fallbackVerse = {
       verseArabic: "اقْرَأْ بِاسْمِ رَبِّكَ الَّذِي خَلَقَ",
       verseTranslation: "Recite in the name of your Lord who created.",
@@ -418,26 +462,26 @@ Return it strictly as a JSON object spanning no more than the necessary fields.
       isOfflineFallback: true
     };
 
-    // Match-based fallbacks
+    // Match-based fallbacks - strictly selected from Juz Amma (Surahs 78 - 114)
     if (rootClean.includes("alm") || rootClean.includes("علم")) {
       fallbackVerse = {
-        verseArabic: "الرَّحْمَنُ عَلَّمَ الْقُرْآنَ خَلَقَ الْإِنْسَانَ عَلَّمَهُ الْبَيَانَ",
-        verseTranslation: "The Most Merciful, taught the Quran, created man, taught him eloquence.",
-        reference: "Surah Ar-Rahman 55:1-4",
+        verseArabic: "عَلَّمَ الْإِنْسَانَ مَا لَمْ يَعْلَمْ",
+        verseTranslation: "[He] Taught man that which he knew not.",
+        reference: "Surah Al-Alaq 96:5",
         isOfflineFallback: true
       };
     } else if (rootClean.includes("ktb") || rootClean.includes("كتب")) {
       fallbackVerse = {
-         verseArabic: "كَتَبَ رَبُّكُمْ عَلَىٰ نَفْسِهِ الرَّحْمَةَ",
-         verseTranslation: "Your Lord has decreed upon Himself mercy.",
-         reference: "Surah Al-An'am 6:54",
+         verseArabic: "كِتَابٌ مَرْقُومٌ",
+         verseTranslation: "A register inscribed.",
+         reference: "Surah Al-Mutaffifin 83:9",
          isOfflineFallback: true
       };
     } else if (rootClean.includes("rhm") || rootClean.includes("رحم")) {
       fallbackVerse = {
-         verseArabic: "وَرَحْمَتِي وَسِعَتْ كُلَّ شَيْءٍ",
-         verseTranslation: "And My mercy encompasses all things.",
-         reference: "Surah Al-A'raf 7:156",
+         verseArabic: "وَتَوَاصَوْا بِالصَّبْرِ وَتَوَاصَوْا بِالْمَرْحَمَةِ",
+         verseTranslation: "And advised one another to patience and advised one another to compassion.",
+         reference: "Surah Al-Balad 90:17",
          isOfflineFallback: true
       };
     } else if (rootClean.includes("sjd") || rootClean.includes("سجد")) {
@@ -488,7 +532,7 @@ app.post("/api/translate-root-words", async (req: express.Request, res: express.
       return res.status(500).json({ error: "GEMINI_API_KEY is not configured and no custom key was provided." });
     }
 
-    let selectedModel = "gemini-2.5-flash";
+    let selectedModel = "gemini-3.1-flash-lite";
 
     const wordsList = words.join(", ");
     
@@ -682,6 +726,9 @@ app.post("/api/breakdown-verse", async (req: express.Request, res: express.Respo
          console.warn(`[Offline Database] Verse ${verse} not found in Surah ${surahNum}.`);
          fallBackToGemini = true;
       }
+      if (surahData && surahData.surahName) {
+        surahName = surahData.surahName;
+      }
     } catch (e) {
       // File doesn't exist
       console.warn(`[Offline Database] ${jsonPath} not found. Falling back to Gemini API.`);
@@ -701,9 +748,10 @@ app.post("/api/breakdown-verse", async (req: express.Request, res: express.Respo
         return res.status(500).json({ error: "GEMINI_API_KEY is not configured and no custom key was provided. Offline dataset is also unavailable for this chapter/verse." });
       }
 
-      const selectedModel = "gemini-2.5-flash";
+      const selectedModel = "gemini-3.1-flash-lite";
+      const quranContext = surahName && surahName !== surah ? `Surah: "${surahName}" (Chapter ${surahNum})` : `Surah: "${surah}"`;
       const queryPrompt = `
-Analyze the Quranic verse(s) specified: Surah: "${surah}", Verse(s): "${verse}".
+Analyze the Quranic verse(s) specified: ${quranContext}, Verse(s): "${verse}".
 Perform a detailed, deep scholarship-level word-by-word morphological analysis of all words in the specified verse(s). If a range is provided, analyze all words consecutively across all verses in one unified sequential list.
 
 For each word token:
@@ -762,6 +810,11 @@ Ensure the words are returned in the exact sequential reading order of the verse
           });
           break; // Success
         } catch (e: any) {
+          const errorMessage = e.message || JSON.stringify(e);
+          if (errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
+            console.warn("[Gemini API] Quota exhausted (429), triggering fallback immediately.");
+            throw { kind: 'QUOTA_EXHAUSTED', original: e };
+          }
           retries--;
           if (retries === 0) throw e;
           await new Promise(r => setTimeout(r, delay));
@@ -818,6 +871,9 @@ Ensure the words are returned in the exact sequential reading order of the verse
   } catch (error: any) {
     console.error("Verse breakdown error:", error.message || error);
     try {
+      const fs = await import("fs/promises");
+      const path = await import("path");
+      
       const { surah, verse } = req.body || {};
       let surahNum = 1;
       let surahName = surah || "";
@@ -834,7 +890,26 @@ Ensure the words are returned in the exact sequential reading order of the verse
         }
       }
 
+      const jsonPath = path.join(process.cwd(), "src", "data", "quran", `surah_${surahNum}.json`);
       const vStr = (verse || "1").toString().trim();
+
+      // Try local JSON cache first
+      try {
+        const fileData = await fs.readFile(jsonPath, "utf-8");
+        const surahData = JSON.parse(fileData);
+        if (surahData.verses && surahData.verses[vStr]) {
+          console.log(`[Offline Fallback] Serving cached verse ${vStr} from local JSON file for Surah ${surahNum}.`);
+          return res.json({
+            surahName: surahData.surahName,
+            surahNumber: surahData.surahNumber,
+            ...surahData.verses[vStr],
+            isOfflineFallback: true
+          });
+        }
+      } catch (e) {
+        // Fallback file not found or unreadable, continue to OFFLINE_VERSES_MAP
+      }
+
       const lookupKey = `${surahNum}:${vStr}`;
       
       if (OFFLINE_VERSES_MAP[lookupKey]) {
@@ -916,7 +991,7 @@ Ensure the words are returned in the exact sequential reading order of the verse
 // API endpoint to compile/load vocabulary map for a Surah
 app.post("/api/surah-vocab-map", async (req: express.Request, res: express.Response): Promise<any> => {
   try {
-    const { surahNum } = req.body;
+    const { surahNum, totalVerses } = req.body;
     if (!surahNum || isNaN(parseInt(surahNum))) {
       return res.status(400).json({ error: "surahNum parameter is required and must be a valid number." });
     }
@@ -948,8 +1023,19 @@ app.post("/api/surah-vocab-map", async (req: express.Request, res: express.Respo
     const versesMap = surahData.verses || {};
     const totalVersesInDb = Object.keys(versesMap).length;
 
-    // We assume it is a placeholder if we have 1 or fewer verses and it is generally a multi-verse surah
-    const isPlaceholder = totalVersesInDb <= 1;
+    // We assume it is a placeholder if we don't have all verses
+    // Fallback: if totalVerses isn't passed from client, assume placeholder if <= 2 verses (except Surah 108/103 which have 3)
+    let isPlaceholder = false;
+    if (totalVerses) {
+      isPlaceholder = totalVersesInDb < parseInt(totalVerses);
+    } else {
+      isPlaceholder = totalVersesInDb <= 2 && sNum !== 112; // 112 has 4 verses
+      if (sNum === 108 || sNum === 103 || sNum === 110) { // 3 verses
+         isPlaceholder = totalVersesInDb < 3;
+      } else {
+         isPlaceholder = totalVersesInDb <= 2;
+      }
+    }
 
     // Compile vocab list from verses
     const wordsMap: Record<string, any> = {};
@@ -1022,8 +1108,80 @@ app.post("/api/compile-surah-vocab-ai", async (req: express.Request, res: expres
     }
 
     const sNum = parseInt(surahNum);
-    const versesCount = parseInt(totalVerses);
+    const fs = await import("fs/promises");
+    const path = await import("path");
+    const outputDir = path.join(process.cwd(), "src", "data", "quran");
+    const outputPath = path.join(outputDir, `surah_${sNum}.json`);
+    
+    try {
+      await fs.access(outputPath);
+      const existingData = await fs.readFile(outputPath, "utf-8");
+      const parsedData = JSON.parse(existingData);
+      const versesMap = parsedData.verses || {};
+      
+      // If the cached file is complete, return it
+      if (Object.keys(versesMap).length >= parseInt(totalVerses)) {
+        console.log(`[Offline Database] Serving precompiled Surah ${sNum} from local cache.`);
+        const wordsMap: Record<string, any> = {};
+        Object.keys(versesMap).forEach((vKey) => {
+          const verse = versesMap[vKey];
+          const words = verse.words || [];
 
+          words.forEach((wToken: any) => {
+            const arabicWord = wToken.word ? wToken.word.trim() : "";
+            if (!arabicWord) return;
+
+            const wordKey = arabicWord;
+            if (!wordsMap[wordKey]) {
+              wordsMap[wordKey] = {
+                word: arabicWord,
+                transliteration: wToken.transliteration || "",
+                wordType: wToken.wordType || "Ism",
+                isIsmFail: !!wToken.isIsmFail,
+                isHarf: !!wToken.isHarf,
+                root: wToken.root || "None",
+                meanings: [],
+                occurrences: [],
+                frequency: 0,
+                explanations: []
+              };
+            }
+
+            const ref = wordsMap[wordKey];
+            ref.frequency += 1;
+
+            if (wToken.meaning && !ref.meanings.includes(wToken.meaning)) {
+              ref.meanings.push(wToken.meaning);
+            }
+
+            if (!ref.occurrences.includes(vKey)) {
+              ref.occurrences.push(vKey);
+            }
+
+            if (wToken.explanation && ref.explanations.length < 5) {
+              ref.explanations.push({
+                verse: vKey,
+                text: wToken.explanation
+              });
+            }
+          });
+        });
+
+        return res.json({
+          surahName: parsedData.surahName || surahName,
+          surahNumber: parsedData.surahNumber || sNum,
+          isPlaceholder: false,
+          totalVersesInDb: Object.keys(versesMap).length,
+          vocabList: Object.values(wordsMap)
+        });
+      } else {
+        console.log(`[Offline Database] Cached file for Surah ${sNum} is a placeholder. Proceeding to compile.`);
+      }
+    } catch(e) {
+      // Not found, continue with compilation
+    }
+
+    const versesCount = parseInt(totalVerses);
     let activeAi = ai;
     if (customApiKey && typeof customApiKey === "string" && customApiKey.trim() !== "") {
       activeAi = new GoogleGenAI({
@@ -1036,7 +1194,7 @@ app.post("/api/compile-surah-vocab-ai", async (req: express.Request, res: expres
       return res.status(500).json({ error: "GEMINI_API_KEY is not configured and no custom key was provided. AI compilation unavailable." });
     }
 
-    const selectedModel = "gemini-2.5-flash"; 
+    const selectedModel = "gemini-3.1-flash-lite"; 
     const queryPrompt = `
 Generate a complete, extremely high-scholarship academic word-by-word morphological and syntactic analysis of the entire Surah: "${surahName || 'Surah'}" (Surah Number ${sNum}), which has exactly ${versesCount} verses from start to end (all of them).
 
@@ -1132,12 +1290,7 @@ Ensure the output is valid, structured JSON representing the specified schema.
       verses: versesMap
     };
 
-    const fs = await import("fs/promises");
-    const path = await import("path");
-    const outputDir = path.join(process.cwd(), "src", "data", "quran");
     await fs.mkdir(outputDir, { recursive: true });
-    
-    const outputPath = path.join(outputDir, `surah_${sNum}.json`);
     await fs.writeFile(outputPath, JSON.stringify(outputObject, null, 2), "utf-8");
 
     // Dynamically back up compiled Surah to Google Cloud Storage (performed non-blocking in background)
@@ -1275,11 +1428,18 @@ Ensure the output is valid, structured JSON representing the specified schema.
           });
         }
 
+        let fallbackIsPlaceholder = false;
+        if (totalVerses) {
+          fallbackIsPlaceholder = totalVersesInDb < parseInt(totalVerses);
+        } else {
+          fallbackIsPlaceholder = totalVersesInDb <= 2;
+        }
+
         console.log(`[Offline Fallback] Serving compiled vocabulary maps for Surah ${sNum} from local json cache.`);
         return res.json({
           surahName: surahData.surahName || surahName || `Surah ${sNum}`,
           surahNumber: sNum,
-          isPlaceholder: totalVersesInDb <= 1,
+          isPlaceholder: fallbackIsPlaceholder,
           totalVersesInDb,
           vocabList: Object.values(wordsMap),
           isOfflineFallback: true
@@ -1454,7 +1614,7 @@ app.post("/api/analyze-balaghah", async (req: express.Request, res: express.Resp
       return res.status(500).json({ error: "GEMINI_API_KEY is not configured and no custom key was provided." });
     }
 
-    const selectedModel = "gemini-2.5-flash";
+    const selectedModel = "gemini-3.1-flash-lite";
     const queryPrompt = `
 Analyze the Quranic Arabic verse/phrase: "${verseText}" (Surah ${surahNumber || 'N/A'}, Verse ${verseNumber || 'N/A'}).
 Perform a highly deep, scholastic, academic-level classical Arabic Rhetorical (Balāghah - بلاغة) analysis.
@@ -1568,7 +1728,7 @@ app.post("/api/analyze-misunderstood", async (req: express.Request, res: express
       return res.status(500).json({ error: "GEMINI_API_KEY is not configured and no custom key was provided." });
     }
 
-    const selectedModel = "gemini-2.5-flash";
+    const selectedModel = "gemini-3.1-flash-lite";
     const queryPrompt = `
 Analyze the Arabic root or word: "${rootText}".
 Perform a deep scholastic, classical Arabic etymological study, targeting how it is often "misunderstood" or oversimplified in modern translations.
@@ -1703,6 +1863,42 @@ Output MUST represent the specified JSON schema.
     }
 
     return res.json(matchingFallback);
+  }
+});
+
+// Centralized App State persisting endpoint with GCS synchronization
+app.get("/api/app-state", async (req: express.Request, res: express.Response) => {
+  try {
+    const localPath = path.join(process.cwd(), "src", "data", "quran", "app_state.json");
+    if (fsReal.existsSync(localPath)) {
+      const data = await fsPromises.readFile(localPath, "utf-8");
+      return res.json(JSON.parse(data));
+    }
+    return res.json({});
+  } catch (err: any) {
+    console.error("[Server AppState] Error reading app state file:", err.message || err);
+    res.json({});
+  }
+});
+
+app.post("/api/app-state", async (req: express.Request, res: express.Response) => {
+  try {
+    const data = req.body || {};
+    const localDir = path.join(process.cwd(), "src", "data", "quran");
+    await fsPromises.mkdir(localDir, { recursive: true });
+    
+    const localPath = path.join(localDir, "app_state.json");
+    await fsPromises.writeFile(localPath, JSON.stringify(data, null, 2), "utf-8");
+
+    // Non-blocking upload to GCS (google blob)
+    uploadToGCS(localPath, "quran/app_state.json").catch((err) => {
+      console.error("[GCS Backup] Sync error uploading app state:", err.message);
+    });
+
+    return res.json({ success: true });
+  } catch (err: any) {
+    console.error("[Server AppState] Error writing app state file:", err.message || err);
+    res.status(500).json({ error: err.message });
   }
 });
 

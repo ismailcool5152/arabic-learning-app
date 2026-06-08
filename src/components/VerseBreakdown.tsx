@@ -1,5 +1,6 @@
 import { safeLower } from '../lib/utils';
 import React, { useState, useEffect, useMemo } from 'react';
+import { appStorage } from '../lib/appStorage';
 import { createPortal } from 'react-dom';
 import { OFFLINE_VERSES_MAP, VerseBreakdownData, VerseWordBreakdown } from '../data/offlineVerses';
 import { SURAH_MAPPING_LIST, SurahDefinition } from '../data/surahMapping';
@@ -379,11 +380,75 @@ function parseWordGrammar(w: VerseWordBreakdown): WordGrammarDetails {
   };
 }
 
+const getBismillahData = (surahNum: number, surahName: string): VerseBreakdownData => {
+  return {
+    surahName: surahName,
+    surahNumber: surahNum,
+    verseNumber: "0",
+    fullVerseArabic: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+    fullVerseTranslation: "In the name of Allah, the Entirely Merciful, the Especially Merciful.",
+    words: [
+      {
+        word: "بِ",
+        transliteration: "Bi",
+        isIsmFail: false,
+        isHarf: true,
+        wordType: "Harf",
+        root: "None",
+        meaning: "In / With",
+        explanation: "Inseparable preposition particle of connection representing instrumentality."
+      },
+      {
+        word: "سْمِ",
+        transliteration: "Ism",
+        isIsmFail: false,
+        isHarf: false,
+        wordType: "Ism",
+        root: "س - م - و",
+        meaning: "Name",
+        explanation: "Definite noun in genitive construction derived from the root S-M-W (to be lofty)."
+      },
+      {
+        word: "اللَّهِ",
+        transliteration: "Allāh",
+        isIsmFail: false,
+        isHarf: false,
+        wordType: "Ism",
+        root: "ء - ل - ه",
+        meaning: "The God / Divine Creator",
+        explanation: "The unique proper noun for God, combining al- (the) and ilah (deity)."
+      },
+      {
+        word: "الرَّحْمَٰنِ",
+        transliteration: "Ar-Raḥmān",
+        isIsmFail: false,
+        isHarf: false,
+        wordType: "Ism",
+        root: "ر - ح - م",
+        meaning: "The Infinitely Merciful",
+        explanation: "An intensive hyperbole pattern (Fa'lān) signifying immediate, boundless maternal-like mercy."
+      },
+      {
+        word: "الرَّحِيمِ",
+        transliteration: "Ar-Raḥīm",
+        isIsmFail: false,
+        isHarf: false,
+        wordType: "Ism",
+        root: "ر - ح - م",
+        meaning: "The Especially Merciful",
+        explanation: "Constant qualitative pattern (Fa'īl) signifying continuous and specifically tailored mercy."
+      }
+    ]
+  };
+};
+
 export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: VerseBreakdownProps) {
   // Input Selection
   const [selectedPresetId, setSelectedPresetId] = useState<string>('1:1');
   const [customSurah, setCustomSurah] = useState<string>('');
   const [customVerse, setCustomVerse] = useState<string>('');
+  const [selectedSurah, setSelectedSurah] = useState<SurahDefinition | null>(null);
+  const [isFocused, setIsFocused] = useState<boolean>(false);
   
   // Session-saved custom verses in memory (no user-level cache or localStorage used)
   const [offlineSavedVerses, setOfflineSavedVerses] = useState<Record<string, VerseBreakdownData>>({});
@@ -413,6 +478,31 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
     if (e) e.stopPropagation();
     if (activeVerseData && currentWordIndex < activeVerseData.words.length - 1) {
       setSelectedWordToken(activeVerseData.words[currentWordIndex + 1]);
+    }
+  };
+
+  const activeSurahDef = useMemo(() => {
+    if (!activeVerseData) return null;
+    return SURAH_MAPPING_LIST.find(s => s.number === activeVerseData.surahNumber) || null;
+  }, [activeVerseData]);
+
+  const handlePrevVerse = () => {
+    if (!activeVerseData || !activeSurahDef) return;
+    const currentV = parseInt(activeVerseData.verseNumber, 10);
+    if (currentV > 0) {
+      const prevVStr = (currentV - 1).toString();
+      setCustomVerse(prevVStr);
+      setSelectedPresetId(`${activeVerseData.surahNumber}:${prevVStr}`);
+    }
+  };
+
+  const handleNextVerse = () => {
+    if (!activeVerseData || !activeSurahDef) return;
+    const currentV = parseInt(activeVerseData.verseNumber, 10);
+    if (currentV < activeSurahDef.totalVerses) {
+      const nextVStr = (currentV + 1).toString();
+      setCustomVerse(nextVStr);
+      setSelectedPresetId(`${activeVerseData.surahNumber}:${nextVStr}`);
     }
   };
 
@@ -548,37 +638,55 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
     };
   }, [isParchment, isCosmic]);
 
-  // Real-time matched Surah based on text typed (either number or partial transliterated/Arabic name)
-  const matchedSurah = useMemo<SurahDefinition | null>(() => {
+  // Real-time matched Surah list based on text typed (either number or partial transliterated/Arabic name)
+  const surahSuggestions = useMemo<SurahDefinition[]>(() => {
     const query = safeLower(customSurah.trim());
-    if (!query) return null;
+    if (!query) return [];
+
+    // If the input matches exactly a selectedSurah's text representation, don't show suggestions
+    if (selectedSurah && `${selectedSurah.number} - ${selectedSurah.transliteration}` === customSurah.trim()) {
+      return [];
+    }
 
     const surahNum = parseInt(query, 10);
     if (!isNaN(surahNum)) {
-      return SURAH_MAPPING_LIST.find(s => s.number === surahNum) || null;
+      // Find surahs starting with or containing this number digits
+      return SURAH_MAPPING_LIST.filter(s => s.number.toString().includes(query)).slice(0, 5);
     }
 
-    // Try finding by name, stripping common phonetic prefixes like Al-, Ar-
+    // Otherwise match by transliteration name or Arabic name
     const cleanQuery = query.replace(/^(al|ar|an|ash|at|ad|az|as|aj|ad)-?/i, '');
-    return SURAH_MAPPING_LIST.find(s => {
+    return SURAH_MAPPING_LIST.filter(s => {
       const cleanTrans = safeLower(s.transliteration).replace(/^(al|ar|an|ash|at|ad|az|as|aj|ad)-?/i, '');
       return cleanTrans.includes(cleanQuery) || 
              safeLower(s.transliteration).includes(query) || 
              s.name.includes(query);
-    }) || null;
-  }, [customSurah]);
+    }).slice(0, 5);
+  }, [customSurah, selectedSurah]);
+
+  // Keep selectedSurah and customSurah in sync with the activeVerseData
+  useEffect(() => {
+    if (activeVerseData) {
+      const surahDef = SURAH_MAPPING_LIST.find(s => s.number === activeVerseData.surahNumber) || null;
+      if (surahDef) {
+        setSelectedSurah(surahDef);
+        setCustomSurah(`${surahDef.number} - ${surahDef.transliteration}`);
+        setCustomVerse(activeVerseData.verseNumber.toString());
+      }
+    }
+  }, [activeVerseData]);
 
   // Sync verse choice when matched Surah changes
   useEffect(() => {
-    if (matchedSurah) {
+    if (selectedSurah) {
       const currentVal = parseInt(customVerse, 10);
-      if (isNaN(currentVal) || currentVal < 1 || currentVal > matchedSurah.totalVerses) {
-        setCustomVerse('1'); // Automatically select Verse 1 as default safe step
+      if (isNaN(currentVal) || currentVal < 0 || currentVal > selectedSurah.totalVerses) {
+        setCustomVerse('0'); // By default, load Ayat 0 (Bismillah)!!
       }
     } else {
       setCustomVerse('');
     }
-  }, [matchedSurah]);
+  }, [selectedSurah]);
 
   // Load preset or offline saved verse initially
   useEffect(() => {
@@ -591,17 +699,27 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
   }, [selectedPresetId, allVersesMap]);
 
   // Handle custom search query via /api/breakdown-verse
-  const handleLiveQuery = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!matchedSurah) {
-      setErrorMessage('Please type a valid Surah number or name (e.g. "112" or "Al-Ikhlas") first.');
+  const handleLiveQuery = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!selectedSurah) {
+      setErrorMessage('Please input or select a valid Surah first.');
       return;
     }
     // LOCAL OFFLINE ADVANTAGE: Check if this is already cached in our offline registry!
-    const sQuery = matchedSurah.number.toString();
-    const vQuery = customVerse.trim() || '1';
+    const sQuery = selectedSurah.number.toString();
+    const vQuery = customVerse.trim() || '0';
     
     const cacheKey = `${sQuery}:${vQuery}`;
+
+    // INTERCEPT VERSE 0: load Bismillah locally and instantaneously!
+    if (vQuery === '0') {
+      const bismillahData = getBismillahData(selectedSurah.number, selectedSurah.transliteration);
+      setActiveVerseData(bismillahData);
+      setSelectedWordToken(null);
+      setSelectedPresetId(cacheKey);
+      setErrorMessage(null);
+      return;
+    }
 
     // LOCAL OFFLINE ADVANTAGE: Check if this is already cached in our offline registry!
     if (allVersesMap[cacheKey]) {
@@ -618,7 +736,7 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
     setApiSuccessTriggered(false);
 
     try {
-      const cachedKey = localStorage.getItem('user_api_key') || '';
+      const cachedKey = appStorage.getItem('user_api_key') || appStorage.getItem('quranic_arabic_custom_api_key') || '';
       
       const response = await fetch('/api/breakdown-verse', {
         method: 'POST',
@@ -638,16 +756,15 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
       const freshVerseData: VerseBreakdownData = await response.json();
       if (freshVerseData && freshVerseData.words && freshVerseData.words.length > 0) {
         // Guarantee clean, accurate names from local map
-        freshVerseData.surahName = matchedSurah.transliteration;
-        freshVerseData.surahNumber = matchedSurah.number;
+        freshVerseData.surahName = selectedSurah.transliteration;
+        freshVerseData.surahNumber = selectedSurah.number;
         freshVerseData.verseNumber = vQuery;
 
         // Retain recently fetched verses only in in-memory list for this active browser session
-        const updatedOffline = {
-          ...offlineSavedVerses,
+        setOfflineSavedVerses(prev => ({
+          ...prev,
           [cacheKey]: freshVerseData
-        };
-        setOfflineSavedVerses(updatedOffline);
+        }));
 
         setActiveVerseData(freshVerseData);
         setSelectedWordToken(null);
@@ -664,13 +781,38 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
     }
   };
 
+  // Automated Loader on selection changes with a short debounce to support typing
+  useEffect(() => {
+    if (!selectedSurah) return;
+    const vQuery = customVerse.trim();
+    if (!vQuery) return;
+
+    // Check if the current loaded verse matching
+    if (activeVerseData && activeVerseData.surahNumber === selectedSurah.number && activeVerseData.verseNumber === vQuery) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      handleLiveQuery();
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [selectedSurah?.number, customVerse]);
+
   // Switch preset directly
   const handleLoadPresetDirectly = (presetId: string) => {
     setSelectedPresetId(presetId);
     
     const parsed = presetId.split(':');
     if (parsed.length === 2) {
-      setCustomSurah(parsed[0]);
+      const surahNum = parseInt(parsed[0], 10);
+      const surahDef = SURAH_MAPPING_LIST.find(s => s.number === surahNum) || null;
+      if (surahDef) {
+        setSelectedSurah(surahDef);
+        setCustomSurah(`${surahDef.number} - ${surahDef.transliteration}`);
+      } else {
+        setCustomSurah(parsed[0]);
+      }
       setCustomVerse(parsed[1]);
     } else {
       setCustomSurah('');
@@ -756,9 +898,9 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
           </div>
         </div>
 
-        {/* Custom Search Form with real-time Lookups */}
+        {/* Custom Search panel with real-time automatic loading and status */}
         <div className={`border rounded-2xl p-6 ${colors.cardBg} transition-all duration-300 shadow-sm flex flex-col h-full`}>
-          <form onSubmit={handleLiveQuery} className="flex-1 flex flex-col gap-5 justify-between">
+          <div className="flex-1 flex flex-col gap-5 justify-between">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               
               {/* Surah text/number field */}
@@ -771,30 +913,108 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
                     type="text"
                     placeholder="e.g. 112 or Al-Ikhlas"
                     value={customSurah}
-                    onChange={(e) => setCustomSurah(e.target.value)}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+                    onChange={(e) => {
+                      setCustomSurah(e.target.value);
+                      if (selectedSurah && e.target.value !== `${selectedSurah.number} - ${selectedSurah.transliteration}`) {
+                        setSelectedSurah(null);
+                      }
+                    }}
                     className={`w-full text-xs rounded-xl py-2 px-3 pr-24 focus:outline-none border bg-black/5 ${colors.hoverPill}`}
                     required
                   />
-                  {matchedSurah && (
+                  {selectedSurah && (
                     <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
                       <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-serif">
-                        {matchedSurah.transliteration}
+                        {selectedSurah.transliteration}
                       </span>
                     </div>
                   )}
                 </div>
-                {/* Visual indicator message */}
-                {matchedSurah ? (
+
+                {/* Suggestions List Overlay */}
+                {isFocused && surahSuggestions.length > 0 && (
+                  <div className={`absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl border shadow-xl p-1 max-h-56 overflow-y-auto ${
+                    isParchment ? 'bg-[#f4efe6] border-[#dacbb5]' : 'bg-slate-950 border-slate-800'
+                  }`}>
+                    {surahSuggestions.map((s) => (
+                      <button
+                        key={s.number}
+                        type="button"
+                        onMouseDown={() => {
+                          setSelectedSurah(s);
+                          setCustomSurah(`${s.number} - ${s.transliteration}`);
+                          setCustomVerse('0');
+                        }}
+                        className={`w-full flex items-center justify-between px-3 py-2 text-xs rounded-lg transition-all text-left cursor-pointer ${
+                          isParchment 
+                            ? 'hover:bg-[#dacbb5]/50 text-[#3d3025]' 
+                            : 'hover:bg-slate-800/80 text-slate-100'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-mono opacity-50 px-1.5 py-0.5 rounded bg-black/10">
+                            {s.number}
+                          </span>
+                          <span className="font-bold">{s.transliteration}</span>
+                          <span className="opacity-60 text-[10px] italic">({s.translation})</span>
+                        </div>
+                        <span className="font-serif text-[11px] opacity-80">{s.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Visual indicator message & Inline interactive selector */}
+                {selectedSurah ? (
                   <p className="text-[10px] text-emerald-500 font-semibold mt-1 flex items-center gap-1 animate-fadeIn">
-                    <Check className="w-3 h-3" /> Auto-lookup: {matchedSurah.transliteration} ({matchedSurah.name}) - {matchedSurah.totalVerses} Ayas
+                    <Check className="w-3 h-3" /> Selected: {selectedSurah.transliteration} ({selectedSurah.name}) - {selectedSurah.totalVerses} Ayas
                   </p>
                 ) : customSurah.trim() ? (
-                  <p className="text-[10px] text-rose-400 font-medium mt-1">
-                    🔍 Unrecognized Surah. Keep typing...
-                  </p>
+                  <div className="space-y-1.5 mt-2 animate-fadeIn">
+                    <p className="text-[10px] text-amber-500 font-bold uppercase tracking-wider font-mono">
+                      👉 Click to Select Surah:
+                    </p>
+                    <div className="grid grid-cols-1 gap-1.5 max-h-56 overflow-y-auto pr-1">
+                      {surahSuggestions.map((s) => (
+                        <button
+                          key={s.number}
+                          type="button"
+                          onClick={() => {
+                            setSelectedSurah(s);
+                            setCustomSurah(`${s.number} - ${s.transliteration}`);
+                            setCustomVerse('0');
+                          }}
+                          className={`flex items-center justify-between px-3 py-2.5 text-xs rounded-xl border transition-all text-left w-full cursor-pointer ${
+                            isParchment 
+                              ? 'bg-[#ebd8c3]/20 border-[#dccbae] hover:bg-[#ebd8c3]/40 text-[#2c241e]' 
+                              : 'bg-indigo-950/20 border-indigo-950/40 hover:bg-indigo-900/40 text-slate-100'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-mono font-extrabold opacity-70 px-1.5 py-0.5 rounded bg-black/10">
+                              {s.number}
+                            </span>
+                            <span className="font-bold">{s.transliteration}</span>
+                            <span className="opacity-60 text-[10px] italic">({s.translation})</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-emerald-500 font-bold">{s.totalVerses} Ayas</span>
+                            <span className="font-serif text-[11px] font-bold">{s.name}</span>
+                          </div>
+                        </button>
+                      ))}
+                      {surahSuggestions.length === 0 && (
+                        <p className="text-[10px] text-rose-400 font-medium">
+                          No matching Surah found. Enter number 1-114 or name digits.
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 ) : (
                   <p className="text-[10px] opacity-40 mt-1">
-                     Translate number directly (e.g. "112" shows "Al-Ikhlas")
+                     Type name or number to open interactive choice list
                   </p>
                 )}
               </div>
@@ -805,23 +1025,22 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
                   <label className="block text-[10px] font-bold font-mono tracking-wider opacity-60 uppercase mb-1 whitespace-nowrap">
                     Verse Selection
                   </label>
-                  {matchedSurah ? (
+                  {selectedSurah ? (
                     <select
                       value={customVerse}
                       onChange={(e) => {
                         setCustomVerse(e.target.value);
-                        // Start verse changed, effect will fix end verse
                       }}
                       className={`w-full text-xs rounded-xl py-2 px-3 focus:outline-none border bg-black/5 ${colors.hoverPill}`}
                       required
                     >
-                      {Array.from({ length: matchedSurah.totalVerses }, (_, idx) => idx + 1).map((v) => (
+                      {Array.from({ length: selectedSurah.totalVerses + 1 }, (_, idx) => idx).map((v) => (
                         <option 
                           key={v} 
                           value={v.toString()}
                           className={isParchment ? 'text-[#2c241e]' : 'text-slate-900'}
                         >
-                          Ayat {v}
+                          {v === 0 ? 'Ayat 0 (Bismillah)' : `Ayat ${v}`}
                         </option>
                       ))}
                     </select>
@@ -829,7 +1048,7 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
                     <input
                       type="text"
                       disabled
-                      placeholder="Surah req..."
+                      placeholder="Select Surah first..."
                       className="w-full text-xs rounded-xl py-2 px-3 opacity-50 border bg-black/10 cursor-not-allowed"
                     />
                   )}
@@ -838,28 +1057,45 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
 
             </div>
 
-            <button
-              type="submit"
-              disabled={isSearching || !matchedSurah}
-              className={`px-4 py-2.5 rounded-xl text-xs font-bold font-mono tracking-wide flex items-center justify-center gap-1.5 transition-all w-full cursor-pointer disabled:opacity-40 select-none ${colors.btnPrimary}`}
-            >
+            {/* Auto-loading status block */}
+            <div className={`p-4 rounded-xl border text-xs font-mono flex items-center gap-2.5 ${
+              isSearching 
+                ? 'border-amber-500/30 bg-amber-500/5 text-amber-500 animate-pulse' 
+                : selectedSurah 
+                  ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-500' 
+                  : 'border-current/10 bg-current/5 opacity-55'
+            }`}>
               {isSearching ? (
                 <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  Building offline segmented token database...
+                  <Loader2 className="w-4 h-4 animate-spin shrink-0 text-amber-500" />
+                  <div className="leading-snug">
+                    <p className="font-bold">Analyzing Verse Complexities...</p>
+                    <p className="text-[10px] opacity-75">Computing classical morphology and scales dynamically</p>
+                  </div>
+                </>
+              ) : selectedSurah ? (
+                <>
+                  <Check className="w-4 h-4 shrink-0 text-emerald-500" />
+                  <div className="leading-snug">
+                    <p className="font-bold">Segment Cache Confirmed</p>
+                    <p className="text-[10px] opacity-75">Auto-loaded: S. {selectedSurah.number} ({selectedSurah.transliteration}):{customVerse}</p>
+                  </div>
                 </>
               ) : (
                 <>
-                  <Search className="w-3.5 h-3.5" />
-                  {allVersesMap[`${matchedSurah?.number}:${customVerse}`] 
-                    ? 'Load Instantly (Offline Cache Ready)' 
-                    : 'Fetch & Save Offline by Default'}
+                  <Search className="w-4 h-4 shrink-0 opacity-60" />
+                  <div className="leading-snug">
+                    <p className="font-bold">Select Surah to Deconstruct</p>
+                    <p className="text-[10px] opacity-75">Choose an option or type above to begin breakdown</p>
+                  </div>
                 </>
               )}
-            </button>
-          </form>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Informational Alert for Search state handling */}
 
         {/* Informational Alert for Search state handling */}
         {errorMessage && (
@@ -892,12 +1128,44 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
           
           {/* The Verse display card */}
           <div className={`border rounded-2xl p-6 md:p-8 flex flex-col items-center justify-center text-center transition-all ${colors.cardBg} shadow-sm`}>
-            <div className="w-full flex items-center justify-between border-b border-current/10 pb-3 mb-5">
-              <span className="text-[10px] font-mono opacity-50 uppercase tracking-widest">
-                Quranic Arabic Orthography & Grammatical Wave
-              </span>
-              <span className={`text-[10px] font-mono font-bold uppercase rounded p-1 px-2 border border-current/10 ${colors.accentText}`}>
-                Surah {activeVerseData.surahName} ({activeVerseData.surahNumber}:{selectedPresetId.includes(':') ? selectedPresetId.split(':')[1] : activeVerseData.verseNumber})
+            <div className="w-full flex flex-col md:flex-row items-center justify-between border-b border-current/10 pb-4 mb-5 gap-4">
+              <div className="text-left">
+                <span className="text-[10px] font-mono opacity-50 uppercase tracking-widest block">
+                  Quranic Arabic Orthography & Grammatical Wave
+                </span>
+              </div>
+              
+              {/* Verse / Ayat Navigation Controls */}
+              <div className="flex items-center gap-2 select-none">
+                <button
+                  type="button"
+                  onClick={handlePrevVerse}
+                  disabled={!activeSurahDef || parseInt(activeVerseData.verseNumber, 10) <= 0}
+                  className={`px-3 py-1.5 rounded-xl border transition-all flex items-center gap-1 text-xs font-mono font-bold cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${colors.hoverPill}`}
+                  title="Previous Verse (Ayat)"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <span>Prev</span>
+                </button>
+
+                <span className={`text-xs font-mono font-extrabold uppercase rounded-xl py-1.5 px-3 border border-current/10 bg-current/5 shadow-sm`}>
+                  {parseInt(activeVerseData.verseNumber, 10) === 0 ? 'Bismillah' : `Ayat ${activeVerseData.verseNumber} of ${activeSurahDef?.totalVerses || '?'}`}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={handleNextVerse}
+                  disabled={!activeSurahDef || parseInt(activeVerseData.verseNumber, 10) >= activeSurahDef.totalVerses}
+                  className={`px-3 py-1.5 rounded-xl border transition-all flex items-center gap-1 text-xs font-mono font-bold cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${colors.hoverPill}`}
+                  title="Next Verse (Ayat)"
+                >
+                  <span>Next</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <span className={`text-[10.5px] font-mono font-bold uppercase rounded-lg p-1.5 px-2.5 border border-current/10 ${colors.accentText}`}>
+                Surah {activeVerseData.surahName} ({activeVerseData.surahNumber}:{activeVerseData.verseNumber})
               </span>
             </div>
 
