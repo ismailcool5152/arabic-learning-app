@@ -699,7 +699,7 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
   }, [selectedPresetId, allVersesMap]);
 
   // Handle custom search query via /api/breakdown-verse
-  const handleLiveQuery = async (e?: React.FormEvent) => {
+  const handleLiveQuery = async (e?: React.FormEvent, forceRefresh: boolean = false) => {
     if (e) e.preventDefault();
     if (!selectedSurah) {
       setErrorMessage('Please input or select a valid Surah first.');
@@ -712,7 +712,7 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
     const cacheKey = `${sQuery}:${vQuery}`;
 
     // INTERCEPT VERSE 0: load Bismillah locally and instantaneously!
-    if (vQuery === '0') {
+    if (vQuery === '0' && !forceRefresh) {
       const bismillahData = getBismillahData(selectedSurah.number, selectedSurah.transliteration);
       setActiveVerseData(bismillahData);
       setSelectedWordToken(null);
@@ -722,7 +722,7 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
     }
 
     // LOCAL OFFLINE ADVANTAGE: Check if this is already cached in our offline registry!
-    if (allVersesMap[cacheKey]) {
+    if (allVersesMap[cacheKey] && !forceRefresh) {
       setActiveVerseData(allVersesMap[cacheKey]);
       setSelectedWordToken(null);
       setSelectedPresetId(cacheKey);
@@ -744,7 +744,8 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
         body: JSON.stringify({
           surah: sQuery,
           verse: vQuery,
-          customApiKey: cachedKey
+          customApiKey: cachedKey,
+          forceRefresh
         })
       });
 
@@ -1079,6 +1080,18 @@ export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: Ve
                   <div className="leading-snug">
                     <p className="font-bold">Segment Cache Confirmed</p>
                     <p className="text-[10px] opacity-75">Auto-loaded: S. {selectedSurah.number} ({selectedSurah.transliteration}):{customVerse}</p>
+                  </div>
+                  <div className="ml-auto">
+                    <button
+                      type="button"
+                      onClick={() => handleLiveQuery(undefined, true)}
+                      className={`px-2.5 py-1 text-[10px] rounded-lg border font-bold uppercase tracking-wider transition-colors ${
+                        isParchment ? 'border-[#8c6239]/40 text-[#8c6239] hover:bg-[#8c6239]/10' : 'border-emerald-500/40 text-emerald-500 hover:bg-emerald-500/10'
+                      }`}
+                      title="Invalidate cache and generate a fresh analysis for this verse"
+                    >
+                      Force Refresh
+                    </button>
                   </div>
                 </>
               ) : (

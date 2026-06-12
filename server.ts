@@ -671,7 +671,7 @@ Provide the output in strict JSON format.
 // API endpoint to search and analyze an aayat (verse) word by word
 app.post("/api/breakdown-verse", async (req: express.Request, res: express.Response): Promise<any> => {
   try {
-    const { surah, verse, customApiKey } = req.body;
+    const { surah, verse, customApiKey, forceRefresh } = req.body;
     if (!surah || !verse) {
       return res.status(400).json({ error: "Both surah (name or number) and verse fields are required." });
     }
@@ -698,41 +698,46 @@ app.post("/api/breakdown-verse", async (req: express.Request, res: express.Respo
     let localDataFound = false;
     let fallBackToGemini = false;
     
-    // Check if the JSON file exists for this Surah
-    try {
-      const fileData = await fs.readFile(jsonPath, "utf-8");
-      const surahData = JSON.parse(fileData);
-      const verseStr = verse.toString();
-      
-      // If the specific verse data exists in the JSON file
-      if (surahData.verses && surahData.verses[verseStr]) {
-        const vData = surahData.verses[verseStr];
-        // Check if it's just a placeholder pending full compilation
-        if (vData.fullVerseTranslation && vData.fullVerseTranslation.includes("pending full compilation")) {
-          console.log(`[Offline Database] Found placeholder for Surah ${surahNum} Verse ${verse}, falling back to Gemini API.`);
-          fallBackToGemini = true;
-        } else {
-          localDataFound = true;
-          return res.json({
-            surahName: surahData.surahName,
-            surahNumber: surahData.surahNumber,
-            verseNumber: vData.verseNumber,
-            fullVerseArabic: vData.fullVerseArabic,
-            fullVerseTranslation: vData.fullVerseTranslation,
-            words: vData.words
-          });
-        }
-      } else {
-         console.warn(`[Offline Database] Verse ${verse} not found in Surah ${surahNum}.`);
-         fallBackToGemini = true;
-      }
-      if (surahData && surahData.surahName) {
-        surahName = surahData.surahName;
-      }
-    } catch (e) {
-      // File doesn't exist
-      console.warn(`[Offline Database] ${jsonPath} not found. Falling back to Gemini API.`);
+    if (forceRefresh) {
+      console.log(`[Offline Database] Force refresh requested for Surah ${surahNum} Verse ${verse}. Submitting to Gemini API...`);
       fallBackToGemini = true;
+    } else {
+      // Check if the JSON file exists for this Surah
+      try {
+        const fileData = await fs.readFile(jsonPath, "utf-8");
+        const surahData = JSON.parse(fileData);
+        const verseStr = verse.toString();
+        
+        // If the specific verse data exists in the JSON file
+        if (surahData.verses && surahData.verses[verseStr]) {
+          const vData = surahData.verses[verseStr];
+          // Check if it's just a placeholder pending full compilation
+          if (vData.fullVerseTranslation && vData.fullVerseTranslation.includes("pending full compilation")) {
+            console.log(`[Offline Database] Found placeholder for Surah ${surahNum} Verse ${verse}, falling back to Gemini API.`);
+            fallBackToGemini = true;
+          } else {
+            localDataFound = true;
+            return res.json({
+              surahName: surahData.surahName,
+              surahNumber: surahData.surahNumber,
+              verseNumber: vData.verseNumber,
+              fullVerseArabic: vData.fullVerseArabic,
+              fullVerseTranslation: vData.fullVerseTranslation,
+              words: vData.words
+            });
+          }
+        } else {
+           console.warn(`[Offline Database] Verse ${verse} not found in Surah ${surahNum}.`);
+           fallBackToGemini = true;
+        }
+        if (surahData && surahData.surahName) {
+          surahName = surahData.surahName;
+        }
+      } catch (e) {
+        // File doesn't exist
+        console.warn(`[Offline Database] ${jsonPath} not found. Falling back to Gemini API.`);
+        fallBackToGemini = true;
+      }
     }
 
     if (fallBackToGemini && !localDataFound) {
@@ -1102,7 +1107,7 @@ app.post("/api/surah-vocab-map", async (req: express.Request, res: express.Respo
 // API endpoint to compile Surah on-the-fly using Gemini and cache it
 app.post("/api/compile-surah-vocab-ai", async (req: express.Request, res: express.Response): Promise<any> => {
   try {
-    const { surahNum, surahName, totalVerses, customApiKey } = req.body;
+    const { surahNum, surahName, totalVerses, customApiKey, forceRefresh } = req.body;
     if (!surahNum || !totalVerses) {
       return res.status(400).json({ error: "surahNum and totalVerses are required parameters." });
     }
@@ -1113,72 +1118,76 @@ app.post("/api/compile-surah-vocab-ai", async (req: express.Request, res: expres
     const outputDir = path.join(process.cwd(), "src", "data", "quran");
     const outputPath = path.join(outputDir, `surah_${sNum}.json`);
     
-    try {
-      await fs.access(outputPath);
-      const existingData = await fs.readFile(outputPath, "utf-8");
-      const parsedData = JSON.parse(existingData);
-      const versesMap = parsedData.verses || {};
-      
-      // If the cached file is complete, return it
-      if (Object.keys(versesMap).length >= parseInt(totalVerses)) {
-        console.log(`[Offline Database] Serving precompiled Surah ${sNum} from local cache.`);
-        const wordsMap: Record<string, any> = {};
-        Object.keys(versesMap).forEach((vKey) => {
-          const verse = versesMap[vKey];
-          const words = verse.words || [];
+    if (!forceRefresh) {
+      try {
+        await fs.access(outputPath);
+        const existingData = await fs.readFile(outputPath, "utf-8");
+        const parsedData = JSON.parse(existingData);
+        const versesMap = parsedData.verses || {};
+        
+        // If the cached file is complete, return it
+        if (Object.keys(versesMap).length >= parseInt(totalVerses)) {
+          console.log(`[Offline Database] Serving precompiled Surah ${sNum} from local cache.`);
+          const wordsMap: Record<string, any> = {};
+          Object.keys(versesMap).forEach((vKey) => {
+            const verse = versesMap[vKey];
+            const words = verse.words || [];
 
-          words.forEach((wToken: any) => {
-            const arabicWord = wToken.word ? wToken.word.trim() : "";
-            if (!arabicWord) return;
+            words.forEach((wToken: any) => {
+              const arabicWord = wToken.word ? wToken.word.trim() : "";
+              if (!arabicWord) return;
 
-            const wordKey = arabicWord;
-            if (!wordsMap[wordKey]) {
-              wordsMap[wordKey] = {
-                word: arabicWord,
-                transliteration: wToken.transliteration || "",
-                wordType: wToken.wordType || "Ism",
-                isIsmFail: !!wToken.isIsmFail,
-                isHarf: !!wToken.isHarf,
-                root: wToken.root || "None",
-                meanings: [],
-                occurrences: [],
-                frequency: 0,
-                explanations: []
-              };
-            }
+              const wordKey = arabicWord;
+              if (!wordsMap[wordKey]) {
+                wordsMap[wordKey] = {
+                  word: arabicWord,
+                  transliteration: wToken.transliteration || "",
+                  wordType: wToken.wordType || "Ism",
+                  isIsmFail: !!wToken.isIsmFail,
+                  isHarf: !!wToken.isHarf,
+                  root: wToken.root || "None",
+                  meanings: [],
+                  occurrences: [],
+                  frequency: 0,
+                  explanations: []
+                };
+              }
 
-            const ref = wordsMap[wordKey];
-            ref.frequency += 1;
+              const ref = wordsMap[wordKey];
+              ref.frequency += 1;
 
-            if (wToken.meaning && !ref.meanings.includes(wToken.meaning)) {
-              ref.meanings.push(wToken.meaning);
-            }
+              if (wToken.meaning && !ref.meanings.includes(wToken.meaning)) {
+                ref.meanings.push(wToken.meaning);
+              }
 
-            if (!ref.occurrences.includes(vKey)) {
-              ref.occurrences.push(vKey);
-            }
+              if (!ref.occurrences.includes(vKey)) {
+                ref.occurrences.push(vKey);
+              }
 
-            if (wToken.explanation && ref.explanations.length < 5) {
-              ref.explanations.push({
-                verse: vKey,
-                text: wToken.explanation
-              });
-            }
+              if (wToken.explanation && ref.explanations.length < 5) {
+                ref.explanations.push({
+                  verse: vKey,
+                  text: wToken.explanation
+                });
+              }
+            });
           });
-        });
 
-        return res.json({
-          surahName: parsedData.surahName || surahName,
-          surahNumber: parsedData.surahNumber || sNum,
-          isPlaceholder: false,
-          totalVersesInDb: Object.keys(versesMap).length,
-          vocabList: Object.values(wordsMap)
-        });
-      } else {
-        console.log(`[Offline Database] Cached file for Surah ${sNum} is a placeholder. Proceeding to compile.`);
+          return res.json({
+            surahName: parsedData.surahName || surahName,
+            surahNumber: parsedData.surahNumber || sNum,
+            isPlaceholder: false,
+            totalVersesInDb: Object.keys(versesMap).length,
+            vocabList: Object.values(wordsMap)
+          });
+        } else {
+          console.log(`[Offline Database] Cached file for Surah ${sNum} is a placeholder. Proceeding to compile.`);
+        }
+      } catch(e) {
+        // Not found, continue with compilation
       }
-    } catch(e) {
-      // Not found, continue with compilation
+    } else {
+      console.log(`[Offline Database] Force refresh requested for Surah ${sNum} vocabulary compilation.`);
     }
 
     const versesCount = parseInt(totalVerses);

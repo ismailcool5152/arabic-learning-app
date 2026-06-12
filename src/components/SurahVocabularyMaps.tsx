@@ -198,7 +198,7 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
   }, [selectedSurahNumber]);
 
   // Compile with Gemini on-the-fly
-  const compileWithGemini = async () => {
+  const compileWithGemini = async (forceRefresh: boolean = false) => {
     setIsCompiling(true);
     setErrorMessage(null);
     setCompileProgress('Contacting Gemini and analyzing roots...');
@@ -210,7 +210,8 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
           surahNum: selectedSurahNumber,
           surahName: activeSurahMeta.transliteration,
           totalVerses: activeSurahMeta.totalVerses,
-          customApiKey: customApiKey
+          customApiKey: customApiKey,
+          forceRefresh
         })
       });
 
@@ -753,6 +754,15 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
                     <option value="appearance">Ayah Order</option>
                     <option value="alphabetical">Alphabetical</option>
                   </select>
+
+                  {/* Force Refresh Button */}
+                  <button
+                    onClick={() => compileWithGemini(true)}
+                    className="px-2 py-1.5 rounded-lg border border-indigo-500/40 text-indigo-500 hover:bg-indigo-500/10 transition-colors uppercase font-mono text-[10px] font-bold flex items-center gap-1"
+                    title="Invalidate cache and generate a fresh analysis for this Surah"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" /> Force Refresh
+                  </button>
                 </div>
 
               </div>
