@@ -2,6 +2,26 @@
 
 type StorageListener = () => void;
 
+function safeStringify(obj: any): string {
+  const seen = new WeakSet();
+  const circularReplacer = (k: string, v: any) => {
+    if (typeof v === "object" && v !== null) {
+      if (seen.has(v)) {
+        return "[Circular]";
+      }
+      seen.add(v);
+      if (typeof HTMLElement !== "undefined" && v instanceof HTMLElement) {
+        return `[HTMLObject: ${v.constructor.name || 'HTMLElement'}]`;
+      }
+      if (v.constructor && v.constructor.name && v.constructor.name.includes('HTML')) {
+        return `[HTMLObject: ${v.constructor.name}]`;
+      }
+    }
+    return v;
+  };
+  return JSON.stringify(obj, circularReplacer);
+}
+
 class AppStorage {
   private cache: Record<string, string> = {};
   private initialized: boolean = false;
@@ -65,7 +85,7 @@ class AppStorage {
         }
       }
     } catch (err) {
-      console.error("[appStorage] Failed to fetch server-side state during startup sync:", err);
+      console.warn("[appStorage] Notice: Server state fetch skipped during startup sync (using local storage fallback):", err);
     }
   }
 
@@ -74,18 +94,28 @@ class AppStorage {
   }
 
   public setItem(key: string, value: string): void {
+    let sanitizedValue = value;
+    if (typeof sanitizedValue !== 'string') {
+      console.warn(`[appStorage] Warning: setItem called with non-string value for key "${key}". Converting to string.`);
+      try {
+        sanitizedValue = safeStringify(sanitizedValue);
+      } catch (e) {
+        sanitizedValue = String(sanitizedValue);
+      }
+    }
+
     if (key !== 'quranic_arabic_last_modified') {
       const now = Date.now().toString();
       this.cache['quranic_arabic_last_modified'] = now;
       try { localStorage.setItem('quranic_arabic_last_modified', now); } catch {}
     }
-    this.cache[key] = value;
+    this.cache[key] = sanitizedValue;
     this.notifyListeners();
     this.queueSave();
 
     // Secondary replication
     try {
-      localStorage.setItem(key, value);
+      localStorage.setItem(key, sanitizedValue);
     } catch {}
   }
 
@@ -145,10 +175,10 @@ class AppStorage {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(stateObject),
+        body: safeStringify(stateObject),
       });
     } catch (err) {
-      console.error("[appStorage] Failed to auto-sync state to server:", err);
+      console.warn("[appStorage] Notice: Could not sync state to server (operating in offline fallback mode):", err);
     }
   }
 }

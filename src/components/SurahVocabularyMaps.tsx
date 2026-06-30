@@ -27,7 +27,9 @@ import {
   Brain,
   Hash,
   ChevronRight,
-  ChevronDown
+  ChevronDown,
+  LayoutGrid,
+  RotateCcw
 } from 'lucide-react';
 
 interface SurahVocabularyMapsProps {
@@ -69,6 +71,13 @@ interface IrabAnalysisResponse {
   word: string;
   cases: IrabCase[];
   irregularNotes: string;
+  pattern?: string;
+  prefix?: string;
+  prefixMeaningShift?: string;
+  suffix?: string;
+  suffixMeaningShift?: string;
+  infix?: string;
+  wordFormationBreakdown?: string;
 }
 
 export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps) {
@@ -117,13 +126,22 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
     : 'bg-black/75 backdrop-blur-sm';
 
   // Navigation & State
-  const [selectedSurahNumber, setSelectedSurahNumber] = useState<number>(114);
+  const [selectedSurahNumber, setSelectedSurahNumber] = useState<number>(() => {
+    const saved = appStorage.getItem('surah_vocab_last_surah_num');
+    return saved ? parseInt(saved, 10) : 114;
+  });
+
+  useEffect(() => {
+    appStorage.setItem('surah_vocab_last_surah_num', selectedSurahNumber.toString());
+  }, [selectedSurahNumber]);
+
   const [surahSearchText, setSurahSearchText] = useState<string>('');
   
   // Ayah range constraints
   const [useRange, setUseRange] = useState<boolean>(false);
   const [ayahStart, setAyahStart] = useState<number>(1);
   const [ayahEnd, setAyahEnd] = useState<number>(6);
+  const [selectedVerses, setSelectedVerses] = useState<number[]>([]);
 
   // Database loading
   const [vocabData, setVocabData] = useState<VocabMapResponse | null>(null);
@@ -165,20 +183,25 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
     setAyahStart(1);
     setAyahEnd(activeSurahMeta.totalVerses);
     setUseRange(false);
+    setSelectedVerses([]);
   }, [selectedSurahNumber, activeSurahMeta]);
 
   // Load Vocab Map
-  const loadVocabMap = async (forceNoAi: boolean = false) => {
+  const loadVocabMap = async (forceRefresh: boolean = false) => {
     setIsLoading(true);
     setErrorMessage(null);
     try {
       const activeMeta = SURAH_MAPPING_LIST.find(s => s.number === selectedSurahNumber);
       const res = await fetch('/api/surah-vocab-map', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(forceRefresh ? { 'X-Bypass-Cache': 'true' } : {})
+        },
         body: JSON.stringify({ 
           surahNum: selectedSurahNumber,
-          totalVerses: activeMeta ? activeMeta.totalVerses : undefined
+          totalVerses: activeMeta ? activeMeta.totalVerses : undefined,
+          forceRefresh
         })
       });
       if (!res.ok) throw new Error('Failed to retrieve vocabulary data from database.');
@@ -211,7 +234,10 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
           surahName: activeSurahMeta.transliteration,
           totalVerses: activeSurahMeta.totalVerses,
           customApiKey: customApiKey,
-          forceRefresh
+          forceRefresh,
+          selectedVerses: selectedVerses.length > 0 ? selectedVerses : undefined,
+          ayahStart: useRange ? ayahStart : 1,
+          ayahEnd: useRange ? ayahEnd : activeSurahMeta.totalVerses
         })
       });
 
@@ -262,16 +288,24 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
     setActiveDetailWord(word);
     setActiveDetailTab('dna');
     setIrabAnalysis(null);
+    loadDeepIrabShifts(word);
   };
 
   // Filter and constraint lists
   const filteredWords = useMemo(() => {
-    if (!vocabData || vocabData.isPlaceholder) return [];
+    if (!vocabData) return [];
 
     let list = [...vocabData.vocabList];
 
-    // Filter by ayah range
-    if (useRange) {
+    // Filter by selected verses or ayah range
+    if (selectedVerses.length > 0) {
+      list = list.filter(w => {
+        return w.occurrences.some(o => {
+          const ayah = parseInt(o.split(':')[1] || o);
+          return selectedVerses.includes(ayah);
+        });
+      });
+    } else if (useRange) {
       list = list.filter(w => {
         return w.occurrences.some(o => {
           const ayah = parseInt(o.split(':')[1] || o);
@@ -316,7 +350,7 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
     }
 
     return list;
-  }, [vocabData, useRange, ayahStart, ayahEnd, activeWordTypeFilter, wordSearchText, sortBy]);
+  }, [vocabData, selectedVerses, useRange, ayahStart, ayahEnd, activeWordTypeFilter, wordSearchText, sortBy]);
 
   // Group by roots view
   const rootGroupedMap = useMemo(() => {
@@ -333,9 +367,26 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
     });
   }, [filteredWords]);
 
+  // Unique set of loaded Ayas extracted from the vocabList occurrences
+  const loadedAyas = useMemo(() => {
+    if (!vocabData || !vocabData.vocabList) return new Set<number>();
+    const ayas = new Set<number>();
+    vocabData.vocabList.forEach(w => {
+      if (w.occurrences) {
+        w.occurrences.forEach(o => {
+          const ayahNum = parseInt(o.split(':')[1] || o);
+          if (!isNaN(ayahNum)) {
+            ayas.add(ayahNum);
+          }
+        });
+      }
+    });
+    return ayas;
+  }, [vocabData]);
+
   // Stats calculation
   const metrics = useMemo(() => {
-    if (!vocabData || vocabData.isPlaceholder || filteredWords.length === 0) {
+    if (!vocabData || filteredWords.length === 0) {
       return { totalUnique: 0, totalInstances: 0, nouns: 0, verbs: 0, particles: 0, topRoot: 'None' };
     }
 
@@ -346,13 +397,28 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
     const rootCounts: Record<string, number> = {};
 
     filteredWords.forEach(w => {
-      instances += w.frequency;
+      let occurrenceCountInSelection = 0;
+      if (selectedVerses.length > 0) {
+        occurrenceCountInSelection = w.occurrences.filter(o => {
+          const ayah = parseInt(o.split(':')[1] || o);
+          return selectedVerses.includes(ayah);
+        }).length;
+      } else if (useRange) {
+        occurrenceCountInSelection = w.occurrences.filter(o => {
+          const ayah = parseInt(o.split(':')[1] || o);
+          return ayah >= ayahStart && ayah <= ayahEnd;
+        }).length;
+      } else {
+        occurrenceCountInSelection = w.frequency || w.occurrences.length || 1;
+      }
+
+      instances += occurrenceCountInSelection;
       if (w.wordType === 'Ism') nouns++;
       else if (w.wordType === "Fi'l") verbs++;
       else if (w.wordType === 'Harf') particles++;
 
       if (w.root && w.root !== 'None') {
-        rootCounts[w.root] = (rootCounts[w.root] || 0) + w.frequency;
+        rootCounts[w.root] = (rootCounts[w.root] || 0) + occurrenceCountInSelection;
       }
     });
 
@@ -373,7 +439,7 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
       particles,
       topRoot: maxRoot !== 'None' ? `${maxRoot} (${maxCount}x)` : 'Various'
     };
-  }, [vocabData, filteredWords]);
+  }, [vocabData, filteredWords, selectedVerses, useRange, ayahStart, ayahEnd]);
 
   // Surahs mapping filtered list for search dropdown
   const filteredSurahsList = useMemo(() => {
@@ -487,7 +553,7 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
                         </div>
                         <div className="flex items-center gap-3">
                           <span className="text-[11px] font-serif text-right">{surah.name}</span>
-                          <span className="opacity-40 text-[9px] font-mono">{surah.totalVerses} Ayas</span>
+                          <span className="opacity-40 text-[9px] font-mono">{surah.totalVerses} Ayahs</span>
                         </div>
                       </button>
                     );
@@ -501,68 +567,273 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
               <div>
                 <p className="text-xs opacity-50">Selected Chapter</p>
                 <p className="text-lg font-serif font-black">{activeSurahMeta.transliteration}</p>
-                <p className="text-xs opacity-40 font-mono">Surah {activeSurahMeta.number} • {activeSurahMeta.totalVerses} Ayas</p>
+                <div className="flex flex-col gap-1.5 mt-0.5">
+                  <p className="text-xs opacity-40 font-mono">Surah {activeSurahMeta.number} • {activeSurahMeta.totalVerses} Ayahs</p>
+                  {vocabData && (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
+                        loadedAyas.size === activeSurahMeta.totalVerses
+                          ? 'bg-emerald-500/10 text-emerald-400'
+                          : 'bg-amber-500/10 text-amber-400'
+                      }`}>
+                        LOADED: {loadedAyas.size} / {activeSurahMeta.totalVerses} verses
+                      </span>
+                      <button
+                        onClick={() => loadVocabMap(true)}
+                        disabled={isLoading}
+                        className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border border-dashed border-current/20 hover:border-current/40 hover:bg-current/5 flex items-center gap-1 opacity-70 hover:opacity-100 disabled:opacity-40 cursor-pointer transition-all"
+                        title="Force sync this chapter with API Server"
+                      >
+                        {isLoading ? (
+                          <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                        ) : (
+                          <RotateCcw className="w-2.5 h-2.5" />
+                        )}
+                        Sync / Refresh
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="text-right">
                 <span className="text-3xl font-serif font-medium">{activeSurahMeta.name}</span>
               </div>
             </div>
 
+            {/* Visual Ayah Status Grid Map */}
+            {vocabData && (
+              <div className="space-y-2.5 p-3 border border-current/10 bg-current/[0.02] rounded-xl animate-fadeIn">
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="opacity-60 font-bold uppercase tracking-wider flex items-center gap-1">
+                    <LayoutGrid className="w-3.5 h-3.5 text-indigo-400" /> Verse Load Map
+                  </span>
+                  <span className="text-[10px] opacity-75 font-bold font-mono">
+                    {loadedAyas.size} of {activeSurahMeta.totalVerses} loaded
+                  </span>
+                </div>
+                
+                {/* Scrollable grid container if Surah is large */}
+                <div className="flex flex-wrap gap-1 pt-1 max-h-32 overflow-y-auto custom-scrollbar pr-1">
+                  {Array.from({ length: activeSurahMeta.totalVerses }, (_, idx) => {
+                    const ayahNum = idx + 1;
+                    const isLoaded = loadedAyas.has(ayahNum);
+                    const isCustomSelected = selectedVerses.includes(ayahNum);
+                    const isCurrentlySelected = isCustomSelected || (selectedVerses.length === 0 && useRange && ayahNum >= ayahStart && ayahNum <= ayahEnd);
+                    
+                    return (
+                      <button
+                        key={ayahNum}
+                        type="button"
+                        onClick={() => {
+                          setSelectedVerses(prev => {
+                            if (prev.includes(ayahNum)) {
+                              return prev.filter(v => v !== ayahNum);
+                            } else {
+                              return [...prev, ayahNum].sort((a, b) => a - b);
+                            }
+                          });
+                        }}
+                        className={`w-6 h-6 rounded flex items-center justify-center text-[9px] font-bold font-mono transition-all duration-200 cursor-pointer ${
+                          isLoaded
+                            ? isCurrentlySelected
+                              ? 'bg-indigo-500 text-white ring-2 ring-indigo-400 ring-offset-1 ring-offset-black/50'
+                              : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30'
+                            : isCurrentlySelected
+                              ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/50 ring-2 ring-indigo-400'
+                              : 'bg-current/5 hover:bg-current/10 opacity-50 hover:opacity-100 text-current/80 border border-current/10'
+                        }`}
+                        title={`Ayah ${ayahNum}: ${isLoaded ? 'Loaded' : 'Not Loaded'} (${isCustomSelected ? 'Selected' : 'Click to select'})`}
+                      >
+                        {ayahNum}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Grid controls */}
+                <div className="flex items-center gap-1.5 pt-1.5 border-t border-current/5">
+                  <span className="text-[9px] font-mono opacity-50 mr-auto uppercase tracking-wider">Select:</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const all = Array.from({ length: activeSurahMeta.totalVerses }, (_, i) => i + 1);
+                      setSelectedVerses(all);
+                    }}
+                    className="px-2 py-0.5 rounded bg-current/5 hover:bg-current/10 text-[9px] font-mono font-bold transition cursor-pointer"
+                  >
+                    All
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const unloaded = Array.from({ length: activeSurahMeta.totalVerses }, (_, i) => i + 1)
+                        .filter(ayahNum => !loadedAyas.has(ayahNum));
+                      setSelectedVerses(unloaded);
+                    }}
+                    className="px-2 py-0.5 rounded bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 text-[9px] font-mono font-bold transition cursor-pointer"
+                  >
+                    Unloaded
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedVerses([]);
+                    }}
+                    className="px-2 py-0.5 rounded bg-current/5 hover:bg-current/10 text-[9px] font-mono font-bold transition cursor-pointer"
+                  >
+                    Clear
+                  </button>
+                </div>
+                
+                <div className="flex items-center justify-between pt-1 text-[9px] font-mono opacity-50">
+                  <div className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded bg-emerald-500/20 border border-emerald-500/30"></span>
+                    <span>Loaded</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded bg-current/5 border border-current/10"></span>
+                    <span>Not Loaded</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded bg-indigo-500"></span>
+                    <span>Selected</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Step 2: Ayah range selector */}
             <div className="space-y-3 pt-2 border-t border-current/10">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-mono font-bold uppercase tracking-wider opacity-60 flex items-center gap-1.5">
-                  <Sliders className="w-3.5 h-3.5" /> 2. Ayah Boundary Constraints
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setUseRange(!useRange)}
-                  className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded transition-all ${
-                    useRange ? 'bg-indigo-500 text-white' : 'bg-current/10 opacity-60'
-                  }`}
-                >
-                  {useRange ? 'BOUND ACTIVE' : 'ALL VERSES'}
-                </button>
-              </div>
-
-              {useRange && (
-                <div className="space-y-4 p-4 border border-current/10 rounded-xl bg-current/5 animate-slideDown">
-                  <div className="flex items-center justify-between text-xs font-mono">
-                    <span>Ayah {ayahStart}</span>
-                    <span className="opacity-40">to</span>
-                    <span>Ayah {ayahEnd}</span>
+              {selectedVerses.length > 0 ? (
+                <div className="p-3 border border-indigo-500/20 bg-indigo-500/5 rounded-xl space-y-1 animate-slideDown">
+                  <div className="flex items-center justify-between text-xs font-mono font-bold text-indigo-400">
+                    <span className="flex items-center gap-1"><Sliders className="w-3.5 h-3.5" /> Custom Verse Selection</span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedVerses([])}
+                      className="text-[10px] underline hover:text-indigo-300 transition cursor-pointer"
+                    >
+                      Use Full Range
+                    </button>
                   </div>
-                  
-                  {/* Slider limits */}
-                  <div className="space-y-2">
-                    <input
-                      type="range"
-                      min={1}
-                      max={activeSurahMeta.totalVerses}
-                      value={ayahStart}
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value);
-                        setAyahStart(val);
-                        if (val > ayahEnd) setAyahEnd(val);
-                      }}
-                      className="w-full accent-indigo-500 h-1 bg-current/10 rounded-lg cursor-pointer"
-                    />
-                    <input
-                      type="range"
-                      min={1}
-                      max={activeSurahMeta.totalVerses}
-                      value={ayahEnd}
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value);
-                        setAyahEnd(val);
-                        if (val < ayahStart) setAyahStart(val);
-                      }}
-                      className="w-full accent-indigo-500 h-1 bg-current/10 rounded-lg cursor-pointer"
-                    />
-                  </div>
-                  <p className="text-[10px] opacity-40 text-center font-mono">Drag sliders to isolate a specific section of the Surah (e.g. first 5 Ayahs)</p>
+                  <p className="text-[10px] font-mono text-indigo-300/80 leading-relaxed">
+                    Selected verses: {selectedVerses.join(', ')}. Custom map selection is currently filtering active vocabulary.
+                  </p>
                 </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-mono font-bold uppercase tracking-wider opacity-60 flex items-center gap-1.5">
+                      <Sliders className="w-3.5 h-3.5" /> 2. Ayah Boundary Constraints
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setUseRange(!useRange)}
+                      className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded transition-all ${
+                        useRange ? 'bg-indigo-500 text-white' : 'bg-current/10 opacity-60'
+                      }`}
+                    >
+                      {useRange ? 'BOUND ACTIVE' : 'ALL VERSES'}
+                    </button>
+                  </div>
+
+                  {useRange && (
+                    <div className="space-y-4 p-4 border border-current/10 rounded-xl bg-current/5 animate-slideDown">
+                      <div className="flex items-center justify-between text-xs font-mono">
+                        <span>Ayah {ayahStart}</span>
+                        <span className="opacity-40">to</span>
+                        <span>Ayah {ayahEnd}</span>
+                      </div>
+                      
+                      {/* Slider limits */}
+                      <div className="space-y-2">
+                        <input
+                          type="range"
+                          min={1}
+                          max={activeSurahMeta.totalVerses}
+                          value={ayahStart}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value);
+                            setAyahStart(val);
+                            if (val > ayahEnd) setAyahEnd(val);
+                          }}
+                          className="w-full accent-indigo-500 h-1 bg-current/10 rounded-lg cursor-pointer"
+                        />
+                        <input
+                          type="range"
+                          min={1}
+                          max={activeSurahMeta.totalVerses}
+                          value={ayahEnd}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value);
+                            setAyahEnd(val);
+                            if (val < ayahStart) setAyahStart(val);
+                          }}
+                          className="w-full accent-indigo-500 h-1 bg-current/10 rounded-lg cursor-pointer"
+                        />
+                      </div>
+                      <p className="text-[10px] opacity-40 text-center font-mono">Drag sliders to isolate a specific section of the Surah (e.g. first 5 Ayahs)</p>
+                    </div>
+                  )}
+                </>
               )}
+            </div>
+
+            {/* Step 3: Action Trigger for Dynamic AI Compilation */}
+            <div className="space-y-3 pt-3 border-t border-current/10">
+              <label className="text-xs font-mono font-bold uppercase tracking-wider opacity-60 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-indigo-400 animate-pulse" /> 3. Synthesize &amp; Load Ayahs
+              </label>
+              
+              <button
+                type="button"
+                onClick={() => compileWithGemini(true)}
+                disabled={isCompiling || isLoading}
+                className={`w-full py-2.5 px-4 rounded-xl font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm border ${
+                  isCompiling 
+                    ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30 animate-pulse' 
+                    : 'bg-indigo-500 hover:bg-indigo-600 text-white hover:shadow-md border-indigo-600'
+                }`}
+              >
+                {isCompiling ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-indigo-400 shrink-0" />
+                    <span>COMPILING SELECTION...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 text-white animate-pulse" />
+                    <span>
+                      {(() => {
+                        if (selectedVerses.length > 0) {
+                          const unloadedInSelection = selectedVerses.filter(v => !loadedAyas.has(v));
+                          return unloadedInSelection.length > 0
+                            ? `LOAD UNLOADED (${unloadedInSelection.length} of ${selectedVerses.length} selected)`
+                            : `RE-COMPILE SELECTED (${selectedVerses.length})`;
+                        } else if (useRange) {
+                          const rangeAyas = Array.from({ length: ayahEnd - ayahStart + 1 }, (_, i) => ayahStart + i);
+                          const unloadedInRange = rangeAyas.filter(v => !loadedAyas.has(v)).length;
+                          return unloadedInRange > 0
+                            ? `LOAD ${unloadedInRange} UNLOADED IN RANGE`
+                            : `RE-COMPILE RANGE (Ayah ${ayahStart}-${ayahEnd})`;
+                        } else {
+                          const allAyas = Array.from({ length: activeSurahMeta.totalVerses }, (_, i) => i + 1);
+                          const totalUnloaded = allAyas.filter(v => !loadedAyas.has(v)).length;
+                          return totalUnloaded > 0
+                            ? `LOAD ${totalUnloaded} UNLOADED AYAHS`
+                            : `RE-COMPILE ENTIRE CHAPTER`;
+                        }
+                      })()}
+                    </span>
+                  </>
+                )}
+              </button>
+              
+              <p className="text-[10px] opacity-50 text-center leading-normal font-mono">
+                {selectedVerses.length > 0 
+                  ? "Only unloaded verses in your selection will call Gemini AI, saving API quota." 
+                  : "Only unloaded verses in the selected range will call Gemini AI, saving API quota."}
+              </p>
             </div>
 
             {/* Custom API Key input helper if user has issues with limit */}
@@ -603,7 +874,7 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
           )}
 
           {/* Placeholder/Compile State Banner */}
-          {!isLoading && vocabData && vocabData.isPlaceholder && (
+          {!isLoading && vocabData && vocabData.isPlaceholder && (!vocabData.vocabList || vocabData.vocabList.length === 0) && (
             <div className="p-8 md:p-12 text-center border border-yellow-500/20 bg-yellow-500/[0.02] rounded-2xl space-y-6">
               <div className="p-4 rounded-full bg-yellow-500/10 text-yellow-400 w-16 h-16 flex items-center justify-center mx-auto">
                 <Sparkles className="w-8 h-8" />
@@ -632,7 +903,7 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
               ) : (
                 <button
                   type="button"
-                  onClick={compileWithGemini}
+                  onClick={() => compileWithGemini(true)}
                   className="px-6 py-3 rounded-xl font-mono text-xs font-bold bg-indigo-500 hover:bg-indigo-600 text-white transition-all transform shadow-md flex items-center gap-2 mx-auto cursor-pointer"
                 >
                   <Sparkles className="w-4 h-4" /> COMPILE WITH GEMINI AI (FLASH-3.5)
@@ -642,9 +913,74 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
           )}
 
           {/* Active Worksite */}
-          {!isLoading && vocabData && !vocabData.isPlaceholder && (
+          {!isLoading && vocabData && (!vocabData.isPlaceholder || (vocabData.vocabList && vocabData.vocabList.length > 0)) && (
             <div className="space-y-6">
               
+              {/* Dynamic Compile State or Error */}
+              {isCompiling && (
+                <div className="p-4 border border-indigo-500/30 bg-indigo-500/5 text-indigo-400 rounded-2xl flex items-center justify-between gap-4 animate-pulse">
+                  <div className="flex items-center gap-2.5">
+                    <Loader2 className="w-5 h-5 animate-spin text-indigo-400 shrink-0" />
+                    <div>
+                      <p className="font-bold text-xs uppercase tracking-wider font-mono">AI Compilation in Progress</p>
+                      <p className="text-xs opacity-85">{compileProgress || 'Translating and parsing roots...'}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {errorMessage && (
+                <div className="p-4 border border-red-500/30 bg-red-500/5 text-red-600 dark:text-red-400 rounded-2xl space-y-3 animate-fadeIn">
+                  <div className="flex items-start gap-2.5">
+                    <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-500" />
+                    <div className="flex-1 space-y-1">
+                      <p className="font-bold text-xs uppercase tracking-wider font-mono">Dynamic AI Compilation Encountered an Issue</p>
+                      <p className="text-xs opacity-90 leading-relaxed">
+                        {errorMessage}
+                      </p>
+                      <div className="pt-2 text-xs opacity-80 leading-relaxed space-y-1">
+                        <p className="font-bold">✨ Helpful Troubleshooting Tips:</p>
+                        <ul className="list-disc list-inside space-y-0.5 pl-1 opacity-90">
+                          <li>The free tier API has global rate limits; try waiting a few seconds before retrying.</li>
+                          <li>Consider selecting a <strong>smaller Ayah range</strong> (e.g., 5-10 verses) to fit within free API token windows.</li>
+                          <li>You can configure your own high-speed personal Gemini API key in the left-hand panel under "Custom settings" to bypass all limits.</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <button
+                      onClick={() => setErrorMessage(null)}
+                      className="px-3 py-1.5 rounded-lg border border-current/10 hover:bg-current/5 text-[10px] font-mono uppercase font-bold cursor-pointer"
+                    >
+                      Dismiss Alert
+                    </button>
+                    <button
+                      onClick={() => compileWithGemini(true)}
+                      disabled={isCompiling}
+                      className="px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/30 text-[10px] font-mono uppercase font-bold flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                    >
+                      <Sparkles className="w-3 h-3 animate-pulse" /> Retry Compilation
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Partial Compilation Banner */}
+              {vocabData.isPlaceholder && vocabData.vocabList && vocabData.vocabList.length > 0 && (
+                <div className="p-4 border border-indigo-500/30 bg-indigo-500/5 text-indigo-400 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fadeIn">
+                  <div className="flex items-start gap-2.5">
+                    <Sparkles className="w-5 h-5 flex-shrink-0 mt-0.5 text-indigo-400 animate-pulse" />
+                    <div>
+                      <p className="font-bold text-xs uppercase tracking-wider font-mono">Partial Chapter Profile ({vocabData.totalVersesInDb} of {activeSurahMeta.totalVerses} verses)</p>
+                      <p className="text-xs opacity-80 leading-normal">
+                        This chapter contains a pre-compiled subset. You can isolate a specific section using the <strong>Ayah Boundary Constraints</strong> (Step 2) and click the <strong>Synthesize &amp; Load Ayahs</strong> button (Step 3) in the left panel to compile missing verses on-the-fly via Gemini AI.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Fallback Warning block */}
               {vocabData.isOfflineFallback && (
                 <div className="p-4 border border-yellow-500/30 bg-yellow-500/5 text-yellow-600 dark:text-yellow-400 rounded-2xl space-y-2 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fadeIn">
@@ -775,15 +1111,35 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
               ) : !isGroupedByRoot ? (
                 
                 /* FLAT WORD CARD GRID */
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="vocab-word-grid">
-                  {filteredWords.map((word) => {
-                    return (
-                      <motion.div
-                        key={word.word}
-                        layoutId={`card-${word.word}`}
-                        onClick={() => handleSelectWord(word)}
-                        className="p-4 border border-current/10 bg-current/5 hover:border-indigo-500/30 rounded-xl flex flex-col justify-between shadow-sm cursor-pointer hover:shadow-md transition-all transform hover:-translate-y-0.5 group"
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+                    <span className="text-[10px] sm:text-xs font-mono opacity-75 flex items-center gap-1 bg-indigo-500/15 text-indigo-400 px-2.5 py-1 rounded-lg">
+                      📖 Right-to-Left (RTL) Reading Flow
+                    </span>
+                    {sortBy !== 'appearance' ? (
+                      <button
+                        onClick={() => setSortBy('appearance')}
+                        className="text-[10px] font-mono text-indigo-400 hover:underline font-bold"
                       >
+                        ⚡ Switch to Ayah Order to read in sequence
+                      </button>
+                    ) : (
+                      <span className="text-[10px] font-mono opacity-50">
+                        ✓ Sequenced by first occurrence (Ayah Order)
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" dir="rtl" id="vocab-word-grid">
+                    {filteredWords.map((word) => {
+                      return (
+                        <motion.div
+                          key={word.word}
+                          layoutId={`card-${word.word}`}
+                          onClick={() => handleSelectWord(word)}
+                          dir="ltr"
+                          className="p-4 border border-current/10 bg-current/5 hover:border-indigo-500/30 rounded-xl flex flex-col justify-between shadow-sm cursor-pointer hover:shadow-md transition-all transform hover:-translate-y-0.5 group text-left"
+                        >
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
                             <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded ${
@@ -822,6 +1178,7 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
                     );
                   })}
                 </div>
+              </div>
               ) : (
                 
                 /* ROOT-GROUPED ACCORDION VIEW */
@@ -877,18 +1234,18 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
       {/* POPUP DRAWER MODAL FOR WORD DETAILS */}
       <AnimatePresence>
         {activeDetailWord && (
-          <div className={`fixed inset-0 flex items-center justify-center z-50 p-4 ${backdropClass}`}>
+          <div className={`fixed inset-0 flex items-center justify-center z-50 p-2 sm:p-4 ${backdropClass}`}>
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className={`w-full max-w-2xl border shadow-2xl rounded-2xl overflow-hidden flex flex-col max-h-[85vh] ${solidBgClass} ${modalBorderClass}`}
+              className={`w-full max-w-2xl border shadow-2xl rounded-2xl overflow-hidden flex flex-col max-h-[90vh] ${solidBgClass} ${modalBorderClass}`}
             >
               
               {/* Header card with big Arabic script */}
-              <div className="p-6 border-b border-current/10 bg-current/5 relative flex items-center justify-between">
-                <div className="space-y-1.5 flex-1 pr-6">
-                  <div className="flex items-center gap-2">
+              <div className="p-4 sm:p-6 border-b border-current/10 bg-current/5 relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                <div className="space-y-1 sm:space-y-1.5 flex-1 pr-8 sm:pr-6">
+                  <div className="flex flex-wrap items-center gap-1.5">
                     <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded ${
                       activeDetailWord.wordType === 'Ism' ? 'bg-emerald-500/20 text-emerald-400' :
                       activeDetailWord.wordType === "Fi'l" ? 'bg-amber-500/20 text-amber-400' :
@@ -902,13 +1259,13 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
                       </span>
                     )}
                   </div>
-                  <h3 className="text-2xl font-serif font-black select-none tracking-tight h-[32px] leading-[32px]">{activeDetailWord.transliteration}</h3>
-                  <p className="text-sm opacity-60 leading-none">{activeDetailWord.meanings.join(' / ')}</p>
+                  <h3 className="text-xl sm:text-2xl font-serif font-black select-none tracking-tight leading-tight pt-1">{activeDetailWord.transliteration}</h3>
+                  <p className="text-sm opacity-70 leading-normal font-medium">{activeDetailWord.meanings.join(' / ')}</p>
                 </div>
 
-                <div className="text-right flex flex-col items-end gap-1 justify-center min-w-[120px]">
-                  <p className="text-4xl font-serif font-black tracking-widest leading-none select-all">{activeDetailWord.word}</p>
-                  <p className="text-[10px] font-mono opacity-50">Appears {activeDetailWord.frequency} times here</p>
+                <div className="text-left sm:text-right flex sm:flex-col items-start sm:items-end gap-1.5 justify-between sm:justify-center min-w-[120px] pt-2 sm:pt-0 border-t sm:border-t-0 border-current/5 sm:border-none">
+                  <p className="text-4xl sm:text-5xl font-serif font-black tracking-widest leading-none select-all">{activeDetailWord.word}</p>
+                  <p className="text-[10px] sm:text-xs font-mono opacity-50">Appears {activeDetailWord.frequency} times here</p>
                 </div>
 
                 {/* Close Button */}
@@ -925,82 +1282,224 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
               </div>
 
               {/* Tabs list inside modal */}
-              <div className="flex border-b border-current/10 bg-current/[0.02] font-mono text-xs select-none">
+              <div className="flex border-b border-current/10 bg-current/[0.02] font-mono text-[11px] sm:text-xs select-none overflow-x-auto scrollbar-none divide-x divide-current/5 shrink-0">
                 <button
                   type="button"
                   onClick={() => setActiveDetailTab('dna')}
-                  className={`flex-1 py-3 text-center border-b-2 font-bold transition-all ${
-                    activeDetailTab === 'dna' ? 'border-indigo-500 text-indigo-500 bg-current/5' : 'border-transparent opacity-60 hover:opacity-100'
+                  className={`flex-1 py-3 px-2 text-center border-b-2 font-bold transition-all whitespace-nowrap ${
+                    activeDetailTab === 'dna' ? 'border-indigo-500 text-indigo-500 bg-current/5 font-black' : 'border-transparent opacity-60 hover:opacity-100'
                   }`}
                 >
-                  🧬 Morphological DNA
+                  <span className="hidden sm:inline">🧬 Morphological DNA</span>
+                  <span className="sm:hidden">🧬 DNA</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => {
                     setActiveDetailTab('irab');
-                    // auto trigger if empty and type isn't Harf
                     if (!irabAnalysis && activeDetailWord.wordType !== 'Harf' && !isGeneratingIrab) {
                       loadDeepIrabShifts(activeDetailWord);
                     }
                   }}
-                  className={`flex-1 py-3 text-center border-b-2 font-bold transition-all ${
-                    activeDetailTab === 'irab' ? 'border-indigo-500 text-indigo-500 bg-current/5' : 'border-transparent opacity-60 hover:opacity-100'
+                  className={`flex-1 py-3 px-2 text-center border-b-2 font-bold transition-all whitespace-nowrap ${
+                    activeDetailTab === 'irab' ? 'border-indigo-500 text-indigo-500 bg-current/5 font-black' : 'border-transparent opacity-60 hover:opacity-100'
                   }`}
                 >
-                  ⚖️ I'rab Case Shifts
+                  <span className="hidden sm:inline">⚖️ I'rab Case Shifts</span>
+                  <span className="sm:hidden">⚖️ I'rab</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveDetailTab('rhetoric')}
-                  className={`flex-1 py-3 text-center border-b-2 font-bold transition-all ${
-                    activeDetailTab === 'rhetoric' ? 'border-indigo-500 text-indigo-500 bg-current/5' : 'border-transparent opacity-60 hover:opacity-100'
+                  className={`flex-1 py-3 px-2 text-center border-b-2 font-bold transition-all whitespace-nowrap ${
+                    activeDetailTab === 'rhetoric' ? 'border-indigo-500 text-indigo-500 bg-current/5 font-black' : 'border-transparent opacity-60 hover:opacity-100'
                   }`}
                 >
-                  🏛️ Rhetorical Analysis
+                  <span className="hidden sm:inline">🏛️ Rhetorical Analysis</span>
+                  <span className="sm:hidden">🏛️ Rhetoric</span>
                 </button>
               </div>
 
               {/* Modal scroll area */}
-              <div className="p-6 overflow-y-auto space-y-6 flex-1 scrollbar-thin">
+              <div className="p-4 sm:p-6 overflow-y-auto space-y-6 flex-1 scrollbar-thin">
                 
                 {/* TAB 1: MORPHOLOGY DNA */}
                 {activeDetailTab === 'dna' && (
                   <div className="space-y-6 animate-fadeIn">
                     
                     {/* Morph details grid */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="p-3 border border-current/10 rounded-xl bg-current/5">
-                        <span className="text-[10px] font-mono opacity-50 uppercase tracking-widest block leading-none mb-1">Semantic Root</span>
-                        <span className="text-lg font-serif font-bold text-indigo-400">{activeDetailWord.root}</span>
+                        <span className="text-[10px] sm:text-xs font-mono opacity-50 uppercase tracking-widest block leading-none mb-1">Semantic Root</span>
+                        <span className="text-base sm:text-lg font-serif font-bold text-indigo-400">{activeDetailWord.root}</span>
                       </div>
                       <div className="p-3 border border-current/10 rounded-xl bg-current/5">
-                        <span className="text-[10px] font-mono opacity-50 uppercase tracking-widest block leading-none mb-1">Functional Class</span>
-                        <span className="text-sm font-mono font-bold capitalize">{activeDetailWord.wordType === 'Ism' ? 'Noun / Substantive' : activeDetailWord.wordType === "Fi'l" ? 'Verb Conjugation' : 'Conjunction / Particle'}</span>
+                        <span className="text-[10px] sm:text-xs font-mono opacity-50 uppercase tracking-widest block leading-none mb-1">Functional Class</span>
+                        <span className="text-xs sm:text-sm font-mono font-bold capitalize text-indigo-300">{activeDetailWord.wordType === 'Ism' ? 'Noun / Substantive' : activeDetailWord.wordType === "Fi'l" ? 'Verb Conjugation' : 'Conjunction / Particle'}</span>
                       </div>
                       <div className="p-3 border border-current/10 rounded-xl bg-current/5">
-                        <span className="text-[10px] font-mono opacity-50 uppercase tracking-widest block leading-none mb-1">Surah Occurrences</span>
-                        <span className="text-xs font-mono font-bold">Ayahs: {activeDetailWord.occurrences.join(', ')}</span>
+                        <span className="text-[10px] sm:text-xs font-mono opacity-50 uppercase tracking-widest block leading-none mb-1">Surah Occurrences</span>
+                        <span className="text-xs sm:text-sm font-mono font-bold">Ayahs: {activeDetailWord.occurrences.join(', ')}</span>
                       </div>
                       <div className="p-3 border border-current/10 rounded-xl bg-current/5">
-                        <span className="text-[10px] font-mono opacity-50 uppercase tracking-widest block leading-none mb-1">Unique Index ID</span>
-                        <span className="text-xs font-mono font-bold">VOCAB-{activeDetailWord.transliteration.toUpperCase()}</span>
+                        <span className="text-[10px] sm:text-xs font-mono opacity-50 uppercase tracking-widest block leading-none mb-1">Unique Index ID</span>
+                        <span className="text-xs sm:text-sm font-mono font-bold">VOCAB-{activeDetailWord.transliteration.toUpperCase()}</span>
                       </div>
+                    </div>
+
+                    {/* NEW: DETAILED WORD FORMATION BREAKDOWN */}
+                    <div className="space-y-4">
+                      <h4 className="text-xs sm:text-sm font-mono font-black uppercase tracking-wider opacity-80 flex items-center gap-1.5 border-b border-current/10 pb-2">
+                        <Sparkles className="w-4 h-4 text-indigo-400 animate-pulse" /> Word Formation Engine (Sarf)
+                      </h4>
+
+                      {isGeneratingIrab ? (
+                        <div className="p-6 border border-dashed border-current/10 rounded-2xl bg-current/[0.02] space-y-3">
+                          <div className="flex items-center gap-3">
+                            <Loader2 className="w-4 h-4 animate-spin text-indigo-400 shrink-0" />
+                            <span className="text-xs sm:text-sm font-mono opacity-60">Reconstructing root, affixes, and patterns using Gemini AI...</span>
+                          </div>
+                          <div className="h-1.5 w-full bg-current/5 rounded overflow-hidden">
+                            <motion.div 
+                              className="h-full bg-indigo-500 rounded" 
+                              initial={{ width: "10%" }}
+                              animate={{ width: "90%" }}
+                              transition={{ duration: 4, ease: "easeInOut" }}
+                            />
+                          </div>
+                        </div>
+                      ) : irabAnalysis ? (
+                        <div className="space-y-4 text-left">
+                          
+                          {/* Visual Formula Sequence Chain */}
+                          <div className="p-4 border border-current/10 rounded-2xl bg-current/5 space-y-3">
+                            <span className="text-[10px] sm:text-xs font-mono opacity-50 uppercase tracking-widest block leading-none">Linguistic Formula (Constituents)</span>
+                            <div className="flex flex-wrap items-center gap-1.5 pt-0.5 select-none">
+                              {/* Prefix */}
+                              {irabAnalysis.prefix && irabAnalysis.prefix.toLowerCase() !== 'none' && (
+                                <>
+                                  <div className="px-2.5 py-1.5 rounded-lg border border-teal-500/20 bg-teal-500/10 text-center">
+                                    <span className="text-[9px] font-mono opacity-60 block uppercase text-teal-400 leading-none mb-1">Prefix</span>
+                                    <span className="text-sm font-serif font-black text-teal-300">{irabAnalysis.prefix}</span>
+                                  </div>
+                                  <span className="text-xs opacity-35 font-bold font-mono">+</span>
+                                </>
+                              )}
+
+                              {/* Pattern */}
+                              {irabAnalysis.pattern && irabAnalysis.pattern.toLowerCase() !== 'none' && (
+                                <>
+                                  <div className="px-2.5 py-1.5 rounded-lg border border-purple-500/20 bg-purple-500/10 text-center">
+                                    <span className="text-[9px] font-mono opacity-60 block uppercase text-purple-400 leading-none mb-1">Pattern</span>
+                                    <span className="text-xs sm:text-sm font-serif font-black text-purple-300">{irabAnalysis.pattern.split(' ')[0]}</span>
+                                  </div>
+                                  <span className="text-xs opacity-35 font-bold font-mono">+</span>
+                                </>
+                              )}
+
+                              {/* Root */}
+                              <div className="px-2.5 py-1.5 rounded-lg border border-indigo-500/20 bg-indigo-500/10 text-center">
+                                <span className="text-[9px] font-mono opacity-60 block uppercase text-indigo-400 leading-none mb-1">Root</span>
+                                <span className="text-sm font-serif font-black text-indigo-300">{activeDetailWord.root}</span>
+                              </div>
+
+                              {/* Infix */}
+                              {irabAnalysis.infix && irabAnalysis.infix.toLowerCase() !== 'none' && (
+                                <>
+                                  <span className="text-xs opacity-35 font-bold font-mono">+</span>
+                                  <div className="px-2.5 py-1.5 rounded-lg border border-amber-500/20 bg-amber-500/10 text-center">
+                                    <span className="text-[9px] font-mono opacity-60 block uppercase text-amber-400 leading-none mb-1">Infix</span>
+                                    <span className="text-sm font-serif font-black text-amber-300">{irabAnalysis.infix}</span>
+                                  </div>
+                                </>
+                              )}
+
+                              {/* Suffix */}
+                              {irabAnalysis.suffix && irabAnalysis.suffix.toLowerCase() !== 'none' && (
+                                <>
+                                  <span className="text-xs opacity-35 font-bold font-mono">+</span>
+                                  <div className="px-2.5 py-1.5 rounded-lg border border-pink-500/20 bg-pink-500/10 text-center">
+                                    <span className="text-[9px] font-mono opacity-60 block uppercase text-pink-400 leading-none mb-1">Suffix</span>
+                                    <span className="text-sm font-serif font-black text-pink-300">{irabAnalysis.suffix}</span>
+                                  </div>
+                                </>
+                              )}
+
+                              <span className="text-xs opacity-35 font-bold font-mono">=</span>
+
+                              <div className="px-2.5 py-1.5 rounded-lg border border-current/20 bg-current/10 text-center">
+                                <span className="text-[9px] font-mono opacity-60 block uppercase text-current leading-none mb-1">Term</span>
+                                <span className="text-sm font-serif font-black text-indigo-400">{activeDetailWord.word}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Affix semantic changes card */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {/* Prefix Impact */}
+                            {irabAnalysis.prefix && irabAnalysis.prefix.toLowerCase() !== 'none' && (
+                              <div className="p-3 border border-teal-500/10 bg-teal-500/[0.02] rounded-xl space-y-1">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-[9px] font-mono font-black uppercase bg-teal-500/20 text-teal-400 px-1.5 py-0.5 rounded">Prefix: {irabAnalysis.prefix}</span>
+                                </div>
+                                <p className="text-xs sm:text-sm text-current/80 leading-relaxed font-sans pt-1">
+                                  {irabAnalysis.prefixMeaningShift}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Suffix Impact */}
+                            {irabAnalysis.suffix && irabAnalysis.suffix.toLowerCase() !== 'none' && (
+                              <div className="p-3 border border-pink-500/10 bg-pink-500/[0.02] rounded-xl space-y-1">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-[9px] font-mono font-black uppercase bg-pink-500/20 text-pink-400 px-1.5 py-0.5 rounded">Suffix: {irabAnalysis.suffix}</span>
+                                </div>
+                                <p className="text-xs sm:text-sm text-current/80 leading-relaxed font-sans pt-1">
+                                  {irabAnalysis.suffixMeaningShift}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Pattern Details */}
+                          {irabAnalysis.pattern && irabAnalysis.pattern.toLowerCase() !== 'none' && (
+                            <div className="p-4 border border-purple-500/10 bg-purple-500/[0.02] rounded-xl space-y-1">
+                              <span className="text-[9px] sm:text-xs font-mono font-black uppercase tracking-wider text-purple-400 block mb-0.5">Morphological Pattern (Wazn)</span>
+                              <p className="text-xs sm:text-sm font-mono text-current/80 leading-relaxed">
+                                <strong className="text-purple-300 font-serif text-sm">{irabAnalysis.pattern}</strong>
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Construction breakdown narrative */}
+                          <div className="p-4 sm:p-5 border border-current/10 bg-indigo-500/[0.03] rounded-2xl space-y-2.5">
+                            <span className="text-xs sm:text-sm font-mono font-black uppercase tracking-wider text-indigo-400 block">🧬 Word Formation Breakdown</span>
+                            <p className="text-sm sm:text-[15px] leading-relaxed text-current/90 font-normal whitespace-pre-line text-left">
+                              {irabAnalysis.wordFormationBreakdown}
+                            </p>
+                          </div>
+
+                        </div>
+                      ) : (
+                        <div className="p-4 border border-dashed border-current/10 rounded-xl text-center">
+                          <p className="text-xs sm:text-sm opacity-50">Deep morphology parameters will load in the background shortly...</p>
+                        </div>
+                      )}
                     </div>
 
                     {/* Explanations listing */}
                     <div className="space-y-3">
-                      <h4 className="text-xs font-mono font-bold uppercase tracking-wider opacity-60 flex items-center gap-1.5 border-b border-current/5 pb-2">
+                      <h4 className="text-xs sm:text-sm font-mono font-bold uppercase tracking-wider opacity-60 flex items-center gap-1.5 border-b border-current/5 pb-2">
                         <BookOpen className="w-3.5 h-3.5" /> Parse Explanation (Contextual)
                       </h4>
                       <div className="space-y-3.5">
                         {activeDetailWord.explanations.map((exp, idx) => (
                           <div key={idx} className="p-4 border border-current/10 bg-current/5 rounded-xl space-y-1.5">
-                            <div className="flex items-center justify-between text-[10px] font-mono opacity-50">
+                            <div className="flex items-center justify-between text-[10px] sm:text-xs font-mono opacity-50">
                               <span>Occurrence {idx + 1}</span>
                               <span className="bg-current/10 px-1.5 py-0.5 rounded">Ayah {exp.verse}</span>
                             </div>
-                            <p className="text-xs opacity-70 leading-relaxed text-left">
+                            <p className="text-xs sm:text-sm opacity-80 leading-relaxed text-left">
                               {exp.text}
                             </p>
                           </div>
@@ -1014,14 +1513,14 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
                 {/* TAB 2: I'RAB SHIFTS */}
                 {activeDetailTab === 'irab' && (
                   <div className="space-y-6 animate-fadeIn">
-                    <p className="text-xs opacity-60 leading-relaxed">
+                    <p className="text-xs sm:text-sm opacity-80 leading-relaxed text-left">
                       In classical Quranic Arabic, nouns and verbs inflect their final vowels based on their syntax cases. Explore how changing vowels change the structural DNA.
                     </p>
 
                     {isGeneratingIrab ? (
                       <div className="p-12 text-center border rounded-xl border-current/10 bg-current/5 space-y-3">
                         <Loader2 className="w-6 h-6 animate-spin mx-auto text-indigo-400" />
-                        <p className="text-xs font-mono opacity-50">Running deep morphological paradigm shifts with Gemini...</p>
+                        <p className="text-xs sm:text-sm font-mono opacity-50">Running deep morphological paradigm shifts with Gemini...</p>
                       </div>
                     ) : irabAnalysis ? (
                       <div className="space-y-6 animate-slideDown text-left">
@@ -1030,14 +1529,14 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
                           {irabAnalysis.cases.map((cs) => (
                             <div key={cs.state} className="p-4 hover:bg-current/[0.01] transition-all grid grid-cols-1 md:grid-cols-12 gap-3 items-start">
                               <div className="md:col-span-3 space-y-1">
-                                <span className="text-xs font-serif font-black text-indigo-400 block">{cs.state}</span>
-                                <span className="text-[10px] bg-indigo-500/10 text-indigo-400 font-mono font-black px-2 py-0.5 rounded inline-block">Vowel Vowelling: {cs.vowelMark}</span>
+                                <span className="text-xs sm:text-sm font-serif font-black text-indigo-400 block leading-tight">{cs.state}</span>
+                                <span className="text-[10px] sm:text-xs bg-indigo-500/10 text-indigo-400 font-mono font-black px-2 py-0.5 rounded inline-block">Vowel Vowelling: {cs.vowelMark}</span>
                               </div>
                               <div className="md:col-span-9 space-y-1.5">
-                                <p className="text-xs font-mono leading-relaxed"><strong className="opacity-80">Syntactic Role:</strong> <span className="opacity-60">{cs.grammaticalFunction}</span></p>
-                                <p className="text-xs font-mono leading-relaxed"><strong className="opacity-80">Semantic Shift:</strong> <span className="opacity-60">{cs.meaningShift}</span></p>
+                                <p className="text-xs sm:text-sm font-mono leading-relaxed"><strong className="opacity-80">Syntactic Role:</strong> <span className="opacity-70">{cs.grammaticalFunction}</span></p>
+                                <p className="text-xs sm:text-sm font-mono leading-relaxed"><strong className="opacity-80">Semantic Shift:</strong> <span className="opacity-70">{cs.meaningShift}</span></p>
                                 <div className={`p-2 border border-current/10 rounded-lg flex justify-between items-center mt-1 ${listBgClass}`}>
-                                  <span className="text-xs font-serif text-right">{cs.example}</span>
+                                  <span className="text-xs sm:text-sm font-serif text-right w-full leading-relaxed">{cs.example}</span>
                                 </div>
                               </div>
                             </div>
@@ -1046,8 +1545,8 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
 
                         {irabAnalysis.irregularNotes && (
                           <div className="p-4 border border-indigo-500/10 bg-indigo-500/[0.02] rounded-xl space-y-1">
-                            <span className="text-[10px] font-mono font-black uppercase tracking-wider opacity-60 block">Irregular Inflection Paradigm Notes</span>
-                            <p className="text-xs opacity-60 leading-relaxed italic">{irabAnalysis.irregularNotes}</p>
+                            <span className="text-[10px] sm:text-xs font-mono font-black uppercase tracking-wider opacity-60 block">Irregular Inflection Paradigm Notes</span>
+                            <p className="text-xs sm:text-sm opacity-70 leading-relaxed italic">{irabAnalysis.irregularNotes}</p>
                           </div>
                         )}
 
@@ -1058,7 +1557,7 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
                       </div>
                     ) : (
                       <div className="p-8 text-center border rounded-xl border-dashed border-current/10 space-y-4">
-                        <p className="text-xs opacity-50">Would you like a scholarly paradigm shift breakdown compiled on-the-fly for this word form?</p>
+                        <p className="text-xs sm:text-sm opacity-50">Would you like a scholarly paradigm shift breakdown compiled on-the-fly for this word form?</p>
                         <button
                           type="button"
                           onClick={() => loadDeepIrabShifts(activeDetailWord)}
@@ -1078,19 +1577,19 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
                     
                     <div className="space-y-4">
                       <div className="p-4 border border-current/10 bg-current/5 rounded-xl space-y-2">
-                        <h5 className="text-xs font-mono font-bold uppercase tracking-wider opacity-60 flex items-center gap-1.5 border-b border-current/5 pb-1 select-none">
+                        <h5 className="text-xs sm:text-sm font-mono font-bold uppercase tracking-wider opacity-60 flex items-center gap-1.5 border-b border-current/5 pb-1 select-none">
                           <Compass className="w-4 h-4 text-amber-400" /> Lane's Lexical Definitions
                         </h5>
-                        <p className="text-xs opacity-70 leading-relaxed text-left">
+                        <p className="text-xs sm:text-sm opacity-75 leading-relaxed text-left">
                           This word's root form <strong className="font-serif text-indigo-400">"{activeDetailWord.root}"</strong> derives from classical Semitic foundations. In classic definitions, it denotes the underlying action model of organizing, protecting, and establishing patterns. The choice of the noun form here amplifies the permanence and qualitative mastery compared to a transitory verb state.
                         </p>
                       </div>
 
                       <div className="p-4 border border-current/10 bg-current/5 rounded-xl space-y-2">
-                        <h5 className="text-xs font-mono font-bold uppercase tracking-wider opacity-60 flex items-center gap-1.5 border-b border-current/5 pb-1 select-none">
+                        <h5 className="text-xs sm:text-sm font-mono font-bold uppercase tracking-wider opacity-60 flex items-center gap-1.5 border-b border-current/5 pb-1 select-none">
                           <Brain className="w-4 h-4 text-emerald-400 animate-pulse" /> Rhetorical (Balāghah) Insights
                         </h5>
-                        <p className="text-xs opacity-70 leading-relaxed text-left">
+                        <p className="text-xs sm:text-sm opacity-75 leading-relaxed text-left">
                           The selection of this pattern (Form or Wazn) represents intensive magnification. Rather than using standard nouns, the Quran often implements tailored dynamic derivations to create phonetic harmony (Saj') with ending verses while reinforcing the thematic majesty of the Surah.
                         </p>
                       </div>
@@ -1102,7 +1601,7 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
               </div>
 
               {/* Close footer */}
-              <div className="p-4 border-t border-current/10 bg-current/5 flex justify-end">
+              <div className="p-4 border-t border-current/10 bg-current/5 flex justify-end shrink-0">
                 <button
                   type="button"
                   onClick={() => {

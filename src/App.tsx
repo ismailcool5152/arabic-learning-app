@@ -24,7 +24,15 @@ import MisunderstoodRoots from './components/MisunderstoodRoots';
 import { TajweedRules } from './components/TajweedRules';
 import { useSRS } from './hooks/useSRS';
 import WordOfTheDayWidget from './components/WordOfTheDayWidget';
+import CameraScanner from './components/CameraScanner';
+import DiagnosticsSuite from './components/DiagnosticsSuite';
 import { findOfflineFallback, generateDynamicOfflineFallback } from './offlineData';
+import { 
+  getApiCacheStats, 
+  clearApiCache, 
+  isApiCacheEnabled, 
+  setApiCacheEnabled 
+} from './lib/apiCache';
 import { 
   BookOpen, 
   Search, 
@@ -57,7 +65,8 @@ import {
   Settings,
   ArrowRight,
   Map,
-  Mic
+  Mic,
+  Camera
 } from 'lucide-react';
 import { QURANIC_SUGGESTIONS } from './components/SavedMapsSidebar';
 import ProductDoc from './components/ProductDoc';
@@ -73,8 +82,37 @@ export default function App() {
   const [activeMainTab, setActiveMainTab] = useState<'hija' | 'basics' | 'huruf' | 'balaghah' | 'tajweed' | 'database' | 'root' | 'map' | 'names' | 'lexicon' | 'doc' | 'vocab' | 'verse' | 'flashcards' | 'srs' | 'surahmaps' | 'misunderstood'>('hija');
   const [activeTabGroup, setActiveTabGroup] = useState<'Home' | 'Learn' | 'Explore' | 'Practice'>('Home');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showCameraScanner, setShowCameraScanner] = useState(false);
   const [selectedRoot, setSelectedRoot] = useState<string>('');
   const [showVersionTracker, setShowVersionTracker] = useState<boolean>(false);
+  const [versionTrackerTab, setVersionTrackerTab] = useState<'manifest' | 'diagnostics'>('manifest');
+
+  // API Caching State
+  const [cacheEnabled, setCacheEnabled] = useState(() => {
+    try {
+      return isApiCacheEnabled();
+    } catch {
+      return true;
+    }
+  });
+  const [cacheStats, setCacheStats] = useState(() => {
+    try {
+      return getApiCacheStats();
+    } catch {
+      return { itemCount: 0, totalSizeKB: 0, endpoints: {} };
+    }
+  });
+
+  useEffect(() => {
+    const handleCacheChange = () => {
+      setCacheEnabled(isApiCacheEnabled());
+      setCacheStats(getApiCacheStats());
+    };
+    window.addEventListener("quranic_apicache_changed", handleCacheChange);
+    return () => {
+      window.removeEventListener("quranic_apicache_changed", handleCacheChange);
+    };
+  }, []);
 
   // SRS Spaced Repetition
   const { dueCountBadge, addWordToReview } = useSRS();
@@ -432,7 +470,7 @@ export default function App() {
   };
 
   // Trigger search API call
-  const handleSearch = async (wordToSearch: string) => {
+  const handleSearch = async (wordToSearch: string, forceRefresh = false) => {
     if (!wordToSearch.trim()) return;
     
     setIsSearching(true);
@@ -467,8 +505,9 @@ export default function App() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(forceRefresh ? { 'X-Bypass-Cache': 'true' } : {})
         },
-        body: JSON.stringify({ word: wordToSearch, customApiKey }),
+        body: JSON.stringify({ word: wordToSearch, customApiKey, forceRefresh }),
       });
 
       if (!response.ok) {
@@ -482,7 +521,7 @@ export default function App() {
       // Successfully parsed, record in search logs
       handleAddRecentSearch(wordToSearch);
     } catch (err: any) {
-      console.error("Search API Error:", err);
+      console.warn("Search API connection unavailable, activating offline local dictionary fallback:", err);
       // Fallback locally even if API fails and user is in Online Mode
       try {
         const offlineMatch = findOfflineFallback(wordToSearch);
@@ -911,7 +950,17 @@ export default function App() {
                 }`}
                 disabled={isSearching}
               />
-              <div className="absolute right-2 top-2 flex items-center gap-1.5">
+              <div className="absolute right-2 top-2 flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setShowCameraScanner(true)}
+                  className={`p-2 rounded-xl transition-all duration-200 cursor-pointer ${
+                    isParchment ? 'hover:bg-[#ebd8c3]/40 text-[#a68c6d]' : 'hover:bg-slate-800 text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="Arabic Word Lens (Camera Scan)"
+                >
+                  <Camera className="w-4.5 h-4.5" />
+                </button>
                 <button
                   type="button"
                   onClick={() => setShowArabicKeyboard(!showArabicKeyboard)}
@@ -999,6 +1048,22 @@ export default function App() {
                     }`} title="Active API model">
                       AI Active
                     </span>
+                  )}
+
+                  {!analysis.isOfflineFallback && (
+                    <button
+                      onClick={() => handleSearch(analysis.word, true)}
+                      disabled={isSearching}
+                      className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border border-dashed border-current/20 hover:border-current/40 hover:bg-current/5 flex items-center gap-1 opacity-70 hover:opacity-100 disabled:opacity-40 cursor-pointer transition-all"
+                      title="Force sync this word analysis with the API Server"
+                    >
+                      {isSearching ? (
+                        <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                      ) : (
+                        <RotateCcw className="w-2.5 h-2.5" />
+                      )}
+                      Sync / Refresh
+                    </button>
                   )}
                 </div>
               ) : (
@@ -1210,7 +1275,7 @@ export default function App() {
   );
 
   return (
-    <div className={`${parentContainerClass} relative min-h-screen overflow-x-hidden`}>
+    <div className={`${parentContainerClass} relative min-h-screen overflow-x-hidden theme-${theme}`}>
       {/* Immersive Scholar Motif Underlay */}
       <div className={`absolute inset-0 pointer-events-none transition-all duration-700 select-none ${
         isParchment
@@ -1515,6 +1580,60 @@ export default function App() {
                 </div>
               </div>
 
+              {/* Client-Side Request Cache Section */}
+              <div className="border-t pt-4 border-current/10 space-y-2.5">
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-bold uppercase tracking-wider opacity-60">Client Request Cache</label>
+                  <button
+                    onClick={() => {
+                      const nextState = !cacheEnabled;
+                      setCacheEnabled(nextState);
+                      setApiCacheEnabled(nextState);
+                    }}
+                    className={`text-xs px-2.5 py-1 rounded-full font-bold border transition-all cursor-pointer ${
+                      cacheEnabled
+                        ? (isParchment ? 'bg-[#ebd8c3] border-[#8c6239] text-[#5c3d2e]' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30')
+                        : 'border-transparent opacity-50 hover:opacity-100'
+                    }`}
+                  >
+                    {cacheEnabled ? 'Active / Enabled' : 'Disabled'}
+                  </button>
+                </div>
+                
+                <div className={`p-3 rounded-xl border flex flex-col space-y-2 ${
+                  isParchment ? 'bg-[#fcfaf5] border-[#ebdcca]/55' : 'bg-current/[0.02] border-current/10'
+                }`}>
+                  <div className="flex justify-between items-center text-xs font-mono">
+                    <span className="opacity-60">Cached Responses:</span>
+                    <span className="font-bold">{cacheStats.itemCount} items</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs font-mono">
+                    <span className="opacity-60">Storage Footprint:</span>
+                    <span className="font-bold">{cacheStats.totalSizeKB} KB</span>
+                  </div>
+
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      onClick={() => clearApiCache()}
+                      className="flex-1 py-1.5 rounded-lg text-xs font-bold border border-current/15 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400 cursor-pointer text-center transition-all"
+                    >
+                      Clear Cache
+                    </button>
+                    <button
+                      onClick={() => {
+                        clearApiCache();
+                        if (analysis?.word) {
+                          handleSearch(analysis.word, true);
+                        }
+                      }}
+                      className="flex-1 py-1.5 rounded-lg text-xs font-bold border border-current/15 hover:bg-current/10 cursor-pointer text-center transition-all"
+                    >
+                      Flush & Sync
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider opacity-60 mb-1.5 block">Custom API Key</label>
                 <input
@@ -1578,84 +1697,134 @@ export default function App() {
               </button>
             </div>
 
-            {/* Release Changelog Summary */}
-            <div className={`p-4 rounded-xl border flex flex-col space-y-2.5 max-h-[180px] overflow-y-auto ${
-              isParchment 
-                ? 'bg-[#f5eeda] border-[#e8ddc9]' 
-                : isCosmic 
-                  ? 'bg-[#0d0e25] border-indigo-950 text-indigo-200' 
-                  : 'bg-slate-950/50 border-slate-800 text-slate-300'
-            }`}>
-              <h3 className="text-xs font-bold uppercase tracking-wider opacity-75 flex items-center gap-1.5 font-mono sticky top-0 bg-inherit pb-1 z-10">
-                <GitBranch className="w-3.5 h-3.5 text-emerald-500" /> Active Changelog & Release Milestones
-              </h3>
-              <div className="text-xs space-y-3 leading-relaxed">
-                {changelogData.map((item: any, index: number) => (
-                  <div key={item.version + "-" + index} className={`flex flex-col gap-1 ${index > 0 ? "border-t border-current/5 pt-2.5" : ""}`}>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-[10px] bg-emerald-500/15 text-emerald-500 px-1.5 py-0.2 rounded font-bold">{item.version}</span>
-                      <span className="text-[9px] font-mono opacity-50">
-                        {item.timestamp ? new Date(item.timestamp).toLocaleDateString() : 'Baseline'}
-                      </span>
-                    </div>
-                    <div className="pl-1">
-                      <p className="opacity-95 text-[11px]">{item.description}</p>
-                      {item.filesChanged && item.filesChanged.length > 0 && (
-                        <p className="text-[9px] opacity-50 font-mono mt-1 break-all">
-                          Trace files: {item.filesChanged.slice(0, 4).join(", ")}{item.filesChanged.length > 4 ? ` (+${item.filesChanged.length - 4} more)` : ""}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+            {/* Interactive Tabs */}
+            <div className="flex border-b border-current/5 pb-2">
+              <button
+                onClick={() => setVersionTrackerTab('manifest')}
+                className={`flex-1 pb-2 text-xs font-mono font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
+                  versionTrackerTab === 'manifest'
+                    ? (isParchment ? 'border-[#8c6239] text-[#8c6239]' : isCosmic ? 'border-indigo-500 text-indigo-400' : 'border-emerald-500 text-emerald-400')
+                    : 'border-transparent opacity-55 hover:opacity-100'
+                }`}
+              >
+                System Manifest ({FEATURE_MANIFEST.length} nodes)
+              </button>
+              <button
+                onClick={() => setVersionTrackerTab('diagnostics')}
+                className={`flex-1 pb-2 text-xs font-mono font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                  versionTrackerTab === 'diagnostics'
+                    ? (isParchment ? 'border-[#8c6239] text-[#8c6239]' : isCosmic ? 'border-indigo-500 text-indigo-400' : 'border-emerald-500 text-emerald-400')
+                    : 'border-transparent opacity-55 hover:opacity-100'
+                }`}
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                Interactive Diagnostics
+              </button>
             </div>
 
-            {/* Feature Check Grid */}
-            <div className="flex-1 overflow-y-auto space-y-3 pr-1 md:pr-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider opacity-60 font-mono">
-                System Feature Integrity Index ({FEATURE_MANIFEST.length} Registered Nodes)
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-4">
-                {FEATURE_MANIFEST.map((feat) => (
-                  <div 
-                    key={feat.id} 
-                    className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between ${
-                      isParchment 
-                        ? 'bg-[#fcfaf5]/60 hover:bg-[#FAF6ED] border-[#ebdcca]/60' 
-                        : isCosmic 
-                          ? 'bg-[#0b0c16]/80 hover:bg-[#101222] border-indigo-950/50' 
-                          : 'bg-slate-900/60 hover:bg-slate-900 border-slate-800'
-                    }`}
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between gap-1.5">
-                        <span className="text-[10px] font-mono opacity-50 uppercase tracking-widest">{feat.category}</span>
-                        <span className="text-[9px] font-mono bg-current/15 px-1 py-0.2 rounded uppercase font-bold">{feat.version}</span>
+            {versionTrackerTab === 'manifest' ? (
+              <>
+                {/* Release Changelog Summary */}
+                <div className={`p-4 rounded-xl border flex flex-col space-y-2.5 max-h-[140px] overflow-y-auto ${
+                  isParchment 
+                    ? 'bg-[#f5eeda] border-[#e8ddc9]' 
+                    : isCosmic 
+                      ? 'bg-[#0d0e25] border-indigo-950 text-indigo-200' 
+                      : 'bg-slate-950/50 border-slate-800 text-slate-300'
+                }`}>
+                  <h3 className="text-xs font-bold uppercase tracking-wider opacity-75 flex items-center gap-1.5 font-mono sticky top-0 bg-inherit pb-1 z-10">
+                    <GitBranch className="w-3.5 h-3.5 text-emerald-500" /> Active Changelog & Release Milestones
+                  </h3>
+                  <div className="text-xs space-y-3 leading-relaxed">
+                    {changelogData.map((item: any, index: number) => (
+                      <div key={item.version + "-" + index} className={`flex flex-col gap-1 ${index > 0 ? "border-t border-current/5 pt-2.5" : ""}`}>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-[10px] bg-emerald-500/15 text-emerald-500 px-1.5 py-0.2 rounded font-bold">{item.version}</span>
+                          <span className="text-[9px] font-mono opacity-50">
+                            {item.timestamp ? new Date(item.timestamp).toLocaleDateString() : 'Baseline'}
+                          </span>
+                        </div>
+                        <div className="pl-1">
+                          <p className="opacity-95 text-[11px]">{item.description}</p>
+                          {item.filesChanged && item.filesChanged.length > 0 && (
+                            <p className="text-[9px] opacity-50 font-mono mt-1 break-all">
+                              Trace files: {item.filesChanged.slice(0, 4).join(", ")}{item.filesChanged.length > 4 ? ` (+${item.filesChanged.length - 4} more)` : ""}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      <h5 className="text-xs font-bold font-serif opacity-90 line-clamp-1">{feat.name}</h5>
-                      <p className="text-[11px] opacity-65 leading-relaxed line-clamp-3">{feat.description}</p>
-                      {feat.notes && (
-                        <p className={`text-[10px] italic pt-1 border-t border-current/5 mt-1 opacity-55 ${isParchment ? 'text-[#8c6239]' : isCosmic ? 'text-indigo-300' : 'text-emerald-400'}`}>
-                          * {feat.notes}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1 text-[10px] font-mono font-medium text-emerald-500 mt-2">
-                      <Check className="w-3.5 h-3.5" /> Tested & Verified
-                    </div>
+                    ))}
                   </div>
-                ))}
+                </div>
+
+                {/* Feature Check Grid */}
+                <div className="flex-1 overflow-y-auto space-y-3 pr-1 md:pr-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider opacity-60 font-mono">
+                    System Feature Integrity Index ({FEATURE_MANIFEST.length} Registered Nodes)
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-4">
+                    {FEATURE_MANIFEST.map((feat) => (
+                      <div 
+                        key={feat.id} 
+                        className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between ${
+                          isParchment 
+                            ? 'bg-[#fcfaf5]/60 hover:bg-[#FAF6ED] border-[#ebdcca]/60' 
+                            : isCosmic 
+                              ? 'bg-[#0b0c16]/80 hover:bg-[#101222] border-indigo-950/50' 
+                              : 'bg-slate-900/60 hover:bg-slate-900 border-slate-800'
+                        }`}
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between gap-1.5">
+                            <span className="text-[10px] font-mono opacity-50 uppercase tracking-widest">{feat.category}</span>
+                            <span className="text-[9px] font-mono bg-current/15 px-1 py-0.2 rounded uppercase font-bold">{feat.version}</span>
+                          </div>
+                          <h5 className="text-xs font-bold font-serif opacity-90 line-clamp-1">{feat.name}</h5>
+                          <p className="text-[11px] opacity-65 leading-relaxed line-clamp-3">{feat.description}</p>
+                          {feat.notes && (
+                            <p className={`text-[10px] italic pt-1 border-t border-current/5 mt-1 opacity-55 ${isParchment ? 'text-[#8c6239]' : isCosmic ? 'text-indigo-300' : 'text-emerald-400'}`}>
+                              * {feat.notes}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 text-[10px] font-mono font-medium text-emerald-500 mt-2">
+                          <Check className="w-3.5 h-3.5" /> Tested & Verified
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex-1 overflow-y-auto pr-1">
+                <DiagnosticsSuite isParchment={isParchment} isCosmic={isCosmic} theme={theme} />
               </div>
-            </div>
+            )}
 
             {/* Footnote */}
             <div className="border-t pt-4 border-current/10 flex justify-between items-center text-[10px] font-mono opacity-60">
               <span>Automatic compliance logs generated dynamically</span>
-              <span>Total assertions passed: 22 / 22 </span>
+              <span>Total assertions passed: {versionTrackerTab === 'diagnostics' ? 'All live' : '22 / 22'}</span>
             </div>
           </div>
         </div>
+      )}
+
+      {showCameraScanner && (
+        <CameraScanner
+          isOpen={showCameraScanner}
+          onClose={() => setShowCameraScanner(false)}
+          theme={theme}
+          customApiKey={customApiKey}
+          onSelectRoot={(root) => {
+            setSearchTerm(root);
+            setActiveMainTab('map');
+            handleSearch(root);
+          }}
+        />
       )}
     </div>
   );

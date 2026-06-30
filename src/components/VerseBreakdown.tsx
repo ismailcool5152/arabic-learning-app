@@ -444,23 +444,40 @@ const getBismillahData = (surahNum: number, surahName: string): VerseBreakdownDa
 
 export default function VerseBreakdown({ theme, onSelectRoot, onSelectWord }: VerseBreakdownProps) {
   // Input Selection
-  const [selectedPresetId, setSelectedPresetId] = useState<string>('1:1');
-  const [customSurah, setCustomSurah] = useState<string>('');
-  const [customVerse, setCustomVerse] = useState<string>('');
-  const [selectedSurah, setSelectedSurah] = useState<SurahDefinition | null>(null);
+  const [selectedPresetId, setSelectedPresetId] = useState<string>(() => {
+    return appStorage.getItem('segmenter_last_preset') || '1:1';
+  });
+  const [customSurah, setCustomSurah] = useState<string>(() => {
+    const savedNumStr = appStorage.getItem('segmenter_last_surah_num');
+    const savedNum = savedNumStr ? parseInt(savedNumStr, 10) : 1;
+    const sDef = SURAH_MAPPING_LIST.find(s => s.number === savedNum) || SURAH_MAPPING_LIST[0];
+    return sDef ? `${sDef.number} - ${sDef.transliteration}` : '';
+  });
+  const [customVerse, setCustomVerse] = useState<string>(() => {
+    return appStorage.getItem('segmenter_last_verse_num') || '1';
+  });
+  const [selectedSurah, setSelectedSurah] = useState<SurahDefinition | null>(() => {
+    const savedNumStr = appStorage.getItem('segmenter_last_surah_num');
+    const savedNum = savedNumStr ? parseInt(savedNumStr, 10) : 1;
+    return SURAH_MAPPING_LIST.find(s => s.number === savedNum) || SURAH_MAPPING_LIST[0];
+  });
   const [isFocused, setIsFocused] = useState<boolean>(false);
   
   // Session-saved custom verses in memory (no user-level cache or localStorage used)
   const [offlineSavedVerses, setOfflineSavedVerses] = useState<Record<string, VerseBreakdownData>>({});
 
-  useEffect(() => {
-    // Synchronize or handle custom triggers if any
-  }, []);
-
   // App state
   const [isSearching, setIsSearching] = useState(false);
   const [activeVerseData, setActiveVerseData] = useState<VerseBreakdownData | null>(null);
   const [selectedWordToken, setSelectedWordToken] = useState<VerseWordBreakdown | null>(null);
+
+  useEffect(() => {
+    if (activeVerseData) {
+      appStorage.setItem('segmenter_last_surah_num', activeVerseData.surahNumber.toString());
+      appStorage.setItem('segmenter_last_verse_num', activeVerseData.verseNumber);
+      appStorage.setItem('segmenter_last_preset', `${activeVerseData.surahNumber}:${activeVerseData.verseNumber}`);
+    }
+  }, [activeVerseData]);
 
   const currentWordIndex = useMemo(() => {
     if (!activeVerseData || !selectedWordToken) return -1;

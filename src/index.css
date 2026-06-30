@@ -81,3 +81,102 @@ input, select, textarea {
 .glow-parchment {
   box-shadow: 0 0 25px -5px rgba(140, 98, 57, 0.1);
 }
+
+/* ==========================================
+   THEME-AWARE CONTRAST & ACCESSIBILITY RULES
+   ========================================== */
+
+/* 1. PARCHMENT (LIGHT) THEME ENHANCEMENTS */
+.theme-parchment .text-slate-400,
+.theme-parchment .text-gray-400,
+.theme-parchment .text-zinc-400,
+.theme-parchment .text-neutral-400 {
+  color: #615247 !important; /* Elegant dark warm grey with > 4.5:1 contrast ratio */
+}
+
+.theme-parchment .text-slate-500,
+.theme-parchment .text-gray-500,
+.theme-parchment .text-zinc-500,
+.theme-parchment .text-neutral-500 {
+  color: #4d3a2a !important; /* Deep warm bronze/grey for high legibility */
+}
+
+.theme-parchment .text-slate-300,
+.theme-parchment .text-gray-300,
+.theme-parchment .text-zinc-300,
+.theme-parchment .text-neutral-300 {
+  color: #3b3129 !important; /* Maximum legibility for sub-texts */
+}
+
+.theme-parchment .text-slate-200,
+.theme-parchment .text-slate-100,
+.theme-parchment .text-slate-50,
+.theme-parchment .text-gray-200,
+.theme-parchment .text-gray-100 {
+  color: #2c241e !important; /* Premium near-black brown text */
+}
+
+.theme-parchment .text-indigo-200,
+.theme-parchment .text-indigo-300,
+.theme-parchment .text-indigo-400,
+.theme-parchment .text-indigo-500 {
+  color: #4f46e5 !important; /* High contrast indigo */
+}
+
+.theme-parchment .text-emerald-300,
+.theme-parchment .text-emerald-400,
+.theme-parchment .text-emerald-500 {
+  color: #0d9488 !important; /* High contrast emerald/teal */
+}
+
+.theme-parchment .text-amber-500,
+.theme-parchment .text-amber-400 {
+  color: #b45309 !important; /* Deep amber-700 for solid contrast */
+}
+
+/* Ensure placeholder texts are readable and distinctive */
+.theme-parchment input::placeholder,
+.theme-parchment textarea::placeholder {
+  color: #8c7a6e !important;
+}
+
+/* Scrollbar accessibility for light mode */
+.theme-parchment ::-webkit-scrollbar-thumb {
+  background: rgba(140, 98, 57, 0.3);
+}
+.theme-parchment ::-webkit-scrollbar-thumb:hover {
+  background: rgba(140, 98, 57, 0.5);
+}
+
+
+/* 2. COSMIC & EMERALD (DARK) THEMES CONTRAST BOOSTS */
+/* Ensure description text inside dark modes stands out perfectly */
+.theme-cosmic .text-slate-400,
+.theme-cosmic .text-gray-400 {
+  color: #cbd5e1 !important; /* Lift contrast to slate-300 */
+}
+
+.theme-cosmic .text-slate-500 {
+  color: #94a3b8 !important; /* Lift contrast to slate-400 */
+}
+
+.theme-emerald .text-slate-400,
+.theme-emerald .text-gray-400 {
+  color: #cbd5e1 !important; /* Lift contrast to slate-300 */
+}
+
+.theme-emerald .text-slate-500 {
+  color: #94a3b8 !important; /* Lift contrast to slate-400 */
+}
+
+/* General performance & visual polish overrides */
+.theme-parchment select {
+  background-color: #fdfbf7 !important;
+  color: #2c241e !important;
+  border-color: #ebdcc3 !important;
+}
+
+.theme-parchment button:disabled {
+  opacity: 0.5 !important;
+  color: #8c7a6e !important;
+}

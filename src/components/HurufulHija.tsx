@@ -13,7 +13,9 @@ import {
   Layers,
   ChevronRight,
   MapPin,
-  ChevronDown
+  ChevronDown,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 interface HurufulHijaProps {
@@ -546,6 +548,12 @@ const ALPHABET_DATA: LetterDetail[] = [
   }
 ];
 
+const isSunLetter = (char: string): boolean => {
+  const sunChars = ['ت', 'ث', 'د', 'ذ', 'ر', 'ز', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ل', 'ن'];
+  const clean = char.trim();
+  return sunChars.includes(clean);
+};
+
 interface ArticulationPoint {
   x: number;
   y: number;
@@ -973,6 +981,18 @@ export default function HurufulHija({ theme }: HurufulHijaProps) {
       ],
       correct: "c",
       explanation: "Rā' (ر) is one of the conditionally thick letters. It sounds thick with Fathah/Dammah and thin/flat with Kasrah."
+    },
+    {
+      id: 5,
+      question: "Which option correctly matches the behavior of the definite article 'Al-' (ال) with its category?",
+      options: [
+        { id: "a", text: "With Sun Letters (e.g. ن, ر), the Lām is voiced clearly; with Moon Letters, it is silent." },
+        { id: "b", text: "With Sun Letters (e.g. س, ش), the Lām becomes silent and merges (Idghām); with Moon Letters (e.g. ق, ك), it is clearly pronounced (Iẓhār)." },
+        { id: "c", text: "The Lām of 'Al-' is always silent regardless of the letter following it." },
+        { id: "d", text: "Both Sun and Moon letters require the Lām to be voiced clearly." }
+      ],
+      correct: "b",
+      explanation: "With 14 Sun letters (Shamsiyyah), the Lām is completely silent and is assimilated into the letter (indicated by Shaddah). With 14 Moon letters (Qamariyah), the Lām is pronounced clearly."
     }
   ];
 
@@ -1205,6 +1225,31 @@ export default function HurufulHija({ theme }: HurufulHijaProps) {
                       </span>
                       <p className="text-[11px] opacity-80 leading-relaxed">
                         {displayedLetter.mufakhkhamDetails}
+                      </p>
+                    </div>
+
+                    {/* Sun vs Moon Letter */}
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-mono font-bold text-slate-400 uppercase block tracking-wider">Assimilation Class:</span>
+                      <span className={`text-[11px] font-bold uppercase flex items-center gap-1.5 ${
+                        isSunLetter(displayedLetter.arabic) ? 'text-yellow-500 dark:text-amber-400' : 'text-blue-500 dark:text-sky-400'
+                      }`}>
+                        {isSunLetter(displayedLetter.arabic) ? (
+                          <>
+                            <Sun className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500/20" />
+                            <span>Sun Letter (Shamsiyyah)</span>
+                          </>
+                        ) : (
+                          <>
+                            <Moon className="w-3.5 h-3.5 text-blue-400 fill-blue-400/20" />
+                            <span>Moon Letter (Qamariyah)</span>
+                          </>
+                        )}
+                      </span>
+                      <p className="text-[11px] opacity-80 leading-relaxed">
+                        {isSunLetter(displayedLetter.arabic)
+                          ? "When prefixed by 'Al-' (ال), the Lām is completely silenced and merges directly into this letter with a Shaddah. Example: Ash-Shams."
+                          : "When prefixed by 'Al-' (ال), the Lām is pronounced clearly with a sukoon (لْ) on it and no merging occurs. Example: Al-Qamar."}
                       </p>
                     </div>
 
@@ -1476,6 +1521,87 @@ export default function HurufulHija({ theme }: HurufulHijaProps) {
                     <br />• <strong>Wusta (Medium):</strong> Letter at the end of word stop (e.g. خَلَقَ).
                     <br />• <strong>Sughra (Minor):</strong> Letter during active middle of word (e.g. يَقْتُلُونَ).
                   </p>
+                </div>
+
+              </div>
+            </div>
+
+            {/* Rule Group 3 - Sun & Moon Letters (Shamsiyyah & Qamariyah) */}
+            <div className={`p-6 rounded-2xl border ${secondaryCardClass} space-y-4 col-span-1 md:col-span-2 w-full`}>
+              <div className="flex items-center justify-between border-b border-current/10 pb-3">
+                <div className="flex items-center gap-2">
+                  <Sun className="w-5 h-5 text-amber-500 animate-pulse fill-amber-500/20" />
+                  <Moon className="w-5 h-5 text-sky-400 animate-pulse fill-sky-400/20" />
+                  <h4 className="font-bold text-base">Al-Ahkām: Sun & Moon Letters (الحروف الشمسية والقمرية)</h4>
+                </div>
+                <span className="text-[10px] font-mono opacity-60 uppercase tracking-wider font-extrabold bg-current/10 px-2 py-0.5 rounded">Definite Article "Al-" (ال)</span>
+              </div>
+              <p className="text-xs leading-relaxed opacity-95">
+                The Arabic alphabet is divided equally into <strong>14 Sun Letters</strong> and <strong>14 Moon Letters</strong>. This division governs how the definite article <strong>"Al-" (ال)</strong> assimilates or remains distinct when prefixed to nouns.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                
+                {/* Sun Letters Card */}
+                <div className="bg-yellow-500/5 border border-yellow-500/15 p-4 rounded-xl space-y-3">
+                  <div className="flex items-center justify-between border-b border-yellow-500/20 pb-2">
+                    <span className="text-xs font-extrabold text-yellow-500 uppercase tracking-wider flex items-center gap-1.5">
+                      <Sun className="w-4 h-4 text-yellow-500 fill-yellow-500/20 animate-spin" style={{ animationDuration: '20s' }} />
+                      Sun Letters (الشَّمْسِيَّة - Ash-Shamsiyyah)
+                    </span>
+                    <span className="text-[10px] font-mono text-yellow-600 dark:text-yellow-400 font-bold">14 Letters</span>
+                  </div>
+                  <p className="text-xs opacity-90 leading-relaxed">
+                    <strong>Rule: Assimilation (Idghām).</strong> When "Al-" prefixes a Sun letter, the Lām (ل) is completely <strong>silent</strong>, and merges directly into the Sun letter, which receives a <strong>Shaddah (ـّ)</strong>.
+                  </p>
+                  
+                  {/* Sun Letters grid */}
+                  <div className="flex flex-wrap gap-2 pt-1" dir="rtl">
+                    {['ت', 'ث', 'د', 'ذ', 'ر', 'ز', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ل', 'ن'].map((letter, idx) => (
+                      <span key={idx} className="w-7 h-7 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-center flex items-center justify-center font-serif text-sm font-black text-yellow-600 dark:text-yellow-400 select-none">
+                        {letter}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="pt-2 text-[11px] space-y-1 text-slate-400 border-t border-yellow-500/10">
+                    <div>💡 <strong>Pronunciation mnemonic:</strong> Tongue-tip and teeth touch points.</div>
+                    <div className="flex items-center justify-between pt-1">
+                      <span>Example: <strong>الشَّمْس</strong> (Ash-Shams)</span>
+                      <span className="text-[10px] opacity-75 italic">(No Lām sound)</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Moon Letters Card */}
+                <div className="bg-blue-500/5 border border-blue-500/15 p-4 rounded-xl space-y-3">
+                  <div className="flex items-center justify-between border-b border-blue-500/20 pb-2">
+                    <span className="text-xs font-extrabold text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <Moon className="w-4 h-4 text-sky-400 fill-sky-400/20 animate-pulse" />
+                      Moon Letters (الْقَمَرِيَّة - Al-Qamariyah)
+                    </span>
+                    <span className="text-[10px] font-mono text-blue-400 font-bold">14 Letters</span>
+                  </div>
+                  <p className="text-xs opacity-90 leading-relaxed">
+                    <strong>Rule: Clarity (Iẓhār).</strong> When "Al-" prefixes a Moon letter, the Lām (ل) is pronounced <strong>clearly</strong> with a Sukoon (لْ) on it, and no assimilation or blending occurs.
+                  </p>
+                  
+                  {/* Moon Letters grid */}
+                  <div className="flex flex-wrap gap-2 pt-1" dir="rtl">
+                    {['أ', 'ب', 'ج', 'ح', 'خ', 'ع', 'غ', 'ف', 'ق', 'ك', 'م', 'ه', 'و', 'ي'].map((letter, idx) => (
+                      <span key={idx} className="w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/20 text-center flex items-center justify-center font-serif text-sm font-black text-sky-400 select-none">
+                        {letter}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="pt-2 text-[11px] space-y-1 text-slate-400 border-t border-blue-500/10">
+                    <div>💡 <strong>Mnemonic phrase:</strong> <em>ابغ حجك وخف عقيمه</em> (Seek Hajj & fear its invalidity)</div>
+                    <div className="flex items-center justify-between pt-1">
+                      <span>Example: <strong>الْقَمَر</strong> (Al-Qamar)</span>
+                      <span className="text-[10px] opacity-75 italic">(Lām is voiced clearly)</span>
+                    </div>
+                  </div>
                 </div>
 
               </div>

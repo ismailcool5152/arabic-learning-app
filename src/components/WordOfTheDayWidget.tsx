@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { LayoutTheme, WordAnalysis } from '../types';
 import { Sparkles, Calendar, BookOpen, Clock, Activity, History, ArrowRight, Book, Layers, RotateCcw, Check } from 'lucide-react';
 import RootToWords from './RootToWords';
@@ -46,14 +46,19 @@ const ALPHABET_ROOTS = [
 ];
 
 export default function WordOfTheDayWidget({ theme, isOfflineMode, onSelectWord, onWordSeen, onStartQuiz }: Props) {
+  const onWordSeenRef = useRef(onWordSeen);
+  onWordSeenRef.current = onWordSeen;
+
+  const isCosmic = theme === 'cosmic';
+  const isParchment = theme === 'parchment';
+  
+  const activeDay = Math.min(new Date().getDate(), 28);
+  const streak = activeDay > 1 ? activeDay : 1;
+  const [selectedDay, setSelectedDay] = useState<number>(activeDay);
+
   const [dailyRoot, setDailyRoot] = useState<string>('');
   const [dailyInfo, setDailyInfo] = useState<any>(null);
   const [showExplore, setShowExplore] = useState<boolean>(false);
-  
-  const isCosmic = theme === 'cosmic';
-  const isParchment = theme === 'parchment';
-  const activeDay = Math.min(new Date().getDate(), 28);
-  const streak = activeDay > 1 ? activeDay : 1;
   
   const colors = {
     bg: isParchment ? 'bg-[#f4efe8]' : isCosmic ? 'bg-[#0f1225]' : 'bg-slate-50',
@@ -64,22 +69,16 @@ export default function WordOfTheDayWidget({ theme, isOfflineMode, onSelectWord,
   };
 
   useEffect(() => {
-    const today = new Date();
-    const dayOfMonth = today.getDate(); // 1 - 31
-    const daySeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + dayOfMonth;
-    
-    let idx = 0;
-    if (dayOfMonth <= 28) {
-      idx = dayOfMonth - 1;
-    } else {
-      idx = daySeed % ALPHABET_ROOTS.length;
+    let idx = selectedDay - 1;
+    if (idx < 0 || idx >= ALPHABET_ROOTS.length) {
+      idx = 0;
     }
     
     const info = ALPHABET_ROOTS[idx];
     setDailyRoot(info.root);
     setDailyInfo({ ...info, verse: getExampleVerse(info.root) });
-    
-  }, []);
+    setShowExplore(false); // reset explorer view when switching days
+  }, [selectedDay]);
 
   const getExampleVerse = (root: string) => {
     const verses: Record<string, string> = {
@@ -130,11 +129,11 @@ export default function WordOfTheDayWidget({ theme, isOfflineMode, onSelectWord,
       } catch (e) {
         console.error("Failed to track WOTD history", e);
       }
-      if (dailyInfo && onWordSeen) {
-        onWordSeen(dailyInfo.root, dailyInfo.meaning);
+      if (dailyInfo && onWordSeenRef.current) {
+        onWordSeenRef.current(dailyInfo.root, dailyInfo.meaning);
       }
     }
-  }, [dailyInfo, onWordSeen, dailyRoot]);
+  }, [dailyRoot]);
 
   if (!dailyRoot) return null;
 
@@ -145,13 +144,27 @@ export default function WordOfTheDayWidget({ theme, isOfflineMode, onSelectWord,
         
         {/* Left column: Root & Quiz / Breakdown */}
         <div className="flex-1 flex flex-col justify-center text-center md:text-left">
-          <div className="flex items-center justify-center md:justify-start gap-3 mb-4">
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-4">
              <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest ${isParchment ? 'bg-[#8c6239] text-[#faf6ed]' : isCosmic ? 'bg-indigo-600 text-white' : 'bg-emerald-600 text-white'}`}>
-               Word of the Day
+               {selectedDay === activeDay ? "Word of the Day" : `Day ${selectedDay} Word`}
              </span>
              <span className={`text-sm font-bold opacity-60 ${colors.accentText}`}>
-               Day {activeDay} of 28
+               {selectedDay === activeDay ? `Day ${activeDay} of 28` : "Archive View"}
              </span>
+             {selectedDay !== activeDay && (
+               <button
+                 onClick={() => setSelectedDay(activeDay)}
+                 className={`px-3 py-1 text-xs font-bold rounded-full border transition-all cursor-pointer ${
+                   isParchment 
+                     ? 'bg-[#fdfbf7] border-[#8c6239]/40 text-[#8c6239] hover:bg-[#ebdcc3]' 
+                     : isCosmic 
+                       ? 'bg-indigo-950 border-indigo-500/40 text-indigo-300 hover:bg-indigo-900' 
+                       : 'bg-emerald-50 border-emerald-500/40 text-emerald-600 hover:bg-emerald-100'
+                 }`}
+               >
+                 Back to Today
+               </button>
+             )}
           </div>
 
           <div className="flex items-center justify-center md:justify-start gap-6 mb-8">
@@ -239,28 +252,36 @@ export default function WordOfTheDayWidget({ theme, isOfflineMode, onSelectWord,
           
           <div>
             <div className="flex justify-between items-center mb-3">
-              <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">Monthly Progress</span>
-              <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">{activeDay}/28</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">Study Archive (Click Any Day)</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">{activeDay}/28 Days</span>
             </div>
             <div className="grid grid-cols-7 gap-1.5">
               {Array.from({ length: 28 }).map((_, i) => {
                 const dayNum = i + 1;
                 const isPast = dayNum <= activeDay;
                 const isCurrent = dayNum === activeDay;
+                const isSelected = dayNum === selectedDay;
                 
-                let dotClass = 'w-full aspect-square rounded-full flex items-center justify-center transition-all text-transparent relative';
-                if (isCurrent) {
-                  dotClass += isParchment ? ' bg-[#8c6239] animate-pulse ring-2 ring-[#8c6239]/40 ring-offset-2 ring-offset-[#fdfbf7]' : isCosmic ? ' bg-indigo-400 animate-pulse ring-2 ring-indigo-400/40 ring-offset-2 ring-offset-[#1a1f3c]' : ' bg-emerald-500 animate-pulse ring-2 ring-emerald-500/40 ring-offset-2 ring-offset-white';
+                let dotClass = 'w-full aspect-square rounded-full flex items-center justify-center transition-all text-[10px] font-bold relative cursor-pointer hover:scale-110';
+                if (isSelected) {
+                  dotClass += isParchment ? ' bg-[#8c6239] text-white ring-2 ring-[#8c6239]/40 ring-offset-2 ring-offset-[#fdfbf7]' : isCosmic ? ' bg-indigo-500 text-white ring-2 ring-indigo-400/40 ring-offset-2 ring-offset-[#1a1f3c]' : ' bg-emerald-600 text-white ring-2 ring-emerald-500/40 ring-offset-2 ring-offset-white';
+                } else if (isCurrent) {
+                  dotClass += isParchment ? ' bg-[#ebd8c3] text-[#8c6239] border border-[#8c6239]/30 animate-pulse' : isCosmic ? ' bg-indigo-950 text-indigo-300 border border-indigo-500/30 animate-pulse' : ' bg-emerald-50 text-emerald-600 border border-emerald-500/30 animate-pulse';
                 } else if (isPast) {
-                  dotClass += isParchment ? ' bg-[#8c6239]/80' : isCosmic ? ' bg-indigo-500/80' : ' bg-emerald-500/80';
+                  dotClass += isParchment ? ' bg-[#f4efe8] text-[#8c6239] border border-[#ebd8c3] hover:bg-[#ebd8c3]' : isCosmic ? ' bg-slate-900 text-indigo-400 border border-indigo-950 hover:bg-slate-800' : ' bg-slate-50 text-emerald-600 border border-slate-200 hover:bg-slate-100';
                 } else {
-                  dotClass += isParchment ? ' bg-[#e8dcc8]/40' : isCosmic ? ' bg-white/5' : ' bg-slate-100';
+                  dotClass += isParchment ? ' bg-transparent text-[#ebd8c3]/60 border border-dashed border-[#ebdcc3] hover:border-[#8c6239]/40 hover:text-[#8c6239]' : isCosmic ? ' bg-transparent text-white/10 border border-dashed border-white/5 hover:border-indigo-800 hover:text-indigo-400' : ' bg-transparent text-slate-300 border border-dashed border-slate-200 hover:border-emerald-500 hover:text-emerald-600';
                 }
                 
                 return (
-                  <div key={i} className={dotClass} title={`Day ${dayNum}`}>
-                     {isPast && !isCurrent && <Check className="absolute inset-0 m-auto w-2.5 h-2.5 text-white/90" />}
-                  </div>
+                  <button 
+                    key={i} 
+                    onClick={() => setSelectedDay(dayNum)}
+                    className={dotClass} 
+                    title={isCurrent ? `Today: Day ${dayNum}` : `Day ${dayNum} Word`}
+                  >
+                     <span>{dayNum}</span>
+                  </button>
                 );
               })}
             </div>
