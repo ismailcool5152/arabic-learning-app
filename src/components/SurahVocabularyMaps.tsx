@@ -47,6 +47,7 @@ interface VocabWord {
   occurrences: string[];
   frequency: number;
   explanations: { verse: string; text: string }[];
+  sequenceId?: string;
 }
 
 interface VocabMapResponse {
@@ -57,6 +58,7 @@ interface VocabMapResponse {
   vocabList: VocabWord[];
   isOfflineFallback?: boolean;
   offlineFallbackNotice?: string;
+  verses?: any;
 }
 
 interface IrabCase {
@@ -78,6 +80,82 @@ interface IrabAnalysisResponse {
   suffixMeaningShift?: string;
   infix?: string;
   wordFormationBreakdown?: string;
+}
+
+export function getIsmSubCategory(word: VocabWord): 'Noun' | 'Pronoun' | 'Adjective' | 'Adverb' {
+  if (word.wordType !== 'Ism') return 'Noun';
+
+  const textArabic = word.word.trim();
+  const trans = (word.transliteration || '').toLowerCase().trim();
+  const explanationsJoined = word.explanations?.map(e => e.text.toLowerCase()).join(' ') || '';
+  const meaningsJoined = word.meanings?.map(m => m.toLowerCase()).join(' ') || '';
+  const searchHaystack = `${explanationsJoined} ${meaningsJoined} ${trans}`;
+
+  // Direct Arabic matches for common pronouns / demonstratives / relative pronouns
+  const isArabicPronoun = [
+    'هو', 'هي', 'هما', 'هم', 'هن', 
+    'أنت', 'أنتما', 'أنتم', 'أنا', 'نحن',
+    'إياك', 'إياكم', 'إياي', 'إيانا',
+    'هذا', 'هذه', 'هذان', 'هؤلاء', 'ذلك', 'تلك', 'أولئك',
+    'الذي', 'الذين', 'التي', 'اللاتي', 'اللاي',
+    'من', 'ما'
+  ].some(p => textArabic === p || textArabic === `الـ${p}`);
+
+  const hasPronounKeyword = 
+    searchHaystack.includes('pronoun') || 
+    searchHaystack.includes('dameer') || 
+    searchHaystack.includes('damir') || 
+    searchHaystack.includes('demonstrative') || 
+    searchHaystack.includes('relative pronoun') ||
+    searchHaystack.includes('isharah') ||
+    searchHaystack.includes('mawsul') ||
+    searchHaystack.includes('mausul') ||
+    trans === 'huwa' || trans === 'hiya' || trans === 'hum' || trans === 'antum' || trans === 'ana' || trans === 'nahnu';
+
+  if (isArabicPronoun || hasPronounKeyword) {
+    if (!explanationsJoined.includes('noun of place') && !explanationsJoined.includes('noun of time') && !meaningsJoined.includes('what ') && !meaningsJoined.includes('who ')) {
+      return 'Pronoun';
+    }
+  }
+
+  // Check Adverbs (Zarf al-Zaman / Zarf al-Makan / Hal)
+  const isArabicAdverb = [
+    'فوق', 'تحت', 'عند', 'قبل', 'بعد', 'حين', 'يوم', 'إذ', 'إذا', 'كيف', 'أين', 'ثم', 'لدن', 'خلف', 'أمام', 'مع', 'دون', 'تلقاء', 'بين'
+  ].some(adv => textArabic === adv);
+
+  const hasAdverbKeyword = 
+    searchHaystack.includes('adverb') || 
+    searchHaystack.includes('zarf') || 
+    searchHaystack.includes('locative') || 
+    searchHaystack.includes('temporal') ||
+    searchHaystack.includes('circumstance') ||
+    searchHaystack.includes('accusative of time') ||
+    searchHaystack.includes('accusative of place');
+
+  if (isArabicAdverb || hasAdverbKeyword) {
+    return 'Adverb';
+  }
+
+  // Check Adjectives (Na't / Sifah / Epithet / Active Participle acting as modifier)
+  const hasAdjectiveKeyword = 
+    searchHaystack.includes('adjective') || 
+    searchHaystack.includes('sifah') || 
+    searchHaystack.includes('na\'t') || 
+    searchHaystack.includes('epithet') || 
+    searchHaystack.includes('attribute') ||
+    searchHaystack.includes('descriptive') ||
+    searchHaystack.includes('qualifying modifier') ||
+    searchHaystack.includes('superlative') ||
+    searchHaystack.includes('elative');
+
+  if (hasAdjectiveKeyword || word.isIsmFail) {
+    const notNounKeywords = !searchHaystack.includes('proper noun') && !searchHaystack.includes('verbal noun') && !searchHaystack.includes('masdar');
+    if (notNounKeywords) {
+      return 'Adjective';
+    }
+  }
+
+  return 'Noun';
 }
 
 export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps) {
@@ -153,6 +231,7 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
   // Search & Filter state
   const [wordSearchText, setWordSearchText] = useState<string>('');
   const [activeWordTypeFilter, setActiveWordTypeFilter] = useState<'all' | 'Ism' | "Fi'l" | 'Harf'>('all');
+  const [activeIsmSubFilter, setActiveIsmSubFilter] = useState<'all' | 'Noun' | 'Pronoun' | 'Adjective' | 'Adverb'>('all');
   const [sortBy, setSortBy] = useState<'frequency' | 'appearance' | 'alphabetical'>('frequency');
   const [isGroupedByRoot, setIsGroupedByRoot] = useState<boolean>(true);
 
@@ -295,6 +374,71 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
   const filteredWords = useMemo(() => {
     if (!vocabData) return [];
 
+    // Check if we can and should use sequenced repeating word list
+    if (!isGroupedByRoot && sortBy === 'appearance' && vocabData.verses) {
+      const vKeys = Object.keys(vocabData.verses).sort((a, b) => parseInt(a) - parseInt(b));
+      const resultList: VocabWord[] = [];
+      
+      vKeys.forEach(vKey => {
+        const ayahNum = parseInt(vKey);
+        if (isNaN(ayahNum)) return;
+
+        // Filter by selected verses or ayah range
+        if (selectedVerses.length > 0) {
+          if (!selectedVerses.includes(ayahNum)) return;
+        } else if (useRange) {
+          if (ayahNum < ayahStart || ayahNum > ayahEnd) return;
+        }
+
+        const verseObj = (vocabData.verses as any)[vKey];
+        if (!verseObj || !Array.isArray(verseObj.words)) return;
+
+        verseObj.words.forEach((wToken: any, wIdx: number) => {
+          const wordText = wToken.word ? wToken.word.trim() : "";
+          if (!wordText) return;
+
+          // Filter by parts of speech
+          if (activeWordTypeFilter !== 'all') {
+            if (wToken.wordType !== activeWordTypeFilter) return;
+          }
+
+          // Filter by word search
+          if (wordSearchText.trim()) {
+            const q = wordSearchText.toLowerCase().trim();
+            const matches = wordText.includes(q) ||
+                            (wToken.transliteration || "").toLowerCase().includes(q) ||
+                            (wToken.root || "").toLowerCase().includes(q) ||
+                            (wToken.meaning || "").toLowerCase().includes(q);
+            if (!matches) return;
+          }
+
+          const originalWord = vocabData.vocabList.find(vw => vw.word === wordText);
+
+          const vocabItem: VocabWord = {
+            word: wordText,
+            transliteration: wToken.transliteration || "",
+            wordType: wToken.wordType || "Ism",
+            isIsmFail: !!wToken.isIsmFail,
+            isHarf: !!wToken.isHarf,
+            root: wToken.root || "None",
+            meanings: originalWord ? originalWord.meanings : [wToken.meaning].filter(Boolean),
+            occurrences: [vKey],
+            frequency: originalWord ? originalWord.frequency : 1,
+            explanations: originalWord ? originalWord.explanations : (wToken.explanation ? [{ verse: vKey, text: wToken.explanation }] : []),
+            sequenceId: `${vKey}-${wIdx}`
+          };
+
+          if (activeWordTypeFilter === 'Ism' && activeIsmSubFilter !== 'all') {
+            if (getIsmSubCategory(vocabItem) !== activeIsmSubFilter) return;
+          }
+
+          resultList.push(vocabItem);
+        });
+      });
+
+      return resultList;
+    }
+
     let list = [...vocabData.vocabList];
 
     // Filter by selected verses or ayah range
@@ -317,6 +461,11 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
     // Filter by parts of speech
     if (activeWordTypeFilter !== 'all') {
       list = list.filter(w => w.wordType === activeWordTypeFilter);
+    }
+
+    // Filter by Ism sub-category
+    if (activeWordTypeFilter === 'Ism' && activeIsmSubFilter !== 'all') {
+      list = list.filter(w => getIsmSubCategory(w) === activeIsmSubFilter);
     }
 
     // Filter by word search
@@ -350,7 +499,7 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
     }
 
     return list;
-  }, [vocabData, selectedVerses, useRange, ayahStart, ayahEnd, activeWordTypeFilter, wordSearchText, sortBy]);
+  }, [vocabData, selectedVerses, useRange, ayahStart, ayahEnd, activeWordTypeFilter, activeIsmSubFilter, wordSearchText, sortBy, isGroupedByRoot]);
 
   // Group by roots view
   const rootGroupedMap = useMemo(() => {
@@ -387,13 +536,17 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
   // Stats calculation
   const metrics = useMemo(() => {
     if (!vocabData || filteredWords.length === 0) {
-      return { totalUnique: 0, totalInstances: 0, nouns: 0, verbs: 0, particles: 0, topRoot: 'None' };
+      return { totalUnique: 0, totalInstances: 0, nouns: 0, verbs: 0, particles: 0, ismNouns: 0, ismPronouns: 0, ismAdjectives: 0, ismAdverbs: 0, topRoot: 'None' };
     }
 
     let instances = 0;
     let nouns = 0;
     let verbs = 0;
     let particles = 0;
+    let ismNouns = 0;
+    let ismPronouns = 0;
+    let ismAdjectives = 0;
+    let ismAdverbs = 0;
     const rootCounts: Record<string, number> = {};
 
     filteredWords.forEach(w => {
@@ -413,7 +566,14 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
       }
 
       instances += occurrenceCountInSelection;
-      if (w.wordType === 'Ism') nouns++;
+      if (w.wordType === 'Ism') {
+        nouns++;
+        const subCat = getIsmSubCategory(w);
+        if (subCat === 'Noun') ismNouns++;
+        else if (subCat === 'Pronoun') ismPronouns++;
+        else if (subCat === 'Adjective') ismAdjectives++;
+        else if (subCat === 'Adverb') ismAdverbs++;
+      }
       else if (w.wordType === "Fi'l") verbs++;
       else if (w.wordType === 'Harf') particles++;
 
@@ -437,6 +597,10 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
       nouns,
       verbs,
       particles,
+      ismNouns,
+      ismPronouns,
+      ismAdjectives,
+      ismAdverbs,
       topRoot: maxRoot !== 'None' ? `${maxRoot} (${maxCount}x)` : 'Various'
     };
   }, [vocabData, filteredWords, selectedVerses, useRange, ayahStart, ayahEnd]);
@@ -1013,12 +1177,14 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
 
                 <div className="p-4 border border-current/10 bg-current/5 rounded-xl space-y-1">
                   <p className="text-[10px] font-mono uppercase tracking-wider opacity-50">Lexical Parts of Speech</p>
-                  <div className="flex items-center gap-2 pt-1">
-                    <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded" title="Nouns">N:{metrics.nouns}</span>
-                    <span className="text-xs font-mono font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded" title="Verbs">V:{metrics.verbs}</span>
-                    <span className="text-xs font-mono font-bold text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded" title="Particles">P:{metrics.particles}</span>
+                  <div className="flex items-center gap-1.5 pt-1">
+                    <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded cursor-help" title={`Nouns: ${metrics.ismNouns} | Pronouns: ${metrics.ismPronouns} | Adjectives: ${metrics.ismAdjectives} | Adverbs: ${metrics.ismAdverbs}`}>Ism:{metrics.nouns}</span>
+                    <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded" title="Verbs">Fi'l:{metrics.verbs}</span>
+                    <span className="text-[10px] font-mono font-bold text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded" title="Particles">Harf:{metrics.particles}</span>
                   </div>
-                  <p className="text-[10px] opacity-40 font-mono">Semantic division (Nahw)</p>
+                  <p className="text-[9px] opacity-75 font-mono pt-1 leading-none text-emerald-400/90 font-bold">
+                    Ism: N:{metrics.ismNouns} P:{metrics.ismPronouns} Adj:{metrics.ismAdjectives} Adv:{metrics.ismAdverbs}
+                  </p>
                 </div>
 
                 <div className="p-4 border border-current/10 bg-current/5 rounded-xl space-y-1">
@@ -1030,76 +1196,110 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
               </div>
 
               {/* Filtering Toolbar */}
-              <div className="p-4 border border-current/10 bg-current/5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-                
-                {/* Text Filter */}
-                <div className="relative flex-1">
-                  <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none opacity-40">
-                    <Filter className="w-3.5 h-3.5" />
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Search word, meaning, or root..."
-                    className={`w-full pl-9 pr-6 py-2 rounded-xl border focus:outline-none text-xs ${inputBgClass}`}
-                    value={wordSearchText}
-                    onChange={(e) => setWordSearchText(e.target.value)}
-                  />
-                  {wordSearchText.trim() && (
-                    <button onClick={() => setWordSearchText('')} className="absolute inset-y-0 right-2 flex items-center px-1 opacity-50 hover:opacity-100">
-                      <X className="w-3 h-3" />
-                    </button>
-                  )}
-                </div>
-
-                {/* Filters */}
-                <div className="flex items-center gap-2 flex-wrap text-xs">
-                  {/* Word type toggle */}
-                  <div className={`flex border border-current/10 rounded-lg p-0.5 font-mono text-[10px] ${listBgClass}`}>
-                    {(['all', 'Ism', 'Fi\'l', 'Harf'] as const).map((opt) => (
-                      <button
-                        key={opt}
-                        onClick={() => setActiveWordTypeFilter(opt)}
-                        className={`px-2 py-1 rounded-md capitalize font-bold transition-all ${
-                          activeWordTypeFilter === opt ? 'bg-indigo-500 text-white' : 'opacity-60 hover:opacity-100'
-                        }`}
-                      >
-                        {opt === 'all' ? 'All Classes' : opt}
+              <div className="p-4 border border-current/10 bg-current/5 rounded-2xl flex flex-col gap-3 animate-fadeIn">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  
+                  {/* Text Filter */}
+                  <div className="relative flex-1">
+                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none opacity-40">
+                      <Filter className="w-3.5 h-3.5" />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Search word, meaning, or root..."
+                      className={`w-full pl-9 pr-6 py-2 rounded-xl border focus:outline-none text-xs ${inputBgClass}`}
+                      value={wordSearchText}
+                      onChange={(e) => setWordSearchText(e.target.value)}
+                    />
+                    {wordSearchText.trim() && (
+                      <button onClick={() => setWordSearchText('')} className="absolute inset-y-0 right-2 flex items-center px-1 opacity-50 hover:opacity-100">
+                        <X className="w-3 h-3" />
                       </button>
-                    ))}
+                    )}
                   </div>
 
-                  {/* Grouping mode */}
-                  <button
-                    onClick={() => setIsGroupedByRoot(!isGroupedByRoot)}
-                    className={`px-3 py-1.5 rounded-lg border flex items-center gap-1.5 font-mono text-[10px] uppercase font-black transition-all ${
-                      isGroupedByRoot 
-                        ? 'border-indigo-500/30 bg-indigo-500/10 text-indigo-400' 
-                        : `border-current/10 hover:bg-current/5 opacity-80 ${inputBgClass}`
-                    }`}
-                  >
-                    <Layers className="w-3.5 h-3.5" /> {isGroupedByRoot ? 'By Root keys' : 'By Flat terms'}
-                  </button>
+                  {/* Filters */}
+                  <div className="flex items-center gap-2 flex-wrap text-xs">
+                    {/* Word type toggle */}
+                    <div className={`flex border border-current/10 rounded-lg p-0.5 font-mono text-[10px] ${listBgClass}`}>
+                      {(['all', 'Ism', 'Fi\'l', 'Harf'] as const).map((opt) => (
+                        <button
+                          key={opt}
+                          onClick={() => {
+                            setActiveWordTypeFilter(opt);
+                            setActiveIsmSubFilter('all');
+                          }}
+                          className={`px-2 py-1 rounded-md capitalize font-bold transition-all cursor-pointer ${
+                            activeWordTypeFilter === opt ? 'bg-indigo-500 text-white' : 'opacity-60 hover:opacity-100'
+                          }`}
+                        >
+                          {opt === 'all' ? 'All Classes' : opt}
+                        </button>
+                      ))}
+                    </div>
 
-                  {/* Sorting dropdown */}
-                  <select
-                    className={`p-1.5 rounded-lg border font-mono text-[10px] focus:outline-none ${inputBgClass}`}
-                    value={sortBy}
-                    onChange={(e: any) => setSortBy(e.target.value)}
-                  >
-                    <option value="frequency">Most Frequent</option>
-                    <option value="appearance">Ayah Order</option>
-                    <option value="alphabetical">Alphabetical</option>
-                  </select>
+                    {/* Grouping mode */}
+                    <button
+                      onClick={() => setIsGroupedByRoot(!isGroupedByRoot)}
+                      className={`px-3 py-1.5 rounded-lg border flex items-center gap-1.5 font-mono text-[10px] uppercase font-black transition-all ${
+                        isGroupedByRoot 
+                          ? 'border-indigo-500/30 bg-indigo-500/10 text-indigo-400' 
+                          : `border-current/10 hover:bg-current/5 opacity-80 ${inputBgClass}`
+                      }`}
+                    >
+                      <Layers className="w-3.5 h-3.5" /> {isGroupedByRoot ? 'By Root' : 'By flat terms'}
+                    </button>
 
-                  {/* Force Refresh Button */}
-                  <button
-                    onClick={() => compileWithGemini(true)}
-                    className="px-2 py-1.5 rounded-lg border border-indigo-500/40 text-indigo-500 hover:bg-indigo-500/10 transition-colors uppercase font-mono text-[10px] font-bold flex items-center gap-1"
-                    title="Invalidate cache and generate a fresh analysis for this Surah"
-                  >
-                    <Sparkles className="w-3.5 h-3.5" /> Force Refresh
-                  </button>
+                    {/* Sorting dropdown */}
+                    <select
+                      className={`p-1.5 rounded-lg border font-mono text-[10px] focus:outline-none ${inputBgClass}`}
+                      value={sortBy}
+                      onChange={(e: any) => setSortBy(e.target.value)}
+                    >
+                      <option value="frequency">Most Frequent</option>
+                      <option value="appearance">Ayah Order</option>
+                      <option value="alphabetical">Alphabetical</option>
+                    </select>
+
+                    {/* Force Refresh Button */}
+                    <button
+                      onClick={() => compileWithGemini(true)}
+                      className="px-2 py-1.5 rounded-lg border border-indigo-500/40 text-indigo-500 hover:bg-indigo-500/10 transition-colors uppercase font-mono text-[10px] font-bold flex items-center gap-1"
+                      title="Invalidate cache and generate a fresh analysis for this Surah"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" /> Force Refresh
+                    </button>
+                  </div>
+
                 </div>
+
+                {/* Sub-class expansion for Ism */}
+                {activeWordTypeFilter === 'Ism' && (
+                  <div className="pt-2.5 border-t border-current/5 flex items-center gap-2 flex-wrap text-xs animate-fadeIn">
+                    <span className="text-[10px] font-mono opacity-50 uppercase tracking-widest">Ism Sub-class:</span>
+                    <div className={`flex border border-current/10 rounded-lg p-0.5 font-mono text-[10px] ${listBgClass}`}>
+                      {[
+                        { id: 'all', label: `All Ism (${metrics.nouns})` },
+                        { id: 'Noun', label: `Noun (${metrics.ismNouns})` },
+                        { id: 'Pronoun', label: `Pronoun (${metrics.ismPronouns})` },
+                        { id: 'Adjective', label: `Adjective (${metrics.ismAdjectives})` },
+                        { id: 'Adverb', label: `Adverb (${metrics.ismAdverbs})` }
+                      ].map((subOpt) => (
+                        <button
+                          key={subOpt.id}
+                          onClick={() => setActiveIsmSubFilter(subOpt.id as any)}
+                          className={`px-2.5 py-1 rounded-md transition-all cursor-pointer font-bold ${
+                            activeIsmSubFilter === subOpt.id 
+                              ? 'bg-emerald-500 text-white shadow-sm' 
+                              : 'opacity-60 hover:opacity-100 text-current'
+                          }`}
+                        >
+                          {subOpt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
               </div>
 
@@ -1132,25 +1332,34 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" dir="rtl" id="vocab-word-grid">
                     {filteredWords.map((word) => {
+                      const itemKey = word.sequenceId || word.word;
                       return (
                         <motion.div
-                          key={word.word}
-                          layoutId={`card-${word.word}`}
+                          key={itemKey}
+                          layoutId={`card-${itemKey}`}
                           onClick={() => handleSelectWord(word)}
                           dir="ltr"
                           className="p-4 border border-current/10 bg-current/5 hover:border-indigo-500/30 rounded-xl flex flex-col justify-between shadow-sm cursor-pointer hover:shadow-md transition-all transform hover:-translate-y-0.5 group text-left"
                         >
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded ${
-                              word.wordType === 'Ism' ? 'bg-emerald-500/15 text-emerald-400' :
-                              word.wordType === "Fi'l" ? 'bg-amber-500/15 text-amber-400' :
-                              'bg-indigo-500/15 text-indigo-400'
+                            <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${
+                              word.wordType === 'Ism' 
+                                ? (() => {
+                                    const sub = getIsmSubCategory(word);
+                                    if (sub === 'Pronoun') return 'bg-cyan-500/15 text-cyan-400 border-cyan-500/20';
+                                    if (sub === 'Adjective') return 'bg-rose-500/15 text-rose-400 border-rose-500/20';
+                                    if (sub === 'Adverb') return 'bg-sky-500/15 text-sky-400 border-sky-500/20';
+                                    return 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20';
+                                  })()
+                                : word.wordType === "Fi'l" 
+                                  ? 'bg-amber-500/15 text-amber-400 border-amber-500/20' 
+                                  : 'bg-indigo-500/15 text-indigo-400 border-indigo-500/20'
                             }`}>
-                              {word.wordType === 'Ism' ? 'Noun' : word.wordType === "Fi'l" ? 'Verb' : 'Particle'}
+                              {word.wordType === 'Ism' ? `Ism (${getIsmSubCategory(word)})` : word.wordType === "Fi'l" ? 'Fi\'l (Verb)' : 'Harf (Particle)'}
                             </span>
-                            <span className="text-[10px] font-mono text-xs opacity-50">
-                              {word.frequency}x in Surah
+                            <span className="text-[10px] font-mono text-xs opacity-50 font-bold">
+                              {word.sequenceId ? `Verse ${word.occurrences[0]}` : `${word.frequency}x in Surah`}
                             </span>
                           </div>
 
@@ -1207,8 +1416,25 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
                               onClick={() => handleSelectWord(word)}
                               className={`p-3 border border-current/5 rounded-lg flex items-center justify-between cursor-pointer group hover:border-indigo-500/20 transition-all ${solidBgHoverClass}`}
                             >
-                              <div className="space-y-0.5">
-                                <p className="text-sm font-mono font-black">{word.transliteration}</p>
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <p className="text-sm font-mono font-black">{word.transliteration}</p>
+                                  <span className={`text-[8px] font-mono font-bold px-1 py-0.2 rounded border ${
+                                    word.wordType === 'Ism' 
+                                      ? (() => {
+                                          const sub = getIsmSubCategory(word);
+                                          if (sub === 'Pronoun') return 'bg-cyan-500/15 text-cyan-400 border-cyan-500/20';
+                                          if (sub === 'Adjective') return 'bg-rose-500/15 text-rose-400 border-rose-500/20';
+                                          if (sub === 'Adverb') return 'bg-sky-500/15 text-sky-400 border-sky-500/20';
+                                          return 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20';
+                                        })()
+                                      : word.wordType === "Fi'l" 
+                                        ? 'bg-amber-500/15 text-amber-400 border-amber-500/20' 
+                                        : 'bg-indigo-500/15 text-indigo-400 border-indigo-500/20'
+                                  }`}>
+                                    {word.wordType === 'Ism' ? getIsmSubCategory(word) : word.wordType === "Fi'l" ? 'Verb' : 'Particle'}
+                                  </span>
+                                </div>
                                 <p className="text-[11px] opacity-60 line-clamp-1 italic">{word.meanings[0]}</p>
                               </div>
                               <div className="text-right flex flex-col items-end gap-1">
@@ -1246,12 +1472,25 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
               <div className="p-4 sm:p-6 border-b border-current/10 bg-current/5 relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
                 <div className="space-y-1 sm:space-y-1.5 flex-1 pr-8 sm:pr-6">
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded ${
-                      activeDetailWord.wordType === 'Ism' ? 'bg-emerald-500/20 text-emerald-400' :
-                      activeDetailWord.wordType === "Fi'l" ? 'bg-amber-500/20 text-amber-400' :
-                      'bg-indigo-500/20 text-indigo-400'
+                    <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border ${
+                      activeDetailWord.wordType === 'Ism' 
+                        ? (() => {
+                            const sub = getIsmSubCategory(activeDetailWord);
+                            if (sub === 'Pronoun') return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30';
+                            if (sub === 'Adjective') return 'bg-rose-500/20 text-rose-400 border-rose-500/30';
+                            if (sub === 'Adverb') return 'bg-sky-500/20 text-sky-400 border-sky-500/30';
+                            return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+                          })()
+                        : activeDetailWord.wordType === "Fi'l" 
+                          ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' 
+                          : 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30'
                     }`}>
-                      {activeDetailWord.wordType === 'Ism' ? 'Ism (Noun)' : activeDetailWord.wordType === "Fi'l" ? 'Fi\'l (Verb)' : 'Harf (Particle)'}
+                      {activeDetailWord.wordType === 'Ism' 
+                        ? `Ism (${getIsmSubCategory(activeDetailWord)})` 
+                        : activeDetailWord.wordType === "Fi'l" 
+                          ? 'Fi\'l (Verb)' 
+                          : 'Harf (Particle)'
+                      }
                     </span>
                     {activeDetailWord.isIsmFail && (
                       <span className="text-[10px] font-mono font-bold bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded flex items-center gap-1">
@@ -1335,7 +1574,13 @@ export default function SurahVocabularyMaps({ theme }: SurahVocabularyMapsProps)
                       </div>
                       <div className="p-3 border border-current/10 rounded-xl bg-current/5">
                         <span className="text-[10px] sm:text-xs font-mono opacity-50 uppercase tracking-widest block leading-none mb-1">Functional Class</span>
-                        <span className="text-xs sm:text-sm font-mono font-bold capitalize text-indigo-300">{activeDetailWord.wordType === 'Ism' ? 'Noun / Substantive' : activeDetailWord.wordType === "Fi'l" ? 'Verb Conjugation' : 'Conjunction / Particle'}</span>
+                        <span className="text-xs sm:text-sm font-mono font-bold capitalize text-indigo-300">
+                          {activeDetailWord.wordType === 'Ism' 
+                            ? `Ism (${getIsmSubCategory(activeDetailWord)})` 
+                            : activeDetailWord.wordType === "Fi'l" 
+                              ? 'Fi\'l (Verb Conjugation)' 
+                              : 'Harf (Conjunction / Particle)'}
+                        </span>
                       </div>
                       <div className="p-3 border border-current/10 rounded-xl bg-current/5">
                         <span className="text-[10px] sm:text-xs font-mono opacity-50 uppercase tracking-widest block leading-none mb-1">Surah Occurrences</span>

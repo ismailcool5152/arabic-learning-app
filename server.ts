@@ -1235,10 +1235,26 @@ async function getOrCompileSurahVocab(
     }
   }
 
-  // Filter to find the verses that are actually missing (unloaded)
-  let versesToCompile = targetVerses.filter(v => !cachedData.verses[v.toString()]);
+  // Filter to find the verses that are actually missing (unloaded) or are placeholders
+  let versesToCompile = targetVerses.filter(v => {
+    const verseData = cachedData.verses[v.toString()];
+    if (!verseData) return true;
+    
+    // Check if it's a placeholder pending full compilation
+    if (verseData.fullVerseTranslation && verseData.fullVerseTranslation.includes("pending full compilation")) {
+      return true;
+    }
+    
+    // Check if it has a placeholder explanation in words
+    if (!verseData.words || verseData.words.length === 0 || 
+        (verseData.words[0] && verseData.words[0].explanation && verseData.words[0].explanation.includes("Placeholder"))) {
+      return true;
+    }
+    
+    return false;
+  });
 
-  // If forceRefresh is requested but there are no missing verses, re-compile the target list
+  // If forceRefresh is requested but there are no missing/placeholder verses, re-compile the target list
   if (versesToCompile.length === 0 && forceRefresh && targetVerses.length > 0) {
     versesToCompile = targetVerses;
   }
@@ -1459,7 +1475,8 @@ Ensure the output is valid, structured JSON representing the specified schema.
     surahNumber: cachedData.surahNumber || sNum,
     isPlaceholder: totalVersesInDb < totalVerses,
     totalVersesInDb,
-    vocabList: Object.values(wordsMap)
+    vocabList: Object.values(wordsMap),
+    verses: versesMap
   };
 
   // Robust Offline Fallback: Check if we have the file on disk first
@@ -1523,7 +1540,8 @@ Ensure the output is valid, structured JSON representing the specified schema.
         totalVersesInDb,
         vocabList: Object.values(wordsMap),
         isOfflineFallback: true,
-        offlineFallbackNotice: "Resident cached file used. Set up your Gemini API key under Settings to dynamically compile this Surah."
+        offlineFallbackNotice: "Resident cached file used. Set up your Gemini API key under Settings to dynamically compile this Surah.",
+        verses: versesMap
       };
     }
   } catch (e) {
